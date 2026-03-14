@@ -3856,14 +3856,8 @@ function loadCCSSStandards() {
         fetch(CCSS_MATH_URL).then(function(r) { return r.text(); }),
         fetch(CCSS_ELA_URL).then(function(r) { return r.text(); })
     ]).then(function(results) {
-        console.log('[CCSS] Math CSV length:', results[0].length, '  ELA CSV length:', results[1].length);
-        console.log('[CCSS] ELA preview:', results[1].substring(0, 150));
         parseAndAdd(results[0], 'Math');
         parseAndAdd(results[1], 'ELA');
-        var mathCount = ccssStandards.filter(function(s){return s.subject==='Math';}).length;
-        var elaCount  = ccssStandards.filter(function(s){return s.subject==='ELA';}).length;
-        console.log('[CCSS] loaded Math:', mathCount, '  ELA:', elaCount);
-        if (elaCount > 0) console.log('[CCSS] ELA sample:', ccssStandards.find(function(s){return s.subject==='ELA';}));
         var dl = document.getElementById('ccss-datalist');
         if (dl) populateCCSSDatalist(dl);
     }).catch(function(e) { console.warn('[CCSS] load failed:', e); });
