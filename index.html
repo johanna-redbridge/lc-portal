@@ -3824,6 +3824,7 @@ function avSearchToggle() {
 
 // ── CCSS Standards ────────────────────────────────────────────────────────────
 var CCSS_MATH_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJu44dkOHDeEZ_0mCnUvrsXw6REn-QtMdNlPXTLtvOSRlb3m2ZucvTPYBydIyg2iX228rBlexlvXzO/pub?gid=574178934&single=true&output=csv';
+var CCSS_ELA_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSQEUAAw0_pdVuEtuLbnIm7J22-rmZA7L1BFk_oo7icXbiFeETNOLD2isDJXJBh12M0EGmuu7_dpXeC/pub?gid=200969117&single=true&output=csv';
 var ccssStandards = [];
 var creditCCSSMap = {}; // credit title → standard ID
 var avFilterCCSS = '';
@@ -3841,15 +3842,22 @@ function parseCCSSRow(line) {
 }
 
 function loadCCSSStandards() {
-    fetch(CCSS_MATH_URL).then(function(r) { return r.text(); }).then(function(csv) {
+    function parseAndAdd(csv, subj) {
         var lines = csv.split('\n');
         for (var i = 1; i < lines.length; i++) {
             var row = parseCCSSRow(lines[i]);
             if (!row || row.length < 4) continue;
             var id = row[2].trim(), desc = row[3].trim();
             if (!id) continue;
-            ccssStandards.push({ grade: row[0].trim(), domain: row[1].trim(), id: id, description: desc, subject: 'Math' });
+            ccssStandards.push({ grade: row[0].trim(), domain: row[1].trim(), id: id, description: desc, subject: subj });
         }
+    }
+    Promise.all([
+        fetch(CCSS_MATH_URL).then(function(r) { return r.text(); }),
+        fetch(CCSS_ELA_URL).then(function(r) { return r.text(); })
+    ]).then(function(results) {
+        parseAndAdd(results[0], 'Math');
+        parseAndAdd(results[1], 'ELA');
         var dl = document.getElementById('ccss-datalist');
         if (dl) populateCCSSDatalist(dl);
     }).catch(function(e) { console.warn('[CCSS] load failed:', e); });
@@ -5584,7 +5592,10 @@ function renderDraftInput() {
     html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.35rem;">Skill to focus on</label>';
     html += '<textarea id="dc-skill" rows="3" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.85rem;font-family:inherit;resize:vertical;box-sizing:border-box;" placeholder="e.g. Skip counting by 3s up to 30" oninput="draftBot.skill=this.value">' + draftBot.skill + '</textarea></div>';
 
-    html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.4rem;">CCSS Standard <span style="font-weight:400;color:#86868b;">(optional)</span></label>';
+    var ccssSubj = draftBot.subject === 'Computation' ? 'Math' : (draftBot.subject === 'Reading' || draftBot.subject === 'Writing') ? 'ELA' : '';
+    if (ccssSubj) {
+    var ccssLabel = ccssSubj === 'Math' ? 'CCSS Math Standard' : 'CCSS ELA Standard';
+    html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.4rem;">' + ccssLabel + ' <span style="font-weight:400;color:#86868b;">(optional)</span></label>';
     // Grade row
     var allGrades = ['K','1','2','3','4','5','6','7','8'];
     html += '<div style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.45rem;">';
@@ -5595,11 +5606,11 @@ function renderDraftInput() {
         html += '<button onclick="draftBot.ccssGrade=\'\';draftBot.ccssDomain=\'\';draftBot.ccss=\'\';renderDraftModal()" style="background:none;border:none;cursor:pointer;color:#86868b;font-size:0.75rem;padding:0.2rem 0.4rem;">&#10005; Clear</button>';
     }
     html += '</div>';
-    // Domain buttons
+    // Domain buttons — filtered by subject
     if (draftBot.ccssGrade) {
         var gradeDomains = [];
         var seenD = {};
-        ccssStandards.forEach(function(s) { if (s.grade === draftBot.ccssGrade && !seenD[s.domain]) { seenD[s.domain] = true; gradeDomains.push(s.domain); } });
+        ccssStandards.forEach(function(s) { if (s.subject === ccssSubj && s.grade === draftBot.ccssGrade && !seenD[s.domain]) { seenD[s.domain] = true; gradeDomains.push(s.domain); } });
         html += '<div style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.45rem;">';
         gradeDomains.forEach(function(d) {
             html += '<button class="toggle-btn' + (draftBot.ccssDomain === d ? ' active' : '') + '" onclick="draftBot.ccssDomain=\'' + d.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\';draftBot.ccss=\'\';renderDraftModal()" style="padding:0.2rem 0.55rem;font-size:0.72rem;">' + d + '</button>';
@@ -5609,9 +5620,9 @@ function renderDraftInput() {
         }
         html += '</div>';
     }
-    // Standards list
+    // Standards list — filtered by subject
     if (draftBot.ccssGrade && draftBot.ccssDomain) {
-        var domainStds = ccssStandards.filter(function(s) { return s.grade === draftBot.ccssGrade && s.domain === draftBot.ccssDomain; });
+        var domainStds = ccssStandards.filter(function(s) { return s.subject === ccssSubj && s.grade === draftBot.ccssGrade && s.domain === draftBot.ccssDomain; });
         html += '<select onchange="draftBot.ccss=this.value;renderDraftModal()" style="width:100%;padding:0.45rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;margin-bottom:0.35rem;">';
         html += '<option value="">Select standard…</option>';
         domainStds.forEach(function(s) {
@@ -5626,6 +5637,7 @@ function renderDraftInput() {
         if (selStd) html += '<div style="background:#f5f5f7;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.78rem;color:#1d1d1f;line-height:1.5;"><strong>' + selStd.id + '</strong> — ' + selStd.description + '</div>';
     }
     html += '</div>';
+    } // end if (ccssSubj)
 
     html += '<div style="display:flex;justify-content:flex-end;">';
     html += '<button class="btn btn-primary" onclick="generateCreditIdeas()">Generate Ideas</button></div>';
