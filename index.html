@@ -5623,7 +5623,7 @@ function renderDraftInput() {
     // Standards list — filtered by subject
     if (draftBot.ccssGrade && draftBot.ccssDomain) {
         var domainStds = ccssStandards.filter(function(s) { return s.subject === ccssSubj && s.grade === draftBot.ccssGrade && s.domain === draftBot.ccssDomain; });
-        html += '<select onchange="draftBot.ccss=this.value;renderDraftModal()" style="width:100%;padding:0.45rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;margin-bottom:0.35rem;">';
+        html += '<select onchange="var v=this.value;draftBot.ccss=v;var std=ccssStandards.find(function(s){return s.id===v;});if(std)draftBot.skill=std.description;renderDraftModal()" style="width:100%;padding:0.45rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;margin-bottom:0.35rem;">';
         html += '<option value="">Select standard…</option>';
         domainStds.forEach(function(s) {
             var preview = s.description.length > 70 ? s.description.substring(0, 70) + '…' : s.description;
