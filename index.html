@@ -897,7 +897,7 @@
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" style="position:fixed;inset:0;background:#f5f5f7;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;">
-    <img src="logo.png" alt="Logo" style="height:128px;width:auto;">
+    <img id="app-logo-login" src="logo.png" alt="Logo" style="height:128px;width:auto;">
     <div style="text-align:center;">
         <h1 style="font-size:3rem;font-weight:700;color:#1d1d1f;margin:0 0 0.35rem;letter-spacing:-0.02em;font-family:'TT Norms Pro',sans-serif;">Learning Credit Portal</h1>
     </div>
@@ -910,7 +910,7 @@
 
 <span style="font-family:'TT Norms Pro';position:absolute;visibility:hidden;pointer-events:none;font-size:0;">a</span>
 <header>
-    <img src="logo.png" alt="Logo" class="header-logo">
+    <img id="app-logo-header" src="https://drive.google.com/thumbnail?id=1-bF7UTdKzEtoby0_ZIW8HtMe0-4n1MgX&sz=w400" alt="Logo" class="header-logo">
     <h1>Learning Credit Portal</h1>
     <nav class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('available')">Available</button>
@@ -2174,6 +2174,7 @@ function fetchUserInfo() {
         if (picEl && info.picture) { picEl.src = info.picture; picEl.style.display = 'block'; }
         document.getElementById('drive-user-info').style.display = 'flex';
         document.getElementById('login-overlay').style.display = 'none';
+        loadAppLogo();
         loadCCSSStandards();
         loadDriveAssets();
         loadCreditDocs();
@@ -2185,6 +2186,7 @@ function fetchUserInfo() {
     .catch(function() {
         document.getElementById('drive-user-info').style.display = 'flex';
         document.getElementById('login-overlay').style.display = 'none';
+        loadAppLogo();
         loadCCSSStandards();
         loadDriveAssets();
         loadCreditDocs();
@@ -2193,6 +2195,16 @@ function fetchUserInfo() {
         loadStudentALFromSheet();
         loadEarnedFromSheet();
     });
+}
+
+var APP_LOGO_FILE_ID = '1-bF7UTdKzEtoby0_ZIW8HtMe0-4n1MgX';
+function loadAppLogo() {
+    fetchDriveBlobUrl(APP_LOGO_FILE_ID).then(function(url) {
+        var l = document.getElementById('app-logo-login');
+        var h = document.getElementById('app-logo-header');
+        if (l) l.src = url;
+        if (h) h.src = url;
+    }).catch(function() {});
 }
 
 // ── Drive assets: badges, templates, font ────────────────────────────────────
@@ -3577,12 +3589,12 @@ function renderStudentTabPicker() {
         var portrait = studentPortraitBlobMap[s.name];
         if (portrait) {
             html += '<div style="width:56px;height:56px;border-radius:50%;margin:0 auto 0.55rem;overflow:hidden;background:#FF8200;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-                  + '<img src="' + portrait + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#fff;font-size:1.4rem;font-weight:700;&quot;>' + (s.name.charAt(0) || '?') + '</span>\'">'
+                  + '<img src="' + portrait + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#fff;font-size:1.4rem;font-weight:700;&quot;>' + (nickName(s.name).charAt(0) || '?') + '</span>\'">'
                   + '</div>';
         } else {
-            html += '<div style="width:56px;height:56px;border-radius:50%;background:#FF8200;color:#fff;font-size:1.4rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 0.55rem;">' + (s.name.charAt(0) || '?') + '</div>';
+            html += '<div style="width:56px;height:56px;border-radius:50%;background:#FF8200;color:#fff;font-size:1.4rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 0.55rem;">' + (nickName(s.name).charAt(0) || '?') + '</div>';
         }
-        html += '<div style="font-weight:600;font-size:0.82rem;line-height:1.2;">' + s.name + '</div>';
+        html += '<div style="font-weight:600;font-size:0.82rem;line-height:1.2;">' + nickName(s.name) + '</div>';
         html += '</div>';
     });
     html += '</div>';
@@ -3612,7 +3624,7 @@ function renderStudentTabLibrary() {
     // Header
     html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.1rem;">';
     html += '<button onclick="history.back();" style="cursor:pointer;background:none;border:none;font-size:1.2rem;color:#86868b;padding:0.2rem 0.4rem;border-radius:6px;" onmouseover="this.style.background=\'#f5f5f7\'" onmouseout="this.style.background=\'none\'">&#8592;</button>';
-    html += '<h2 style="font-size:1.1rem;font-weight:700;margin:0;">' + s.name + '\'s Learning Library</h2>';
+    html += '<h2 style="font-size:1.1rem;font-weight:700;margin:0;">' + nickName(s.name) + '\'s Learning Library</h2>';
     html += '<span style="font-size:0.82rem;color:#86868b;margin-left:0.1rem;">&#127942; ' + earnedIds.size + ' of ' + credits.length + ' earned</span>';
     html += '</div>';
 
