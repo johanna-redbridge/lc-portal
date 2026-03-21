@@ -2825,11 +2825,17 @@ function baseName(name) {
     return name.replace(/\s*\([^)]*\)/, '').trim();
 }
 
+var NAME_ALIASES = {
+    'Skye C.': 'Skye Camilli',
+    'Skye P.': 'Skye Pupius'
+};
+
 // Returns the nickname inside () if present, otherwise the base name
 // e.g. "Isabella (Bella)" → "Bella", "Amari" → "Amari"
 function nickName(name) {
     var m = name.match(/\(([^)]+)\)/);
-    return m ? m[1].trim() : baseName(name);
+    var n = m ? m[1].trim() : baseName(name);
+    return NAME_ALIASES[n] || n;
 }
 
 function subjectTagClass(subject) {
