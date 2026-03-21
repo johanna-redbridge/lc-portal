@@ -892,6 +892,7 @@
         }
     </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=true;if(typeof initGDrive==='function')initGDrive();"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -1077,6 +1078,13 @@
     <div style="background:#fff;border-radius:16px;width:min(860px,95vw);max-height:88vh;overflow-y:auto;padding:2rem;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.18);">
         <button onclick="closeDraftCreditModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#86868b;line-height:1;">&times;</button>
         <div id="draft-credit-modal-body"></div>
+    </div>
+</div>
+
+<div id="mat-credit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:3000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;width:min(920px,96vw);max-height:92vh;overflow-y:auto;padding:2rem;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+        <button onclick="closeMatCreditModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#86868b;line-height:1;">&times;</button>
+        <div id="mat-credit-modal-body"></div>
     </div>
 </div>
 
@@ -5421,7 +5429,7 @@ function renderDrafting() {
     tableEl.insertAdjacentHTML('afterbegin', colgroup);
 
     // Table header
-    var thead = '<tr><th style="white-space:nowrap;">Credit <button onclick="openDraftCreditModal()" style="margin-left:0.5rem;padding:0.15rem 0.55rem;background:#FF8200;color:#fff;border:none;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;vertical-align:middle;line-height:1.4;">+ Draft New</button></th><th>Subject</th><th>Stage</th><th>Person</th><th>Date</th>';
+    var thead = '<tr><th style="white-space:nowrap;">Credit <button onclick="openDraftCreditModal()" style="margin-left:0.5rem;padding:0.15rem 0.55rem;background:#FF8200;color:#fff;border:none;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;vertical-align:middle;line-height:1.4;">+ Draft New</button> <button onclick="openMatCreditModal()" style="margin-left:0.25rem;padding:0.15rem 0.55rem;background:#34aadc;color:#fff;border:none;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;vertical-align:middle;line-height:1.4;">+ Create Material</button></th><th>Subject</th><th>Stage</th><th>Person</th><th>Date</th>';
     for (var si = 0; si < 4; si++) {
         thead += '<th style="text-align:center;line-height:1.15;" title="Step ' + (si+1) + ': ' + draftingStepNames[si] + '">' + draftingStepNames[si] + '<br><span style="font-weight:400;opacity:0.7;font-size:0.55rem;">' + stepTotals[si] + '/' + total + '</span></th>';
     }
@@ -6015,6 +6023,340 @@ async function createCreditDoc(c) {
         draftBot.step = 'ideas';
     }
     renderDraftModal();
+}
+
+// ───────── MATERIAL CREATOR BOT ─────────
+var LEARNING_CREDITS_FOLDER_ID = '1wZab7y4O8Qxxte6qqu7DNwejOzNrGlZP';
+
+var matBot = { step: 'select', creditId: null, docId: null, creditTitle: '', parsedInfo: null, materialHtml: null, feedbackInput: '', wantsBackup: false, backupHtml: null, backupFeedbackInput: '' };
+
+function openMatCreditModal() {
+    matBot = { step: 'select', creditId: null, docId: null, creditTitle: '', parsedInfo: null, materialHtml: null, feedbackInput: '', wantsBackup: false, backupHtml: null, backupFeedbackInput: '' };
+    document.getElementById('mat-credit-modal').style.display = 'flex';
+    renderMatModal();
+}
+
+function closeMatCreditModal() {
+    document.getElementById('mat-credit-modal').style.display = 'none';
+}
+
+function renderMatModal() {
+    var body = document.getElementById('mat-credit-modal-body');
+    if (matBot.step === 'select')            body.innerHTML = renderMatSelect();
+    else if (matBot.step === 'fetching')     body.innerHTML = '<div style="text-align:center;padding:3rem;color:#86868b;">Finding document\u2026</div>';
+    else if (matBot.step === 'info')         body.innerHTML = renderMatInfo();
+    else if (matBot.step === 'generating')   body.innerHTML = '<div style="text-align:center;padding:3rem;color:#86868b;">Generating material\u2026</div>';
+    else if (matBot.step === 'preview')      body.innerHTML = renderMatPreview(false);
+    else if (matBot.step === 'backup-prompt')     body.innerHTML = renderMatBackupPrompt();
+    else if (matBot.step === 'backup-generating') body.innerHTML = '<div style="text-align:center;padding:3rem;color:#86868b;">Generating backup version\u2026</div>';
+    else if (matBot.step === 'backup-preview')    body.innerHTML = renderMatPreview(true);
+    else if (matBot.step === 'inserting')    body.innerHTML = '<div style="text-align:center;padding:3rem;color:#86868b;">Inserting into Google Doc\u2026</div>';
+    else if (matBot.step === 'done')         body.innerHTML = renderMatDone();
+
+    if (matBot.step === 'preview') {
+        var iframe = document.getElementById('mat-preview-iframe');
+        if (iframe) iframe.srcdoc = matBot.materialHtml || '';
+    }
+    if (matBot.step === 'backup-preview') {
+        var iframe = document.getElementById('mat-preview-iframe');
+        if (iframe) iframe.srcdoc = matBot.backupHtml || '';
+    }
+}
+
+function renderMatSelect() {
+    var html = '<h2 style="margin:0 0 1.5rem;font-size:1.2rem;font-weight:700;">Create Student Material</h2>';
+    html += '<p style="font-size:0.85rem;color:#86868b;margin:0 0 1rem;">Select the Learning Credit to create material for:</p>';
+    html += '<div style="display:flex;flex-direction:column;gap:0.35rem;max-height:420px;overflow-y:auto;">';
+    var sorted = credits.slice().sort(function(a, b) { return a.title.localeCompare(b.title); });
+    sorted.forEach(function(c) {
+        var sc = avSubjectColors[c.subject] || { bg: '#86868b', tc: '#fff' };
+        html += '<div onclick="selectMatCredit(\'' + c.id + '\')" style="cursor:pointer;padding:0.6rem 0.85rem;border-radius:8px;background:#f5f5f7;border:1px solid #e8e8ed;display:flex;align-items:center;gap:0.6rem;transition:all 0.15s;" onmouseover="this.style.background=\'#fff3ec\';this.style.borderColor=\'#FF8200\'" onmouseout="this.style.background=\'#f5f5f7\';this.style.borderColor=\'#e8e8ed\'">';
+        html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + sc.bg + ';flex-shrink:0;"></span>';
+        html += '<span style="font-size:0.85rem;font-weight:500;">' + c.title + '</span>';
+        html += '<span style="font-size:0.75rem;color:#86868b;margin-left:auto;">' + c.subject + ' \xb7 ' + c.stage + '</span>';
+        html += '</div>';
+    });
+    html += '</div>';
+    return html;
+}
+
+async function selectMatCredit(creditId) {
+    var credit = credits.find(function(c) { return c.id === creditId; });
+    if (!credit) return;
+    matBot.creditId = creditId;
+    matBot.creditTitle = credit.title;
+    matBot.step = 'fetching';
+    renderMatModal();
+    try {
+        var q = encodeURIComponent("'" + LEARNING_CREDITS_FOLDER_ID + "' in parents and mimeType='application/vnd.google-apps.document' and name contains '" + credit.title.replace(/'/g, "\\'") + "'");
+        var resp = await fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true', {
+            headers: { 'Authorization': 'Bearer ' + gDriveToken }
+        });
+        var data = await resp.json();
+        if (!data.files || data.files.length === 0) {
+            alert('No document found in the Learning Credits folder for "' + credit.title + '".\nExpected name format: fluency credit - ' + credit.subject + ' - ' + credit.stage + ' - ' + credit.title + ' DRAFT');
+            matBot.step = 'select';
+            renderMatModal();
+            return;
+        }
+        matBot.docId = data.files[0].id;
+        var textResp = await fetch('https://www.googleapis.com/drive/v3/files/' + matBot.docId + '/export?mimeType=text/plain', {
+            headers: { 'Authorization': 'Bearer ' + gDriveToken }
+        });
+        var docText = await textResp.text();
+        matBot.parsedInfo = parseMatDocText(docText, credit);
+        matBot.step = 'info';
+    } catch(e) {
+        alert('Error fetching document: ' + e.message);
+        matBot.step = 'select';
+    }
+    renderMatModal();
+}
+
+function parseMatDocText(text, credit) {
+    var info = { creditName: credit.title, subject: credit.subject, stage: credit.stage, skill: '', grouping: '', stepDesc: '', studentMaterials: '', successLooksLike: '', notYetLooksLike: '' };
+    var lines = text.split('\n');
+    var current = '';
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        var ll = line.toLowerCase();
+        if (!line) continue;
+        if (ll.startsWith('learning skill'))           { current = 'skill'; continue; }
+        if (ll.startsWith('grouping / materials') || ll.startsWith('grouping/materials') || ll === 'grouping') { current = 'grouping'; continue; }
+        if (/^step\s*1\b/.test(ll))                    { current = 'stepDesc'; continue; }
+        if (ll === 'success looks like')               { current = 'success'; continue; }
+        if (ll === 'not yet may look like')            { current = 'notyet'; continue; }
+        if (ll.startsWith('practice options') || ll.startsWith('sample digital') || ll.startsWith('artifacts to collect') || ll.startsWith('student-facing')) { current = ''; continue; }
+        if (ll.includes('teacher materials'))          { current = ''; continue; }
+        if (ll.includes('student materials'))          { current = 'studentMat'; continue; }
+
+        if (current === 'skill')      info.skill            += (info.skill      ? '\n' : '') + line;
+        if (current === 'grouping')   info.grouping         += (info.grouping   ? '\n' : '') + line;
+        if (current === 'stepDesc')   info.stepDesc         += (info.stepDesc   ? '\n' : '') + line;
+        if (current === 'success')    info.successLooksLike += (info.successLooksLike ? '\n' : '') + line;
+        if (current === 'notyet')     info.notYetLooksLike  += (info.notYetLooksLike  ? '\n' : '') + line;
+        if (current === 'studentMat') info.studentMaterials += (info.studentMaterials ? '\n' : '') + line;
+    }
+    return info;
+}
+
+function renderMatInfo() {
+    var info = matBot.parsedInfo;
+    var html = '<h2 style="margin:0 0 0.4rem;font-size:1.2rem;font-weight:700;">Confirm Credit Info</h2>';
+    html += '<p style="color:#86868b;font-size:0.8rem;margin:0 0 1.2rem;">Confirm or edit the details from the Google Doc before generating.</p>';
+    function field(label, key, multi) {
+        var v = (info[key] || '').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        if (multi) return '<div style="margin-bottom:0.8rem;"><label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.25rem;">' + label + '</label><textarea rows="3" style="width:100%;padding:0.4rem 0.65rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;resize:vertical;box-sizing:border-box;" oninput="matBot.parsedInfo.' + key + '=this.value">' + v + '</textarea></div>';
+        return '<div style="margin-bottom:0.8rem;"><label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.25rem;">' + label + '</label><input type="text" value="' + v + '" style="width:100%;padding:0.4rem 0.65rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;box-sizing:border-box;" oninput="matBot.parsedInfo.' + key + '=this.value"></div>';
+    }
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">' + field('Subject','subject',false) + field('Stage','stage',false) + '</div>';
+    html += field('Learning Skill','skill',false);
+    html += field('Grouping / Materials','grouping',true);
+    html += field('Step Description','stepDesc',true);
+    html += field('Student Materials Needed','studentMaterials',true);
+    html += field('Success Looks Like','successLooksLike',true);
+    html += field('Not Yet May Look Like','notYetLooksLike',true);
+    html += '<div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:0.5rem;">';
+    html += '<button class="btn btn-secondary" onclick="matBot.step=\'select\';renderMatModal()">Back</button>';
+    html += '<button class="btn btn-primary" onclick="generateMaterial(\'\')">Generate Material</button>';
+    html += '</div>';
+    return html;
+}
+
+var MAT_SYSTEM = 'You are an educational material designer at Red Bridge Learning, a K-8 private school. Create student-facing printable worksheets for "Learning Credit" assessments \u2014 short (~8-10 min) competency-based activities that test genuine conceptual understanding.\n\nDesign principles:\n- Clean, distraction-free layout appropriate for the student\u2019s stage\n- Vary sizes, orientations, and presentations to test understanding, not pattern recognition\n- Age-appropriate sizing for young learners\u2019 motor skills\n- Print-ready on 8.5\u00d711 inch paper\n\nReturn ONLY a complete, self-contained HTML document:\n- All CSS in a <style> block \u2014 no external resources\n- Use @page { size: letter; margin: 0.75in; } and give the body matching padding so it looks good on screen too\n- Use SVG for shapes, dot patterns, grids, or visual elements\n- Include only what the student needs \u2014 no teacher notes';
+
+async function generateMaterial(feedback) {
+    var info = matBot.parsedInfo;
+    matBot.step = 'generating';
+    renderMatModal();
+    var msg = 'Credit: ' + info.creditName + '\nSubject: ' + info.subject + '\nStage: ' + info.stage + '\nSkill: ' + info.skill + '\nGrouping: ' + info.grouping + '\n\nStep Description:\n' + info.stepDesc + '\n\nStudent Materials Needed:\n' + info.studentMaterials + '\n\nSuccess Looks Like:\n' + info.successLooksLike + '\n\nNot Yet May Look Like:\n' + info.notYetLooksLike;
+    if (feedback) msg += '\n\nFeedback to incorporate:\n' + feedback;
+    msg += '\n\nCreate the complete student-facing printed material for this step.';
+    try {
+        matBot.materialHtml = await callClaudeLarge(MAT_SYSTEM, msg);
+        matBot.step = 'preview';
+    } catch(e) { alert('Error: ' + e.message); matBot.step = 'info'; }
+    renderMatModal();
+    if (matBot.step === 'preview') { var fr = document.getElementById('mat-preview-iframe'); if (fr) fr.srcdoc = matBot.materialHtml; }
+}
+
+function renderMatPreview(isBackup) {
+    var html = '<h2 style="margin:0 0 0.4rem;font-size:1.2rem;font-weight:700;">' + (isBackup ? 'Backup Material Preview' : 'Material Preview') + '</h2>';
+    html += '<p style="color:#86868b;font-size:0.8rem;margin:0 0 0.75rem;">' + matBot.parsedInfo.creditName + ' \xb7 ' + matBot.parsedInfo.subject + ' \xb7 ' + matBot.parsedInfo.stage + '</p>';
+    html += '<div style="border:1px solid #e8e8ed;border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#fafafa;">';
+    html += '<iframe id="mat-preview-iframe" style="width:100%;height:560px;border:none;display:block;"></iframe>';
+    html += '</div>';
+    var fbKey = isBackup ? 'backupFeedbackInput' : 'feedbackInput';
+    var fbVal = (isBackup ? matBot.backupFeedbackInput : matBot.feedbackInput).replace(/</g,'&lt;');
+    html += '<p style="font-size:0.84rem;font-weight:600;margin:0 0 0.35rem;">Feedback to refine:</p>';
+    html += '<textarea id="mat-feedback" rows="2" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.85rem;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:0.75rem;" placeholder="e.g. Make boxes bigger, different dot arrangement\u2026" oninput="matBot.' + fbKey + '=this.value">' + fbVal + '</textarea>';
+    html += '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">';
+    if (isBackup) {
+        html += '<button class="btn btn-secondary" onclick="generateBackupMaterial(matBot.backupFeedbackInput)">Regenerate Backup</button>';
+        html += '<button class="btn btn-primary" onclick="matBot.step=\'done\';renderMatModal()">\u2713 Looks Good</button>';
+    } else {
+        html += '<button class="btn btn-secondary" onclick="generateMaterial(matBot.feedbackInput)">Regenerate</button>';
+        html += '<button class="btn btn-primary" onclick="matBot.step=\'backup-prompt\';renderMatModal()">\u2713 Looks Good</button>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function renderMatBackupPrompt() {
+    var html = '<h2 style="margin:0 0 1rem;font-size:1.2rem;font-weight:700;">Create Backup Version?</h2>';
+    html += '<p style="font-size:0.88rem;color:#1d1d1f;margin:0 0 1.5rem;line-height:1.6;">Would you like a second version for students who need another attempt? Same instructions and difficulty, but different specific content.</p>';
+    html += '<div style="display:flex;gap:0.75rem;justify-content:center;">';
+    html += '<button class="btn btn-secondary" onclick="matBot.wantsBackup=false;matBot.step=\'done\';renderMatModal()" style="min-width:120px;">No, skip</button>';
+    html += '<button class="btn btn-primary" onclick="matBot.wantsBackup=true;generateBackupMaterial(\'\');" style="min-width:120px;">Yes, create backup</button>';
+    html += '</div>';
+    return html;
+}
+
+async function generateBackupMaterial(feedback) {
+    matBot.step = 'backup-generating';
+    renderMatModal();
+    var info = matBot.parsedInfo;
+    var msg = 'Credit: ' + info.creditName + '\nSubject: ' + info.subject + '\nStage: ' + info.stage + '\nSkill: ' + info.skill + '\nGrouping: ' + info.grouping + '\n\nStep Description:\n' + info.stepDesc + '\n\nStudent Materials Needed:\n' + info.studentMaterials + '\n\nSuccess Looks Like:\n' + info.successLooksLike + '\n\nNot Yet May Look Like:\n' + info.notYetLooksLike;
+    msg += '\n\nThis is a BACKUP VERSION for students needing a second attempt. Use the SAME format, same number and difficulty of items, same instructions \u2014 but DIFFERENT specific content that does NOT appear in version 1.';
+    msg += '\n\nVersion 1 (for reference \u2014 do NOT reuse any specific numbers, shapes, words, or values):\n' + matBot.materialHtml;
+    if (feedback) msg += '\n\nAdditional feedback:\n' + feedback;
+    try {
+        matBot.backupHtml = await callClaudeLarge(MAT_SYSTEM, msg);
+        matBot.step = 'backup-preview';
+    } catch(e) { alert('Error: ' + e.message); matBot.step = 'backup-prompt'; }
+    renderMatModal();
+    if (matBot.step === 'backup-preview') { var fr = document.getElementById('mat-preview-iframe'); if (fr) fr.srcdoc = matBot.backupHtml; }
+}
+
+function renderMatDone() {
+    var html = '<h2 style="margin:0 0 0.75rem;font-size:1.2rem;font-weight:700;">Material Ready</h2>';
+    html += '<p style="font-size:0.88rem;color:#86868b;margin:0 0 1.5rem;">' + matBot.parsedInfo.creditName + ' \xb7 ' + (matBot.wantsBackup ? '2 versions (original + backup)' : '1 version') + '</p>';
+    html += '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">';
+    html += '<button class="btn btn-secondary" onclick="closeMatCreditModal()">Close</button>';
+    html += '<button class="btn btn-primary" onclick="insertMaterialsIntoDoc()">Insert into Google Doc</button>';
+    html += '</div>';
+    return html;
+}
+
+async function callClaudeLarge(systemPrompt, userMessage) {
+    if (!ANTHROPIC_API_KEY) {
+        var key = prompt('Enter your Anthropic API key to use the drafting assistant.\nIt will be saved in this browser for future use.');
+        if (!key || !key.trim()) throw new Error('No API key provided.');
+        ANTHROPIC_API_KEY = key.trim();
+        localStorage.setItem('anthropic_api_key', ANTHROPIC_API_KEY);
+    }
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 8192, system: systemPrompt, messages: [{ role: 'user', content: userMessage }] })
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text;
+}
+
+async function insertMaterialsIntoDoc() {
+    if (!gDriveToken) { alert('Not signed in to Google Drive.'); return; }
+    matBot.step = 'inserting';
+    renderMatModal();
+    try {
+        var v1Blob = await renderHtmlToBlob(matBot.materialHtml);
+        var v1File = await uploadPngToDrive(v1Blob, matBot.parsedInfo.creditName + ' Student Material.png');
+        await makeFilePublic(v1File.id);
+
+        var v2File = null;
+        if (matBot.backupHtml) {
+            var v2Blob = await renderHtmlToBlob(matBot.backupHtml);
+            v2File = await uploadPngToDrive(v2Blob, matBot.parsedInfo.creditName + ' Student Material (further attempts).png');
+            await makeFilePublic(v2File.id);
+        }
+
+        // Insert version 1
+        var doc1 = await fetchDocStructure(matBot.docId);
+        var idx1 = doc1.body.content[doc1.body.content.length - 1].endIndex - 1;
+        await docsInsert(matBot.docId, buildInsertRequests(idx1, matBot.parsedInfo.creditName + ' Student Material', v1File.id));
+
+        // Insert version 2 (re-fetch updated doc for new index)
+        if (v2File) {
+            var doc2 = await fetchDocStructure(matBot.docId);
+            var idx2 = doc2.body.content[doc2.body.content.length - 1].endIndex - 1;
+            await docsInsert(matBot.docId, buildInsertRequests(idx2, matBot.parsedInfo.creditName + ' Student Material (further attempts)', v2File.id));
+        }
+
+        var body = document.getElementById('mat-credit-modal-body');
+        body.innerHTML = '<h2 style="margin:0 0 0.75rem;font-size:1.2rem;font-weight:700;">Done!</h2>'
+            + '<p style="margin:0 0 1.25rem;"><a href="https://docs.google.com/document/d/' + matBot.docId + '/edit" target="_blank" style="color:#FF8200;font-weight:600;font-size:0.95rem;">Open Google Doc \u2192</a></p>'
+            + '<p style="font-size:0.85rem;color:#86868b;margin:0 0 1.25rem;">Material' + (v2File ? 's have' : ' has') + ' been inserted into the document.</p>'
+            + '<button class="btn btn-secondary" onclick="closeMatCreditModal()">Close</button>';
+    } catch(e) {
+        alert('Error inserting into doc: ' + e.message);
+        matBot.step = 'done';
+        renderMatModal();
+    }
+}
+
+function fetchDocStructure(docId) {
+    return fetch('https://docs.googleapis.com/v1/documents/' + docId, {
+        headers: { 'Authorization': 'Bearer ' + gDriveToken }
+    }).then(function(r) { return r.json(); });
+}
+
+function docsInsert(docId, requests) {
+    return fetch('https://docs.googleapis.com/v1/documents/' + docId + ':batchUpdate', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + gDriveToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: requests })
+    });
+}
+
+function buildInsertRequests(lastIdx, headingText, fileId) {
+    var heading = headingText + '\n';
+    var hStart = lastIdx + 1;
+    var hEnd = hStart + heading.length;
+    return [
+        { insertPageBreak: { location: { index: lastIdx } } },
+        { insertText: { location: { index: hStart }, text: heading } },
+        { updateParagraphStyle: { range: { startIndex: hStart, endIndex: hEnd }, paragraphStyle: { namedStyleType: 'HEADING_1' }, fields: 'namedStyleType' } },
+        { insertInlineImage: { location: { index: hEnd }, uri: 'https://drive.google.com/uc?id=' + fileId, objectSize: { height: { magnitude: 648, unit: 'PT' }, width: { magnitude: 468, unit: 'PT' } } } }
+    ];
+}
+
+function makeFilePublic(fileId) {
+    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + gDriveToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'reader', type: 'anyone' })
+    });
+}
+
+async function uploadPngToDrive(blob, filename) {
+    var meta = JSON.stringify({ name: filename, parents: [LEARNING_CREDITS_FOLDER_ID] });
+    var form = new FormData();
+    form.append('metadata', new Blob([meta], { type: 'application/json' }));
+    form.append('file', blob);
+    var resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + gDriveToken }, body: form
+    });
+    return resp.json();
+}
+
+function renderHtmlToBlob(html) {
+    return new Promise(function(resolve, reject) {
+        var iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:816px;height:1056px;border:none;visibility:hidden;';
+        document.body.appendChild(iframe);
+        iframe.addEventListener('load', function() {
+            setTimeout(function() {
+                html2canvas(iframe.contentDocument.documentElement, {
+                    scale: 2, width: 816, height: 1056, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', windowWidth: 816, windowHeight: 1056
+                }).then(function(canvas) {
+                    document.body.removeChild(iframe);
+                    canvas.toBlob(function(blob) { resolve(blob); }, 'image/png');
+                }).catch(function(e) { try { document.body.removeChild(iframe); } catch(x) {} reject(e); });
+            }, 300);
+        });
+        iframe.srcdoc = html;
+    });
 }
 
 </script>
