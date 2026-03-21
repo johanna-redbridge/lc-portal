@@ -3583,6 +3583,7 @@ var studentTabStudentId = '';
 var studentTabSubjectFilter = 'all';
 var studentTabSearch = '';
 var studentTabAutonomyFilter = 'all';
+var studentTabStageFilter = 'all';
 
 function renderStudentTab() {
     var el = document.getElementById('student-tab-content');
@@ -3598,8 +3599,8 @@ function renderStudentTabPicker() {
     var el = document.getElementById('student-tab-content');
     if (!el) return;
 
-    // Filter bar: autonomy toggles on left, search on right
-    var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;">';
+    // Filter bar row 1: autonomy toggles on left, search on right
+    var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;flex-wrap:nowrap;">';
     html += '<div class="toggle-group" style="background:none;padding:0;gap:0;">';
     html += '<button class="toggle-btn' + (studentTabAutonomyFilter === 'all' ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'all\';renderStudentTabPicker()">All</button>';
     autonomyGroups.forEach(function(g) {
@@ -3612,10 +3613,24 @@ function renderStudentTabPicker() {
           + 'style="margin-left:auto;width:160px;padding:0.3rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;outline:none;box-sizing:border-box;" '
           + 'onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#d2d2d7\'">';
     html += '</div>';
+    // Filter bar row 2: stage toggles
+    html += '<div style="display:flex;gap:0.25rem;margin-bottom:1rem;">';
+    html += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTabPicker()">All Stages</button>';
+    stages.forEach(function(st) {
+        html += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTabPicker()">' + st + '</button>';
+    });
+    html += '</div>';
 
     var sorted = students.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
     var filtered = sorted.filter(function(s) {
         if (studentTabAutonomyFilter !== 'all' && studentAutonomyLevel[s.name] !== studentTabAutonomyFilter) return false;
+        if (studentTabStageFilter !== 'all') {
+            var inStage = s.groups.some(function(gid) {
+                var grp = groups.find(function(g) { return g.id === gid; });
+                return grp && grp.stage === studentTabStageFilter;
+            });
+            if (!inStage) return false;
+        }
         var q = studentTabSearch.trim().toLowerCase();
         if (q && s.name.toLowerCase().indexOf(q) === -1) return false;
         return true;
@@ -3811,7 +3826,7 @@ window.addEventListener('popstate', function(e) { applyNavState(e.state); });
 function switchTab(tab) {
     // Always reset to overview state when clicking a tab button
     if (tab === 'portfolio') { portfolioStudent = null; portfolioSearchQuery = ''; portfolioAutonomyFilter = 'all'; }
-    if (tab === 'student') { studentTabStudentId = ''; studentTabSearch = ''; studentTabAutonomyFilter = 'all'; studentTabSubjectFilter = 'all'; }
+    if (tab === 'student') { studentTabStudentId = ''; studentTabSearch = ''; studentTabAutonomyFilter = 'all'; studentTabSubjectFilter = 'all'; studentTabStageFilter = 'all'; }
     if (tab === 'available') { avFilterSubject = 'all'; avFilterStage = 'all'; avFilterType = 'all'; }
     if (tab === 'earned') {
         earnedAutonomyFilter = 'all'; earnedStudentSearch = ''; earnedCreditSearch = ''; earnedGroupId = '';
