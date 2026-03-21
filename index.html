@@ -3673,22 +3673,22 @@ function renderStudentTabLibrary() {
     html += '<span style="font-size:0.82rem;color:#86868b;margin-left:0.1rem;">&#127942; ' + earnedIds.size + ' of ' + credits.length + ' earned</span>';
     html += '</div>';
 
-    // Subject + Stage filters (styled like draft tab)
-    html += '<div style="display:flex;flex-direction:column;gap:1.1rem;margin-bottom:1.8rem;">';
-    html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.35rem;">Subject</label><div class="toggle-group" style="flex-wrap:wrap;">';
+    // Subject + Stage filters — no labels, side by side
+    html += '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.8rem;">';
+    html += '<div class="toggle-group" style="margin-bottom:0;">';
     html += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()">All</button>';
     usedSubjects.forEach(function(subj) {
         var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
         var active = studentTabSubjectFilter === subj;
         html += '<button class="toggle-btn" onclick="studentTabSubjectFilter=\'' + subj.replace(/'/g, "\\'") + '\';renderStudentTab()" title="' + subj + '" style="' + (active ? 'background:' + sc.bg + ';color:' + (sc.tc || '#fff') + ';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:' + (sc.ic || sc.bg) + ';') + '">' + subjLabel(subj) + '</button>';
     });
-    html += '</div></div>';
-    html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.35rem;">Stage</label><div class="toggle-group" style="flex-wrap:wrap;">';
+    html += '</div>';
+    html += '<div class="toggle-group" style="margin-bottom:0;">';
     html += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()">All Stages</button>';
     stages.forEach(function(st) {
         html += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTab()">' + st + '</button>';
     });
-    html += '</div></div>';
+    html += '</div>';
     html += '</div>';
 
     // Which subjects to render
