@@ -6028,7 +6028,7 @@ async function createCreditDoc(c) {
 // ───────── MATERIAL CREATOR BOT ─────────
 var LEARNING_CREDITS_FOLDER_ID = '1wZab7y4O8Qxxte6qqu7DNwejOzNrGlZP';
 
-var matBot = { step: 'select', creditId: null, docId: null, creditTitle: '', parsedInfo: null, materialHtml: null, feedbackInput: '', wantsBackup: false, backupHtml: null, backupFeedbackInput: '' };
+var matBot = { step: 'select', creditId: null, docId: null, creditTitle: '', parsedInfo: null, materialHtml: null, feedbackInput: '', wantsBackup: false, backupHtml: null, backupFeedbackInput: '', selectSubjectFilter: 'all', selectStageFilter: 'all', selectSearch: '' };
 
 function openMatCreditModal() {
     matBot = { step: 'select', creditId: null, docId: null, creditTitle: '', parsedInfo: null, materialHtml: null, feedbackInput: '', wantsBackup: false, backupHtml: null, backupFeedbackInput: '' };
@@ -6064,11 +6064,50 @@ function renderMatModal() {
 }
 
 function renderMatSelect() {
-    var html = '<h2 style="margin:0 0 1.5rem;font-size:1.2rem;font-weight:700;">Create Student Material</h2>';
-    html += '<p style="font-size:0.85rem;color:#86868b;margin:0 0 1rem;">Select the Learning Credit to create material for:</p>';
-    html += '<div style="display:flex;flex-direction:column;gap:0.35rem;max-height:420px;overflow-y:auto;">';
+    var sf = matBot.selectSubjectFilter || 'all';
+    var stf = matBot.selectStageFilter || 'all';
+    var sq = matBot.selectSearch || '';
+
+    var html = '<h2 style="margin:0 0 1.2rem;font-size:1.2rem;font-weight:700;">Create Student Material</h2>';
+
+    // Subject filter
+    html += '<div style="margin-bottom:0.6rem;"><div class="toggle-group" style="flex-wrap:wrap;">';
+    html += '<button class="toggle-btn' + (sf==='all'?' active':'') + '" onclick="matBot.selectSubjectFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">All</button>';
+    var usedSubjs = [];
+    credits.forEach(function(c) { if (usedSubjs.indexOf(c.subject) === -1) usedSubjs.push(c.subject); });
+    usedSubjs.sort(function(a,b){ return (subjects.indexOf(a)||99)-(subjects.indexOf(b)||99); });
+    usedSubjs.forEach(function(s) {
+        var sc = avSubjectColors[s] || { bg:'#86868b', ic:'#86868b', tc:'#fff' };
+        var active = sf === s;
+        html += '<button class="toggle-btn" onclick="matBot.selectSubjectFilter=\'' + s.replace(/'/g,"\\'") + '\';renderMatModal()" style="padding:0.3rem 0.6rem;' + (active ? 'background:'+sc.bg+';color:'+(sc.tc||'#fff')+';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:'+(sc.ic||sc.bg)+';') + '">' + subjLabel(s) + '</button>';
+    });
+    html += '</div></div>';
+
+    // Stage filter
+    html += '<div style="margin-bottom:0.75rem;"><div class="toggle-group" style="flex-wrap:wrap;">';
+    html += '<button class="toggle-btn' + (stf==='all'?' active':'') + '" onclick="matBot.selectStageFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">All Stages</button>';
+    stages.forEach(function(st) {
+        html += '<button class="toggle-btn' + (stf===st?' active':'') + '" onclick="matBot.selectStageFilter=\'' + st + '\';renderMatModal()" style="padding:0.3rem 0.6rem;">' + st + '</button>';
+    });
+    html += '</div></div>';
+
+    // Search
+    html += '<input id="mat-select-search" type="text" placeholder="Search by name\u2026" value="' + sq.replace(/"/g,'&quot;') + '" oninput="matBot.selectSearch=this.value;renderMatModal();" style="width:100%;padding:0.4rem 0.8rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.82rem;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:0.75rem;" onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#d2d2d7\'">';
+
+    // Filtered list
     var sorted = credits.slice().sort(function(a, b) { return a.title.localeCompare(b.title); });
-    sorted.forEach(function(c) {
+    var filtered = sorted.filter(function(c) {
+        if (sf !== 'all' && c.subject !== sf) return false;
+        if (stf !== 'all' && c.stage !== stf) return false;
+        if (sq.trim() && c.title.toLowerCase().indexOf(sq.trim().toLowerCase()) === -1) return false;
+        return true;
+    });
+
+    html += '<div style="display:flex;flex-direction:column;gap:0.35rem;max-height:320px;overflow-y:auto;">';
+    if (!filtered.length) {
+        html += '<p style="text-align:center;color:#86868b;font-size:0.85rem;padding:1rem 0;">No credits match your filters.</p>';
+    }
+    filtered.forEach(function(c) {
         var sc = avSubjectColors[c.subject] || { bg: '#86868b', tc: '#fff' };
         html += '<div onclick="selectMatCredit(\'' + c.id + '\')" style="cursor:pointer;padding:0.6rem 0.85rem;border-radius:8px;background:#f5f5f7;border:1px solid #e8e8ed;display:flex;align-items:center;gap:0.6rem;transition:all 0.15s;" onmouseover="this.style.background=\'#fff3ec\';this.style.borderColor=\'#FF8200\'" onmouseout="this.style.background=\'#f5f5f7\';this.style.borderColor=\'#e8e8ed\'">';
         html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + sc.bg + ';flex-shrink:0;"></span>';
@@ -6077,6 +6116,7 @@ function renderMatSelect() {
         html += '</div>';
     });
     html += '</div>';
+
     return html;
 }
 
