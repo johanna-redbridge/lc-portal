@@ -1146,7 +1146,7 @@ const groups = [
 ];
 
 const G = ['gc1','gc2','gc3','gc4','gc5','gc6','gc7','gc8','gr1','gr2','gr3','gr4','gr5','gr6','gr7','gw1','gw2','gw3','gw4','gw5','gw6','gw7','go1','go2','go3','go4','gt1','gt2','gt3','gt4'];
-const credits = [
+let credits = [
     { id: 'c1', title: 'Breezy Buddy', subject: 'Character Habits', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1AcS0uk1fvEkbnKGw8PynqxvvHMY2Uq2ZIi3w5ZV3Bt8/edit?usp=drive_link' },
     { id: 'c2', title: 'Nuance Noticer', subject: 'Character Habits', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1vnnf00fbhJsUkoWTj6pxEFvbL3F0lNl4sG55M2RNGe8/edit?tab=t.0' },
     { id: 'c3', title: 'The Thoughtful Communicator', subject: 'Character Habits', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1hz3k_ljTx69yozbmPdAEBMLoeeZh27urzdODa4PgprU/edit?usp=drive_link' },
@@ -2095,6 +2095,7 @@ var DRIVE_ROOT_FOLDER_ID = '0AJ3pqoieRlBaUk9PVA';
 var DRIVE_BADGES_FOLDER_ID = '13Vyr1pYAiJQdzj7wn4hx1UI4mYWo4ocY';
 var DRIVE_ASSETS_FOLDER_ID = '1v50i9vfsRR34QdAjrDqEryjXV1a_gTKL';
 var EARNED_SHEET_ID = '1JlNwaFByESyUtDx5ycx-0_bT5CCcw3vTlOnb6nm9-gw';
+var CREDITS_SHEET_ID = '1KDqP-nhcoTfeVqLNDX_UkY9WNgNV1m-9dXvaT2pFxCY';
 
 // Drive asset maps — populated by loadDriveAssets() after sign-in
 var driveBadgeSingleIds     = {}; // normDrive(title) → fileId
@@ -2228,6 +2229,7 @@ function fetchUserInfo() {
         loadStudentPortraits();
         loadStudentALFromSheet();
         loadEarnedFromSheet();
+        loadCreditsFromSheet();
     })
     .catch(function() {
         document.getElementById('drive-user-info').style.display = 'flex';
@@ -2240,6 +2242,7 @@ function fetchUserInfo() {
         loadStudentPortraits();
         loadStudentALFromSheet();
         loadEarnedFromSheet();
+        loadCreditsFromSheet();
     });
 }
 
@@ -2680,6 +2683,32 @@ function loadEarnedFromSheet() {
         processEarnedSheetData(best.rows, best.colMap, best.headerRow);
     })
     .catch(function(e) { console.warn('Could not load earned sheet:', e); });
+}
+
+async function loadCreditsFromSheet() {
+    if (!gDriveToken) return;
+    try {
+        var resp = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CREDITS_SHEET_ID + '/values/A2:G', {
+            headers: { 'Authorization': 'Bearer ' + gDriveToken }
+        });
+        var data = await resp.json();
+        var rows = data.values || [];
+        credits.length = 0;
+        rows.forEach(function(row, i) {
+            var title   = (row[0] || '').trim();
+            var link    = (row[1] || '').trim();
+            var subject = (row[4] || '').trim();
+            var type    = (row[5] || '').trim().toLowerCase();
+            var stage   = (row[6] || '').trim();
+            if (!title) return;
+            var docId = (link.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1] || ('cs' + i);
+            credits.push({ id: docId, title: title, subject: subject, type: type, stage: stage, groups: G, link: link });
+        });
+        console.log('[Credits] loaded ' + credits.length + ' credits from sheet');
+        if (typeof renderAvailable === 'function') renderAvailable();
+        if (typeof renderEarnedCredits === 'function') renderEarnedCredits();
+        if (typeof renderStudentTab === 'function') renderStudentTab();
+    } catch(e) { console.warn('[Credits] load failed:', e); }
 }
 
 function buildSheetColMap(headerRow, lookup) {
