@@ -6332,12 +6332,24 @@ async function insertMaterialsIntoDoc() {
             await makeFilePublic(v2File.id);
         }
 
-        // Insert version 1
+        // Insert version 1 after the existing "Student Materials" heading
         var doc1 = await fetchDocStructure(matBot.docId);
-        var idx1 = doc1.body.content[doc1.body.content.length - 1].endIndex - 1;
-        await docsInsert(matBot.docId, buildInsertRequests(idx1, matBot.parsedInfo.creditName + ' Student Material', v1File.id));
+        var headingIdx = findMatHeadingIndex(doc1.body.content);
+        if (headingIdx > 0) {
+            await docsInsert(matBot.docId, [{
+                insertInlineImage: {
+                    location: { index: headingIdx },
+                    uri: 'https://drive.google.com/uc?id=' + v1File.id,
+                    objectSize: { height: { magnitude: 648, unit: 'PT' }, width: { magnitude: 468, unit: 'PT' } }
+                }
+            }]);
+        } else {
+            // Fallback: append at end
+            var idx1 = doc1.body.content[doc1.body.content.length - 1].endIndex - 1;
+            await docsInsert(matBot.docId, buildInsertRequests(idx1, matBot.parsedInfo.creditName + ' Student Material', v1File.id));
+        }
 
-        // Insert version 2 (re-fetch updated doc for new index)
+        // Insert version 2 at end with new heading (re-fetch updated doc)
         if (v2File) {
             var doc2 = await fetchDocStructure(matBot.docId);
             var idx2 = doc2.body.content[doc2.body.content.length - 1].endIndex - 1;
@@ -6354,6 +6366,21 @@ async function insertMaterialsIntoDoc() {
         matBot.step = 'done';
         renderMatModal();
     }
+}
+
+function findMatHeadingIndex(docContent) {
+    // Find the paragraph containing "Student Materials" (but not "further attempts" or "teacher")
+    for (var i = 0; i < docContent.length; i++) {
+        var el = docContent[i];
+        if (!el.paragraph) continue;
+        var text = (el.paragraph.elements || []).map(function(pe) {
+            return pe.textRun ? pe.textRun.content : '';
+        }).join('').trim().toLowerCase();
+        if (text.includes('student materials') && !text.includes('further attempts') && !text.includes('teacher')) {
+            return el.endIndex; // Insert right after this heading paragraph
+        }
+    }
+    return -1;
 }
 
 function fetchDocStructure(docId) {
