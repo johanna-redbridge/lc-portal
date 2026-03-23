@@ -2735,7 +2735,9 @@ function showLoginError(msg) {
 function findDriveFolder(studentName) {
     if (!studentName) return Promise.reject(new Error('Student name not found'));
     if (driveFolderCache[studentName]) return Promise.resolve(driveFolderCache[studentName]);
-    var q = "name contains '" + studentName.replace(/'/g, "\\'") + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+    // Use first name only so "Bodhi T." still matches a folder named "Bodhi" or "Bodhi Taheri"
+    var firstName = baseName(studentName).split(' ')[0];
+    var q = "name contains '" + firstName.replace(/'/g, "\\'") + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
     return fetch('https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id,name)&corpora=drive&driveId=' + DRIVE_ROOT_FOLDER_ID + '&supportsAllDrives=true&includeItemsFromAllDrives=true', {
         headers: { 'Authorization': 'Bearer ' + gDriveToken }
     })
