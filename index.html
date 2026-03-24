@@ -2691,7 +2691,11 @@ async function loadCreditsFromSheet() {
         });
         var data = await resp.json();
         var rows = data.values || [];
-        credits.length = 0;
+        // Build a set of existing titles so we only ADD new credits, not replace existing ones.
+        // Existing hardcoded credits keep their 'c1'/'c2' IDs so earned records keep matching.
+        var existingTitles = {};
+        credits.forEach(function(c) { existingTitles[c.title.toLowerCase().trim()] = true; });
+        var added = 0;
         rows.forEach(function(row, i) {
             var title   = (row[0] || '').trim();
             var link    = (row[1] || '').trim();
@@ -2699,10 +2703,12 @@ async function loadCreditsFromSheet() {
             var type    = (row[5] || '').trim().toLowerCase();
             var stage   = (row[6] || '').trim();
             if (!title) return;
+            if (existingTitles[title.toLowerCase()]) return; // already in hardcoded list
             var docId = (link.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1] || ('cs' + i);
             credits.push({ id: docId, title: title, subject: subject, type: type, stage: stage, groups: G, link: link });
+            added++;
         });
-        console.log('[Credits] loaded ' + credits.length + ' credits from sheet');
+        console.log('[Credits] added ' + added + ' new credits from sheet, total: ' + credits.length);
         if (typeof renderAvailable === 'function') renderAvailable();
     } catch(e) { console.warn('[Credits] load failed:', e); }
     // Always load earned AFTER credits are finalized so buildCreditLookup() uses the right IDs
