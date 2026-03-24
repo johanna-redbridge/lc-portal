@@ -2186,18 +2186,27 @@ function loadCreditDocs() {
             if (!data.files || !data.files.length) return;
             var subjectCredits = credits.filter(function(c) { return c.subject === subject; });
             data.files.forEach(function(f) {
-                var docNorm = sheetNorm(f.name);
-                if (!docNorm) return;
-                // Match doc filename to a credit title using exact then substring
+                var rawName = f.name;
+                // Docs are named: "fluency credit - subject - stage - Title"
+                // Strip the prefix parts to isolate the credit title for matching
+                var titleForMatch = rawName.replace(/^(fluency|concept)\s+credit\s*-\s*/i, '')  // remove type prefix
+                                           .replace(/^[^-]+-\s*/g, function(m) { return ''; })   // remove subject and stage parts
+                                           .trim();
+                // Fallback: use full name if stripping left nothing useful
+                if (!titleForMatch || titleForMatch.length < 2) titleForMatch = rawName;
+                var docNorm = sheetNorm(titleForMatch);
+                var docNormFull = sheetNorm(rawName);
+                if (!docNorm && !docNormFull) return;
+                // Match: exact on stripped title, then exact on full name, then substring
                 var matched = null;
                 for (var i = 0; i < subjectCredits.length; i++) {
                     var cn = sheetNorm(subjectCredits[i].title);
-                    if (cn === docNorm) { matched = subjectCredits[i]; break; }
+                    if (cn && (cn === docNorm || cn === docNormFull)) { matched = subjectCredits[i]; break; }
                 }
                 if (!matched) {
                     for (var i = 0; i < subjectCredits.length; i++) {
                         var cn = sheetNorm(subjectCredits[i].title);
-                        if (cn && (cn.indexOf(docNorm) !== -1 || docNorm.indexOf(cn) !== -1)) {
+                        if (cn && (docNorm.indexOf(cn) !== -1 || docNormFull.indexOf(cn) !== -1 || cn.indexOf(docNorm) !== -1)) {
                             matched = subjectCredits[i]; break;
                         }
                     }
@@ -2536,7 +2545,7 @@ function buildCreditsAndEarned(rows, headerRow) {
         credits = newCredits;
         console.log('[Sheet] loaded ' + credits.length + ' credits from earned sheet');
         enhanceCreditsWithMetadata();
-
+        loadCreditDocs();
         if (typeof renderAvailable === 'function') renderAvailable();
     }
 
@@ -3974,10 +3983,11 @@ function renderAvailable() {
     document.getElementById('av-type-btns').innerHTML = typeHtml;
 
     var html = '<table style="table-layout:fixed;width:100%;">';
-    html += '<colgroup><col style="width:36px"><col style="width:38%"><col style="width:13%"><col style="width:13%"><col style="width:15%"><col style="width:15%"></colgroup>';
+    html += '<colgroup><col style="width:36px"><col style="width:34%"><col style="width:6%"><col style="width:12%"><col style="width:12%"><col style="width:14%"><col style="width:14%"></colgroup>';
     html += '<thead><tr>';
     html += '<th></th>';
     html += '<th>Credit Name</th>';
+    html += '<th style="text-align:center;">Doc</th>';
     html += '<th>Stage</th>';
     html += '<th>Type</th>';
     html += '<th style="text-align:center;">Badge</th>';
@@ -3985,7 +3995,7 @@ function renderAvailable() {
     html += '</tr></thead><tbody>';
 
     if (filtered.length === 0) {
-        html += '<tr><td colspan="6" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
+        html += '<tr><td colspan="7" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
     }
 
     filtered.forEach(function(c) {
@@ -4002,10 +4012,11 @@ function renderAvailable() {
         var stdId = creditCCSSMap[c.title] || '';
         var stdObj = stdId ? ccssStandards.find(function(s) { return s.id === stdId; }) : null;
         var stdTag = stdId ? '<br><span style="font-size:0.62rem;font-weight:500;color:#86868b;cursor:default;" title="' + (stdObj ? stdObj.description.replace(/"/g,'&quot;') : stdId) + '">' + stdId + '</span>' : '';
+        html += '<td style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1d1d1f;" title="' + c.title.replace(/"/g,'&amp;quot;') + '">' + c.title + stdTag + '</td>';
         if (docLink) {
-            html += '<td style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="' + docLink + '" target="_blank" style="color:#1d1d1f;text-decoration:none;" title="' + c.title.replace(/"/g,'&amp;quot;') + '">' + c.title + '</a>' + stdTag + '</td>';
+            html += '<td style="text-align:center;"><a href="' + docLink + '" target="_blank" style="color:#FF8200;text-decoration:none;font-size:0.78rem;font-weight:600;" title="Open Google Doc">Doc</a></td>';
         } else {
-            html += '<td style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1d1d1f;" title="' + c.title.replace(/"/g,'&amp;quot;') + '">' + c.title + stdTag + '</td>';
+            html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
         }
         html += '<td><span class="tag tag-stage">' + c.stage + '</span></td>';
         var typeColor = c.type === 'concept' ? '#636363' : '#b0b0b0';
