@@ -1105,7 +1105,7 @@ function subjLabel(s) { return subjectAbbrev[s] || s; }
 
 const subjectKey = s => s.toLowerCase().replace(/\s/g, '');
 
-const stages = ['Emergent', 'Early', 'Middle', 'Late'];
+const stages = ['Emergent', 'Early', 'Middle', 'Late', 'Other'];
 
 const groups = [
     // Computation
@@ -2525,7 +2525,8 @@ function buildCreditsAndEarned(rows, headerRow) {
         colMap[col] = id;
         if (!idSeen[id]) {
             idSeen[id] = true;
-            newCredits.push({ id: id, title: title, subject: subject, type: '', stage: '', groups: G, link: '' });
+            // Stage defaults to 'Other'; enhanceCreditsWithMetadata() will replace it with the real stage
+            newCredits.push({ id: id, title: title, subject: subject, type: '', stage: 'Other', groups: G, link: '' });
         }
     }
 
