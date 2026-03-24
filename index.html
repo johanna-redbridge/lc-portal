@@ -5253,7 +5253,7 @@ function parseDraftingLine(line) {
         parts.unshift(mainPart.substring(ci + 1));
         mainPart = mainPart.substring(0, ci);
     }
-    var title = mainPart.trim();
+    var title = mainPart.split(',')[0].trim().replace(/^"|"$/g, '');
     if (!title) return null;
 
     var stageMap = {'early/al2':'Early','emergent/al1':'Emergent','middle/al3':'Middle','late/al4':'Late'};
