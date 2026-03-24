@@ -2486,7 +2486,15 @@ function loadEarnedFromSheet() {
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (!data.values || data.values.length < 2) return { tabName: tabName, count: 0 };
+                if (!data.values || data.values.length < 2) return { tabName: tabName, count: 0, eCount: 0 };
+                // Count 'e'/'a' cells — only the student data tab has these
+                var eCount = 0;
+                data.values.forEach(function(row) {
+                    for (var ci = 1; ci < row.length; ci++) {
+                        var v = (row[ci] || '').trim().toLowerCase();
+                        if (v === 'e' || v === 'a') eCount++;
+                    }
+                });
                 // Find the header row: the row with the most distinct non-empty values in columns 1+
                 var bestHeaderRow = 0, bestCount = 0;
                 for (var ri = 0; ri < Math.min(5, data.values.length); ri++) {
@@ -2494,24 +2502,29 @@ function loadEarnedFromSheet() {
                     var seen = {};
                     for (var ci = 1; ci < row.length; ci++) {
                         var v = (row[ci] || '').trim();
-                        if (v.length > 2) seen[v] = true;
+                        if (v.length > 1 && v.length < 80) seen[v] = true;
                     }
                     var cnt = Object.keys(seen).length;
                     if (cnt > bestCount) { bestCount = cnt; bestHeaderRow = ri; }
                 }
-                return { tabName: tabName, count: bestCount, rows: data.values, headerRow: bestHeaderRow };
+                return { tabName: tabName, count: bestCount, eCount: eCount, rows: data.values, headerRow: bestHeaderRow };
             })
             .catch(function() { return { tabName: tabName, count: 0 }; });
         }));
     })
     .then(function(results) {
-        results.sort(function(a, b) { return b.count - a.count; });
+        // Primary sort: most 'e'/'a' cells (only student data tab has these)
+        // Secondary: most distinct header values
+        results.sort(function(a, b) {
+            if (b.eCount !== a.eCount) return b.eCount - a.eCount;
+            return b.count - a.count;
+        });
         var best = results[0];
         if (!best || best.count < 3) {
             console.warn('[Sheet] No tab with credit columns found');
             return;
         }
-        console.log('[Sheet] using tab "' + best.tabName + '" with ' + best.count + ' credits, header row ' + best.headerRow);
+        console.log('[Sheet] using tab "' + best.tabName + '" eCount=' + best.eCount + ' count=' + best.count + ' headerRow=' + best.headerRow);
         buildCreditsAndEarned(best.rows, best.headerRow);
     })
     .catch(function(e) { console.warn('[Sheet] load failed:', e); });
