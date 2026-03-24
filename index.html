@@ -1930,6 +1930,7 @@ var DRIVE_ROOT_FOLDER_ID = '0AJ3pqoieRlBaUk9PVA';
 var DRIVE_BADGES_FOLDER_ID = '13Vyr1pYAiJQdzj7wn4hx1UI4mYWo4ocY';
 var DRIVE_ASSETS_FOLDER_ID = '1v50i9vfsRR34QdAjrDqEryjXV1a_gTKL';
 var EARNED_SHEET_ID = '1JlNwaFByESyUtDx5ycx-0_bT5CCcw3vTlOnb6nm9-gw';
+var EARNED_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhFWSOucxgvjzupSJqYTg8sJ3bRuyjT00rti6sSGIb_htQfLqjocLAIML0JBY9Mje8M_sHzoAKlO2i/pub?gid=995760857&single=true&output=csv';
 var CREDITS_SHEET_ID = '1KDqP-nhcoTfeVqLNDX_UkY9WNgNV1m-9dXvaT2pFxCY';
 
 // Drive asset maps — populated by loadDriveAssets() after sign-in
@@ -2470,70 +2471,46 @@ function sheetNameToStudentId(fullName) {
     return s ? s.id : null;
 }
 
-function loadEarnedFromSheet() {
-    if (!gDriveToken) return;
-    fetch('https://sheets.googleapis.com/v4/spreadsheets/' + EARNED_SHEET_ID + '?fields=sheets(properties(title))', {
-        headers: { 'Authorization': 'Bearer ' + gDriveToken }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(meta) {
-        var tabs = (meta.sheets || []).map(function(s) { return s.properties.title; });
-        console.log('[Sheet] tabs:', tabs);
-        return Promise.all(tabs.map(function(tabName) {
-            var range = "'" + tabName.replace(/'/g, "''") + "'!A:ZZZ";
-            return fetch('https://sheets.googleapis.com/v4/spreadsheets/' + EARNED_SHEET_ID + '/values/' + encodeURIComponent(range) + '?majorDimension=ROWS', {
-                headers: { 'Authorization': 'Bearer ' + gDriveToken }
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (!data.values || data.values.length < 2) return { tabName: tabName, count: 0, eCount: 0 };
-                // Count 'e'/'a' cells — only the student data tab has these
-                var eCount = 0;
-                data.values.forEach(function(row) {
-                    for (var ci = 1; ci < row.length; ci++) {
-                        var v = (row[ci] || '').trim().toLowerCase();
-                        if (v === 'e' || v === 'a') eCount++;
-                    }
-                });
-                // Find the header row: the row with the most distinct non-empty values in columns 1+
-                var bestHeaderRow = 0, bestCount = 0;
-                for (var ri = 0; ri < Math.min(5, data.values.length); ri++) {
-                    var row = data.values[ri] || [];
-                    var seen = {};
-                    for (var ci = 1; ci < row.length; ci++) {
-                        var v = (row[ci] || '').trim();
-                        if (v.length > 1 && v.length < 80) seen[v] = true;
-                    }
-                    var cnt = Object.keys(seen).length;
-                    if (cnt > bestCount) { bestCount = cnt; bestHeaderRow = ri; }
-                }
-                return { tabName: tabName, count: bestCount, eCount: eCount, rows: data.values, headerRow: bestHeaderRow };
-            })
-            .catch(function() { return { tabName: tabName, count: 0 }; });
-        }));
-    })
-    .then(function(results) {
-        // Primary sort: most 'e'/'a' cells (only student data tab has these)
-        // Secondary: most distinct header values
-        results.sort(function(a, b) {
-            if (b.eCount !== a.eCount) return b.eCount - a.eCount;
-            return b.count - a.count;
-        });
-        var best = results[0];
-        if (!best || best.count < 3) {
-            console.warn('[Sheet] No tab with credit columns found');
-            return;
+function parseCSV(text) {
+    var rows = [];
+    var lines = text.split(/\r?\n/);
+    lines.forEach(function(line) {
+        if (!line.trim()) return;
+        var row = [], cell = '', inQ = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            if (ch === '"') {
+                if (inQ && line[i+1] === '"') { cell += '"'; i++; }
+                else { inQ = !inQ; }
+            } else if (ch === ',' && !inQ) { row.push(cell); cell = ''; }
+            else { cell += ch; }
         }
-        console.log('[Sheet] using tab "' + best.tabName + '" eCount=' + best.eCount + ' count=' + best.count + ' headerRow=' + best.headerRow);
-        buildCreditsAndEarned(best.rows, best.headerRow);
+        row.push(cell);
+        rows.push(row);
+    });
+    return rows;
+}
+
+function loadEarnedFromSheet() {
+    // Row 0 = subjects, Row 1 = credit titles + metadata, Row 2+ = student data
+    fetch(EARNED_CSV_URL)
+    .then(function(r) { return r.text(); })
+    .then(function(text) {
+        var rows = parseCSV(text);
+        if (rows.length < 3) { console.warn('[Sheet] CSV too short'); return; }
+        buildCreditsAndEarned(rows, 1); // header row is always row index 1
     })
-    .catch(function(e) { console.warn('[Sheet] load failed:', e); });
+    .catch(function(e) { console.warn('[Sheet] CSV load failed:', e); });
 }
 
 function buildCreditsAndEarned(rows, headerRow) {
     var titleRow = rows[headerRow] || [];
     // Row 0 is the subject row (if header is not row 0)
     var subjectRow = headerRow > 0 ? (rows[0] || []) : [];
+
+    // Metadata columns to skip (not credits)
+    var SKIP_COLS = { 'al': true, 'gle': true, 'earned': true, 'att.': true, 'att': true,
+                      'attempted': true, 'student name': true, 'name': true };
 
     // Build credits and column→creditId map directly from sheet headers
     var colMap = {};
@@ -2542,6 +2519,7 @@ function buildCreditsAndEarned(rows, headerRow) {
     for (var col = 1; col < titleRow.length; col++) {
         var title = (titleRow[col] || '').trim().replace(/\s+/g, ' ');
         if (!title || title.length < 2) continue;
+        if (SKIP_COLS[title.toLowerCase()]) continue;
         var subject = (subjectRow[col] || '').trim();
         var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
         colMap[col] = id;
