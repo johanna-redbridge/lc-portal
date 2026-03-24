@@ -1146,172 +1146,7 @@ const groups = [
 ];
 
 const G = ['gc1','gc2','gc3','gc4','gc5','gc6','gc7','gc8','gr1','gr2','gr3','gr4','gr5','gr6','gr7','gw1','gw2','gw3','gw4','gw5','gw6','gw7','go1','go2','go3','go4','gt1','gt2','gt3','gt4'];
-let credits = [
-    { id: 'c1', title: 'Breezy Buddy', subject: 'Character Habits', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1AcS0uk1fvEkbnKGw8PynqxvvHMY2Uq2ZIi3w5ZV3Bt8/edit?usp=drive_link' },
-    { id: 'c2', title: 'Nuance Noticer', subject: 'Character Habits', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1vnnf00fbhJsUkoWTj6pxEFvbL3F0lNl4sG55M2RNGe8/edit?tab=t.0' },
-    { id: 'c3', title: 'The Thoughtful Communicator', subject: 'Character Habits', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1hz3k_ljTx69yozbmPdAEBMLoeeZh27urzdODa4PgprU/edit?usp=drive_link' },
-    { id: 'c4', title: 'Feelings Detective', subject: 'Character Habits', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1x8cdtnBSNXJPTI7RaOiDt8F-4I88XDQg9cav0PEzx98/edit?usp=drive_link' },
-    { id: 'c5', title: 'What to Do With a Feeling', subject: 'Character Habits', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1ph1BHoSj12XNSRys-YZjjkNXRShkJ48RYuAXmkfg1H8/edit?tab=t.0' },
-    { id: 'c6', title: 'Solve That Disagreement!', subject: 'Character Habits', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1-NAtKZrIkkuvUxMlAPvvh_zm0Le8RveoOgpdUJIlsaA/edit?tab=t.0' },
-    { id: 'c7', title: 'The Active Listener', subject: 'Character Habits', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/157DM6uvlf6YTTtV_fp_zlYpHIF11F_lJLH6qaP7it38/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c8', title: 'Seeing "I" to "I"', subject: 'Character Habits', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1PGDSXNDpE8LQlySXQJKIjGOzWH0ymYwbpm_J1uWPQO4/edit?usp=drive_link' },
-    { id: 'c9', title: 'Skip Count by 2s and 5s', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1O0v-jjnLgz_lPq2-cDx00XE1ro99HpUTiPUHOMNarBk/edit?usp=drive_link' },
-    { id: 'c10', title: 'Skip Count by 7s 8s and 9s', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1c26AgWqDkMBQLXdxDa0mmbwayi1yraP4r007vF5RwoI/edit?usp=drive_link' },
-    { id: 'c11', title: 'Addition Facts up to 10 (speed)', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1oRnBJYN0XlvEKKu3QOe_LmuEBGQ8VzOvWur3NcaMG0g/edit?usp=drive_link' },
-    { id: 'c12', title: 'Addition Facts to 20 (speed)', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/15Zho-P2iUyOSKTugd0fVkRZHA4_se8_l2isiSzMHcdY/edit?usp=drive_link' },
-    { id: 'c13', title: 'Subtraction Facts Within 20 (speed)', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1rZGIc4P4CF60Trq1KVjPPVjDEFELR5zw8FblBex6vV0/edit?usp=drive_link' },
-    { id: 'c14', title: 'Money', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1kcGRb5yXynnXwSeQOKPhSrS359VXpfo67cLdrmxg6tU/edit?usp=drive_link' },
-    { id: 'c15', title: 'More Money', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1kcGRb5yXynnXwSeQOKPhSrS359VXpfo67cLdrmxg6tU/edit?usp=drive_link' },
-    { id: 'c16', title: 'More Money and Problems', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1kcGRb5yXynnXwSeQOKPhSrS359VXpfo67cLdrmxg6tU/edit?usp=drive_link' },
-    { id: 'c17', title: 'Patterns', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1AksJ_BwXXn8p3WEny_9pjnX6YQMtH3LZ7-Im5n0GQVs/edit?usp=drive_link' },
-    { id: 'c18', title: 'Skip Count by 3s 4s and 6s', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1nqCKYSmp6l3emdf48M-YUDhCi-UzZI6-3884e1scW7E/edit?usp=drive_link' },
-    { id: 'c19', title: 'Addition Algorithm Solver', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/13fpHjcS6nm6nQbBxN40Ueh3PQWXjjrrvzp5KUU0A-Ew/edit' },
-    { id: 'c20', title: 'Give and Take Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1wujezYi71ghlh6KPhQHKlomrZGroaLhXohP16mscGpA/edit#heading=h.2bxtegwmslcc' },
-    { id: 'c21', title: 'Add On Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/136kyNhX_QlP9r1BxUmUCyCBa50V-Jmbccn_kOdl32bU/edit' },
-    { id: 'c22', title: 'Split Apart Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1ZfsuAahAGeXXdeI2Enr8N3IAiTERKqPD17ZDo2jUTZY/edit' },
-    { id: 'c23', title: 'Subtraction Algorithm Solver', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1gZ0YaNzzrqEN1MExWl156vCnXeArsZeX-MpPsLMkbgM/edit' },
-    { id: 'c24', title: 'Constant Difference Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1KC-AZORdZdezvGhqcr1WeY3yMGiynpg1acXNzAs4zH0/edit' },
-    { id: 'c25', title: 'Find the Difference Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1qdrxZsE9Vc42T1NBuDhzb9nom6lEzc1Ag_VvUZdgDd0/edit' },
-    { id: 'c26', title: 'Take Away Strategist', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1H1HIlhX9Uaaa3eRnJOm78NYLhcg-wpp_bEYB9YuMwDY/edit' },
-    { id: 'c27', title: 'Digit vs. Value', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1rJmq9otm1CU-FdoCPOn46HRD28JXj3cDm9a2aFnQr-E/edit' },
-    { id: 'c28', title: 'Multiplication + Division Solver (Up to 100)', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1NqkY4khb2qgj6PuTXs-f6tOMI5vFSAbKEr04Ou_-T3U/edit' },
-    { id: 'c29', title: 'Ratio Table Setter', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/15Rfl2aGizCEJDuW65yk2KjmGrW-l8lQ05Yr65CRa-pc/edit' },
-    { id: 'c30', title: 'The Shape Sherlock 2', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1ON7mUeYTaxa3iUSS_4uB0w7BZLTirIupr6-q9MYzgPk/edit?usp=drive_link' },
-    { id: 'c31', title: 'Perimeter Persister', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/11Je-xX5XtVwv2SkfTgYo8SBt9beFO_3H1xlH1CN_dag/edit?usp=drive_link' },
-    { id: 'c32', title: 'Build 3 Digit Numbers', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1aoTePvWUe-Ym9GAozkINyayAJgnI54C5GelacShwAcg/edit?tab=t.0' },
-    { id: 'c33', title: 'Compare 3 Digit Numbers', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1Ych901r-fp0jcrnXLTvNj-NWxrRpV1F4dl3Jq30i3Ck/edit?tab=t.0' },
-    { id: 'c34', title: 'Fractions Line Up', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1c8lF-0QjSnnOEY9AlXh2nKR3Ag28FX42FlzIzLsRiCI/edit?tab=t.0' },
-    { id: 'c35', title: 'Add and Subtract Within 100 (Fluency)', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1WTL7l_FZU_VcfJCi3G6ySz9ngaXOc2wtN_l03P2N_zk/edit?usp=sharing' },
-    { id: 'c36', title: 'Time Teller 2', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1A3S9kRShiqa_hTppVKhdIO54TDzY6mlZYYPKOC1cmo4/edit?tab=t.0' },
-    { id: 'c37', title: 'Regrouping Rockstar (Addition 1-100)', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/12rKKoHT_nO-J-TZ_b7bRMOvPprLayABIygWeyY8lrso/edit?tab=t.0#heading=h.qls03d7vr6e5' },
-    { id: 'c38', title: 'Regrouping Rockstar (Subtraction 1-100)', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1RUcZCaJSFqyzVd4SgvcWr8TU2iCaJQkKtnmdgSgXsQo/edit?tab=t.0#heading=h.n8g1x0msu8ms' },
-    { id: 'c39', title: 'Array Ace 1', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1KKP5x-5whmw8Mj_i9OGqc-x9QWB8cAqpbIo_aPxKyO0/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c40', title: 'The Scaled Graph Crafter', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1gqkR1cAYiPMeL6aXC_VeojElX5ZLtO0H8W1Jcq12u2Y/edit?tab=t.0#heading=h.cotz8oqoxwfr' },
-    { id: 'c41', title: 'The Equal Groups Expert', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1QfuBfFMAANhGR6WSg0at4KkyHKqnbcwv8gic9_mGBC0/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c42', title: 'Counting Through 1000', subject: 'Computation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1M8SCCimulsZHgUYbZgYomAqds_i4RlW4igvKThLB9W0/edit?tab=t.0' },
-    { id: 'c43', title: 'What Are the Odds?!', subject: 'Computation', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/15H9awzLBoOOrU0deZYa7OM4k1PRVhzE5uHdbUa_VPwk/edit?usp=drive_link' },
-    { id: 'c44', title: 'Count to 100', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1moGVNiUvPc_f5JRNaGeSKGErU3DmjzPcxww_x_k2cPY/edit?usp=drive_link' },
-    { id: 'c45', title: 'Write 0-20', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1pR24DPxU5L3-Z5DdxIlQ8wKn1wIjLBAoDG02bNxmUqk/edit?usp=drive_link' },
-    { id: 'c46', title: 'Write 0-10', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/12Q4iSQf4N9hLCwgKAu8Ovj66l5iRmDki27xSyUaVGao/edit?usp=drive_link' },
-    { id: 'c47', title: 'Time Teller 1', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1A3S9kRShiqa_hTppVKhdIO54TDzY6mlZYYPKOC1cmo4/edit?tab=t.0' },
-    { id: 'c48', title: 'Careful Counter', subject: 'Computation', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1je1yaMjgtC5YEqGR3h7XaPwoj9lwlDQpIsG_SGpMHGU/edit#heading=h.fsw1ymk9gf58' },
-    { id: 'c49', title: 'Same Same But Different', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1zWTSjMH9oCvn5-1VoEnaK5qAuKHgqKgeRMztE5BHa-o/edit#heading=h.e4f7sf4c7yt3' },
-    { id: 'c50', title: 'It All Adds Up', subject: 'Computation', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/16TeBPkI--eBYCMkE5pUD2MUeqUISZOpSfsQGQ7a8WNY/edit' },
-    { id: 'c51', title: 'Add to 10 (Accuracy)', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/11qFQTJMPeHjZtWNH_tk2QnvR12KcsqZKuIa9YoiQW4w/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c52', title: 'Subtract Within 10 (Accuracy)', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1GgNhLfYQ_thY9UaejZHKLly5T4ib2nEP3dGBIzf7HAg/edit?tab=t.0#heading=h.hyk65qjulb24' },
-    { id: 'c53', title: 'Add and Subtract Within 20 (Accuracy)', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1-AELP3vYxhgqLJGajrL0gvH2Rh3o9_u5JndrkoOp6Z8/edit?tab=t.0' },
-    { id: 'c54', title: 'Forward Finder 10', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1P1ezy1Uz-7g690EhTgfZWuatqPHbA-u38OwsJar_hzg/edit?tab=t.0#heading=h.3juxswbzfk99' },
-    { id: 'c55', title: 'Greater Gator', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1zocMyPhpbXfMVwlejTpq1FeAgZnoH9MnW32ZNOZxkK0/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c56', title: 'The Shape Sherlock 1', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/18bNi6LgGPLwBPz0WK8iozNj3OtFPQyr5_7karNIUKzQ/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c57', title: 'Gap Guru 1', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1WZ2asblg9Z-0XbuEcg4x2YYzUsB7VvS1aCS5xKfqZwc/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c58', title: 'Speedy Spotter 1', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1z4A0upjgItgcWCP5cs7yKzhrHW9OXZfaCPmz90Kbyyg/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c59', title: 'Add to 5 (Accuracy w/option for speed)', subject: 'Computation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1q5W3MD_m1OIR4EGwIMJdR6fXTzvIWacMw2HP0d3uQpI/edit?tab=t.0' },
-    { id: 'c60', title: 'Minus Magician', subject: 'Computation', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1ZWdkUS3D_iUvVtpWa80BIithW9UxRO9ttC9GhIM5fmk/edit?tab=t.0' },
-    { id: 'c61', title: 'Know Your Area Level 3', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1YUTkxKwqNbVxqGPFj__uPEmFvRyJLdJT5rvIaUHK0LE/edit?tab=t.0' },
-    { id: 'c62', title: 'TRI to Find the Area', subject: 'Computation', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1bOd6TPmIH_2c4-ErnSi0zDUk8s1l2HIcwdifEZLwR5Y/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c63', title: 'Cooking Up Ratios!', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1MwKQecT-W-DXQiW_6LWK_TN2nfhPSqcyEq7qWfibL9o/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c64', title: 'Fraction Division', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/11dNu5JKap2EirGaJcdVE5h3t9rmOU4VvvvCNnwzod1c/edit?tab=t.0' },
-    { id: 'c65', title: 'Perceptive Percenter', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1jUACx2q6k9MPBzeW3E3cVZiquhLLlinv19y_0njORt8/edit?tab=t.0' },
-    { id: 'c66', title: 'Decimal Addition/Subtraction', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1VWchNYM5asotWhY_Ym5g4gROoLKp-a2hlwc1SbpoINg/edit?tab=t.0' },
-    { id: 'c67', title: 'Decimal Multiplication/Division', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1o6g6J43McMQMLpdq2YG9J3XPnlmnmheQ2pQqAhAxSso/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c68', title: 'Exponent Explosions', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1--gvgYsP7vw35ICHZb-VKlTEcGQbzvhWRXLhtlMJLcA/edit?tab=t.0' },
-    { id: 'c69', title: 'Very Variable', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1TXc4tdIW7RkbJVZH151MjRxCv6cmRgLWVv5Yca94Qrg/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c70', title: 'The Scaling Specialist', subject: 'Computation', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1d6J91rs23I66RWyS7w4c1ymF94LXObC9w_jxIrhQdiI/edit?tab=t.0#heading=h.g6oraqtfrvd' },
-    { id: 'c71', title: 'The Circle Designer', subject: 'Computation', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/15mDfyMjmK4eUksIs62ZaWcQwf40DbpNshghpmhuFW9s/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c72', title: 'Circle Measurements', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1bCiDu9I87NvV-F24RKExtSYbGfzvQB5t46JQIidIm3M/edit?tab=t.0' },
-    { id: 'c73', title: 'Making a Million', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1ZUa1_1WNziE-W1sLviy4hhm2iYhuHpEi-Rz0s7EEqYE/edit?usp=drive_link' },
-    { id: 'c74', title: 'Rounding Within 1 Million', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1evcIRISqyl9qiBBC_K6V2lh2RWmxQNXFDcpUIcNEZYY/edit?usp=drive_link' },
-    { id: 'c75', title: 'Multiplication facts 12x12', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1HuXvKHP5ClXe5JZm9ODVExzNzPU31OiJrVNIOQSBNT8/edit?usp=drive_link' },
-    { id: 'c76', title: 'Able Angler', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1JP6_FNpCj7DL1cds9cZ-yketVLUUntohYReonykxun4/edit?usp=drive_link' },
-    { id: 'c77', title: 'Rounding within 1000', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1A5dUBQB19t8zRiPy9uIuJ0XG_k5nwqPAK5uBQvn76SY/edit' },
-    { id: 'c78', title: 'Rounding with Decimals', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1PoqZyYRISjX_GiW6S0c47EdLwdaXqkuy61ld6a57qS8/edit' },
-    { id: 'c79', title: 'Multiplication Algorithm Solver', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1alBmsSNaClejfOuFBTHcdN-X-aYGP8eYQdZbikhI5Zw/edit#heading=h.aal5hoy9biid' },
-    { id: 'c80', title: 'Volume Up', subject: 'Computation', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1oIEdxLt6Iehqkm5rc3O7iG-4O5VPv7P2OmYZYrIBBLo/edit' },
-    { id: 'c81', title: 'Know Your Neighborhood', subject: 'CTWS', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1nELGJqkCDop0MR78CXulQc-RLFwmQ-1fbIVpG-8qyyg/edit' },
-    { id: 'c82', title: 'The Nifty Fifty', subject: 'CTWS', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1TtIrv31uyltXYQdfObPsoxvMv7_KhKGLEvogFWuazDw/edit?usp=drive_link' },
-    { id: 'c83', title: 'Effective Emailer', subject: 'CTWS', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1JhuKn5lpAU23_bsn1q5iv2dutVfXnNrJJr5lA4qN8nI/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c84', title: '5 Laps in 3 Minutes', subject: 'Enrichment', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1r5OzL-RMUT87zw2ksmD1WalGZfDtOr0ILpCYM5LZIYE/edit?usp=drive_link' },
-    { id: 'c85', title: 'Dribble, Pass, Score', subject: 'Enrichment', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1UT-ywjj4fHcGHuDOY4F6EPF_ufsSoBKHIGaMnM4uLNA/edit?tab=t.0' },
-    { id: 'c86', title: 'V0 Boulderer', subject: 'Enrichment', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1vbS7xCD3TF6AVLdrd5vuGQp3Sq_48U-FIDnNzmd_TQg/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c87', title: 'V1 Boulderer', subject: 'Enrichment', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/u/0/d/1cxmSboNxEuCwQlVb1NBG0dlxuxrsO8wtfC68ezxlkiU/edit' },
-    { id: 'c88', title: 'Junior Geologist', subject: 'Observation', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1MXLhrSNEOBaNQ0JJao5WdRC1ukvyhRMud5GgQcmeOOg/edit#heading=h.aal5hoy9biid' },
-    { id: 'c89', title: 'Budding Botanist', subject: 'Observation', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1QPptlrZs56s563J1CEWzOs_r4TXgX1bIH8TCr8wRYV8/edit' },
-    { id: 'c90', title: 'Poetry by Heart', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1hKa-_2wGy38GmxTSw1SHiDvtwPkPaHWHpV7_lmpwX6M/edit' },
-    { id: 'c91', title: 'Insightful Inferencer (Narrative)', subject: 'Reading', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1Yn07aeu_NYcM0jePwK9L-zkTCbT3UGR4MJqh5tOwwAk/edit' },
-    { id: 'c92', title: 'Syl-la-ble', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1dqsHUbB1hXCljW_O3CHIGVsj23Eg45mEuQpatoVrjDE/edit#heading=h.aal5hoy9biid' },
-    { id: 'c93', title: 'Genre Genius', subject: 'Reading', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1-C2H-POdDdpTmPAm2ztcnV7ZUW9zFIoxNlPpWw-AYD8/edit#heading=h.a1q6t1nbb2lz' },
-    { id: 'c94', title: 'Magic E Syllable', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1AWY0DLP7Yd4G2NVCfcUuo7DlJogu2A6ib_Bx8pmBYs0/edit' },
-    { id: 'c95', title: 'Open & Closed Syllables', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1m9euFmAfjbVuc8sm7IM7_dbmBlaH0nnDWe7BEDQaXwg/edit#heading=h.b8mxwbfwik7' },
-    { id: 'c96', title: 'Vowel Team Syllables', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1M_I7GoJ3KtTA6TkcanLN5GAzW2LP8RvveZmFRr5kuT8/edit#heading=h.b8mxwbfwik7' },
-    { id: 'c97', title: 'Mysterious Inferences', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1ZLjxGCVsZAAiDvGu2vvldBnzs5FGsxcPPT4cS4sfhrw/edit?tab=t.0' },
-    { id: 'c98', title: "I've Got a (Main) Idea!", subject: 'Reading', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1HbhCALPAXxdwtCuGL93U1hLrw_2qjoK90NVJ0LRiY5c/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c99', title: 'Word Sums - Level 2', subject: 'Reading', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1IOUDvQMCYUeayyHEaOInaIpD_q3UEwXoQI8H-RnDDnc/edit?tab=t.0' },
-    { id: 'c100', title: 'Bossy R Buster', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1cbtbCwGHM1HAxOAQPApqxFXHhEbNI0MUT_u0wIKaoUU/edit' },
-    { id: 'c101', title: 'Brilliant Blender', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1-DB3PxW-Cri2pVpxmc9OQ4FLi6LSGwokoS3DJJzwTl0/edit' },
-    { id: 'c102', title: 'Name that End Sound', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1QFYlLsajXB5v90UWsZihzbZXsNQTVZhkSxAQbP3bZNM/edit' },
-    { id: 'c103', title: 'First 31 sounds (Part A)', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1iHt4HOyQQDkYB1kszS7ArGMAH4oLB20s0_L2K8d2s-w/edit?usp=drive_link' },
-    { id: 'c104', title: 'Magic E Master', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1o9B99eSf6hXTPPTIQhTfuUmcWUn9MUvgF_oAalDbLs0/edit?usp=drive_link' },
-    { id: 'c105', title: 'My 1st Words', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1gFbxd5eNYq90YLo1QkuJBEBdoCQintdrUmd1sa8nzss/edit?usp=drive_link' },
-    { id: 'c106', title: 'Special Friends Specialist 1', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1RdQoCxzv0nz3_wDvyV2n8WPA6F-Ohi_FIqdm1rPA0w8/edit?usp=drive_link' },
-    { id: 'c107', title: 'Special Friends Specialist 2', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/13P-ugr4_djJ00GvbyVobFoBIPI_iXYomXHeGNT4z34I/edit?usp=drive_link' },
-    { id: 'c108', title: 'Suffix Spotter 2', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1Ch6WGGUWqeXDvHT0iby5j6dVHyYCZIWjF8oGYdWX_Rk/edit?usp=drive_link' },
-    { id: 'c109', title: 'Name that Beginning Sound', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1Xaba9pgXWORQDuua46-vMz4-z6RNfFY4mkCgt4ouleI/edit?usp=drive_link' },
-    { id: 'c110', title: 'Rhyme Time', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1bjlyqZzePClk0s8rRi3DU-4MjCYMz9bkKomRJTKOz38/edit#heading=h.aal5hoy9biid' },
-    { id: 'c111', title: 'Parts of a Book', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1cItBT9gPZgBYK2xRz87h_XqoH_Fswxkslq98GBqN-CY/edit#heading=h.aal5hoy9biid' },
-    { id: 'c112', title: 'First 31 sounds (Part B)', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1dHkZimGCvWFjS1RckPG7VjU6UzvNznB4dlOmJz2RsHE/edit#heading=h.aal5hoy9biid' },
-    { id: 'c113', title: 'Name that Middle Sound!', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: '' },
-    { id: 'c114', title: 'Try by Sight 4', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1AcUAoBa0a-JrPbz8ojBus0G5ABmX5dTEzy3uUqj-J_k/edit?tab=t.0' },
-    { id: 'c115', title: 'Try by Sight 1', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1IAQHWOnQwPuky8aODmS9G6QmnyBloFrQfGuUfAOb7xs/edit?tab=t.0#heading=h.twgxgexn7q3q' },
-    { id: 'c116', title: 'Try by Sight 2', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1NtIPnGMww26G1_OZTgOohqGnnmcUFtoFG_3VR3BuWqU/edit?tab=t.0#heading=h.ujwe0r9lyxdd' },
-    { id: 'c117', title: 'Try by Sight 3', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1Vo1v8nVTdrV9lGFzgX3YAA_t6YQKxh5GTWrr2TamyCw/edit?tab=t.0' },
-    { id: 'c118', title: 'Digraph Detective', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1mg-W1OWtBPJqve-RlKzn38NZE6i7lCq7EAvow3Pmd_0/edit?tab=t.0#heading=h.qkku2rt6izqz' },
-    { id: 'c119', title: 'Nonfiction Navigator', subject: 'Reading', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1LfLB7lVZKhi4EuF_KozqxtaGElsEYXgT1QtSG7UKrcQ/edit?usp=sharing' },
-    { id: 'c120', title: 'Poetry by Heart - Level 2', subject: 'Reading', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1pHO55ZQBhYlDFyfDFjV5_UXRIykYiDhefXEt2z5ijBI/edit#heading=h.aal5hoy9biid' },
-    { id: 'c121', title: 'Response to Reading - Level 2', subject: 'Reading', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1uY5RX-NOiwlU43O3dQWkMnZO8nacCNIXyfG19tR1i-Q/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c122', title: 'The Community Minder', subject: 'Whole School', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1E8JZGSuy0NwbdF_1ivwHOketLHSjla0aQQzSy__CyZ8/edit?tab=t.0' },
-    { id: 'c123', title: 'Weekly Planner', subject: 'Work Habits', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1A4caz_c0CaPcHrNpaWJ9ECX3O5PLjXyG1OKEOlqhyYk/edit?usp=drive_link' },
-    { id: 'c124', title: 'Redirection Rockstars', subject: 'Work Habits', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1Aa2bhsYFFgWd4f2oCZwb-sdQHPwy5KjUEEFNxGhEUQY/edit?tab=t.0' },
-    { id: 'c125', title: 'Support Smarts', subject: 'Work Habits', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1K2woYj_tV7USETB7a6mxi0nxw-qQUeQtHXw6U4ov2nM/edit?tab=t.0#heading=h.qxjng0yri6rx' },
-    { id: 'c126', title: 'Care to Share', subject: 'Work Habits', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1IYW9iBHxsqaHPTH5ZB4ep8mo-jlFyD75RzJIIqklwfw/edit?usp=drive_link' },
-    { id: 'c127', title: "You Can't Always Get What You Want", subject: 'Work Habits', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1oDkzxGQFC1nJaNcrwM2iq17hfm_sJ7-OhgInODUdqeU/edit' },
-    { id: 'c128', title: 'The Schedule Sensei', subject: 'Work Habits', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1QehnIV2Zu359XZyGJvx7VIythoYQ7t8GYJPoxgqNk-0/edit?tab=t.0#heading=h.bckx66r1fby4' },
-    { id: 'c129', title: 'The Ready Resourcer', subject: 'Work Habits', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1IwqVhpdiVopeqG9bET73-UJXCAZoPW0hNxeekcMBdQs/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c130', title: 'Polished Presenter', subject: 'Work Habits', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1b7W8AIoQKl8Safsh85i6FlXFi52GvnBxr2dtV5lBA-A/edit?usp=drive_link' },
-    { id: 'c131', title: 'Take Note (Annotations)', subject: 'Work Habits', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1fXnOhgkH8THHNBDvYQ10pPSUYdfqjlT2yodNbpQBnIo/edit' },
-    { id: 'c132', title: 'Presenter Mentor', subject: 'Work Habits', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1qbXObsAcooUdo7dosCRNEWRxqZZlEEExz-XRhFmLMR4/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c133', title: 'Typing at 20 wpm', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1dGp2DZlPfpHRZgYMXU7UCQZfeko4SgX2d7cljX_bn_Y/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c134', title: 'Crafty Endings', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1zJsAjDDKuiph10OHwhCCIO4Dsl4s1QvhWxXKPBjMPBs/edit?usp=drive_link' },
-    { id: 'c135', title: 'Idea Generator', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1uLWD78OL6UrgPjvBLR3CyyfjXN9b5JuWKTczQ11wxS0/edit?usp=drive_link' },
-    { id: 'c136', title: 'Power Words', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1kne-KwGOtB3fp5S3NetZqHkIYXWThRQcdsYKkjnkS1I/edit?usp=drive_link' },
-    { id: 'c137', title: 'As Comparative as a Metaphor', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/14act_icqn8UTNS9CCXRrA47rho-WZwFMx877RZzHgJ4/edit?usp=drive_link' },
-    { id: 'c138', title: 'The Ready Reviser', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1RB4F0scTn8Zgn8AVZ5JQjn466-fl1E-GPirjizA_IMY/edit' },
-    { id: 'c139', title: 'Capitalization Rules!', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1nqy3hWmTBYFFeENRcEEBg8xhOs9AecU8lfM2FYMNzNs/edit#heading=h.aal5hoy9biid' },
-    { id: 'c140', title: 'Noun Town 1', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1TKl0qv5OMISlfvdPehJw7Fd5l3Baql_-HYLZKkb-5BE/edit#heading=h.z5vcf6gpewpd' },
-    { id: 'c141', title: 'Noun Town 2', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1M-oY9V-KWc_h6n6-o5aGD15Hsoq2hHC_qsUnStuQIDw/edit#heading=h.aal5hoy9biid' },
-    { id: 'c142', title: 'Introductory, My Dear...', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1FGkdW8djkOSJ0lPnh4AajkIyKGCugKowCIrT7umA3_Q/edit#heading=h.fsw1ymk9gf58' },
-    { id: 'c143', title: "Can't Stop Won't Stop...Writing Contractions", subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1F4Zd3dbVsB-6XUhG0pmCkNs-i6R4jlA2twNBYWEBCvE/edit' },
-    { id: 'c144', title: 'Transition Station', subject: 'Writing', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/16KPF6_mUddQHu2ZVxs12Z7-AwrvTrAOliFX0oeh5JFc/edit#heading=h.fsw1ymk9gf58' },
-    { id: 'c145', title: 'Phrase Flipper', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1VS_NGlbTh6eBw0vXLH7o9t5WlUhvCWG7pqJAurrxFvc/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c146', title: 'Awesome Adjectives', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1YPij4DvhBWP5OfzdrcmJp3755529uVISvWEVY44a7V8/edit?tab=t.0' },
-    { id: 'c147', title: 'Letter Writer A-Z', subject: 'Writing', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1IxM1sO4VIPb6Cp9yCL2fxUSgLK9C2yZBnIVIRe1vt_s/edit?usp=drive_link' },
-    { id: 'c148', title: 'Construction Zone: Structure That Writing!', subject: 'Writing', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1vt69siI63fgRWCKMaFJVFWeLJrllMW3E-4y8dtyqHI0/edit?tab=t.0' },
-    { id: 'c149', title: 'Writing Details', subject: 'Writing', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1YHEpEPzO1VNfgPK4Kluv6BY7GFoumD4-TmpPpKqoJlk/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c150', title: 'Analytical Response Architect', subject: 'Writing', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1yvX0qowDZ0jaQvk_FknK3wP9Dc3d97f6OBc4sGA_bZ8/edit?tab=t.0' },
-    { id: 'c151', title: 'Spelling With Syllables', subject: 'Writing', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1azCWy5_zE3n8Bqr3n6ov_n9r09fLPLBEC1ZxV2ui-QI/edit?tab=t.0#heading=h.aal5hoy9biid' },
-    { id: 'c152', title: 'Tend to the End', subject: 'Writing', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1KKpjHzLxMF8rLh7C1Zvo9OnH0ER4vlUHTCjKR9fxJfY/edit?usp=drive_link' },
-    { id: 'c153', title: 'Friendly Feedback', subject: 'Writing', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/16WENiETHUcxLFog6CMQV86WtWlakOnHt7YOU5useWAM/edit#heading=h.fsw1ymk9gf58' },
-    { id: 'c154', title: 'Stop That Run On', subject: 'Writing', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1tNOv54e470T3wzDNrauhB7nYZhTI-PfEExvhN1zYoXU/edit?tab=t.0' },
-    { id: 'c155', title: 'Evaluating Scientific Evidence', subject: 'Writing', type: 'concept', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1OrViu3-rwriiruJPz-yW9GL4dlfpy2JkU0VoCmfxTec/edit?tab=t.0#heading=h.fsw1ymk9gf58' },
-    { id: 'c156', title: 'Know Your Area', subject: 'Computation', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1Gt1dN-RlzsQLpvRrSPI9KoWU1FZgN0Qat-ZiWCkKz2A/edit?usp=drive_link' },
-    { id: 'c157', title: 'Sight Word Speller 1-5', subject: 'Writing', type: 'fluency', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/1BBgUSE18FOoEwCrjNE_980zPEeJ1hUyhDoXHqDC-20M/edit?tab=t.0' },
-    { id: 'c158', title: 'Partial Products', subject: 'Computation', type: 'concept', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1TI--ln-YncU5CQe812-yNl0sbLMouDdcbKEXgh374xE/edit?tab=t.0' },
-    { id: 'c159', title: 'Suffix Spotter 1', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1kRofrNHLUroEuoqhqS8gK977qikOJnm7iM25Pjel5CQ/edit?tab=t.0' },
-    { id: 'c160', title: 'Quest for Deeper Questions', subject: 'Work Habits', type: 'fluency', stage: 'Middle', groups: G, link: 'https://docs.google.com/document/d/1ERI6f9nZjfytGyUIuXcRsGgQCZSiQqblCyYvwOUvkHs/edit?tab=t.0' },
-    { id: 'c161', title: 'Syl-la-ble Su-per-star 1', subject: 'Reading', type: 'fluency', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/191z6Cf7wsM84NcNU7I044VcfvB-DQkKfVe8VH_BXAro/edit?tab=t.0#heading=h.vh8ppye8lo2i' },
-    { id: 'c162', title: 'Algebra on a Number Line', subject: 'Computation', type: 'fluency', stage: 'Late', groups: G, link: 'https://docs.google.com/document/d/1RnfZDT7YdbKksgwO1OtgnziUfXhf4QIe5lRcDohchwk/edit?tab=t.0#heading=h.s8cwl09pgxsl' },
-    { id: 'c163', title: 'Addition and Subtraction Expert', subject: 'Computation', type: 'concept', stage: 'Emergent', groups: G, link: 'https://docs.google.com/document/d/1b1LMlZG7Xc1v6GT0hPevBjZX2W05G8OmyEqE4Kpebsc/edit?tab=t.0' },
-    { id: 'c164', title: 'Word Problem Whiz - Level 2', subject: 'Computation', type: 'concept', stage: 'Early', groups: G, link: 'https://docs.google.com/document/d/198AaZyFHiHVcHLHOktPRk_LLl3SDO8JdgXB-X6fOV6w/edit?tab=t.0' },
-];
+let credits = [];
 
 const students = [
     { id: 's1',  name: 'Abigail (Abby)',    pronoun: 'f', groups: [] },
@@ -2228,7 +2063,7 @@ function fetchUserInfo() {
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
-        loadCreditsFromSheet();
+        loadEarnedFromSheet();
     })
     .catch(function() {
         document.getElementById('drive-user-info').style.display = 'flex';
@@ -2240,7 +2075,7 @@ function fetchUserInfo() {
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
-        loadCreditsFromSheet();
+        loadEarnedFromSheet();
     });
 }
 
@@ -2637,8 +2472,6 @@ function sheetNameToStudentId(fullName) {
 
 function loadEarnedFromSheet() {
     if (!gDriveToken) return;
-    // Fetch all tab names, then fetch every tab in parallel and pick the one
-    // with the most recognized credit columns (handles multi-row headers too).
     fetch('https://sheets.googleapis.com/v4/spreadsheets/' + EARNED_SHEET_ID + '?fields=sheets(properties(title))', {
         headers: { 'Authorization': 'Bearer ' + gDriveToken }
     })
@@ -2646,8 +2479,6 @@ function loadEarnedFromSheet() {
     .then(function(meta) {
         var tabs = (meta.sheets || []).map(function(s) { return s.properties.title; });
         console.log('[Sheet] tabs:', tabs);
-        var lookup = buildCreditLookup();
-        // Fetch all tabs in parallel
         return Promise.all(tabs.map(function(tabName) {
             var range = "'" + tabName.replace(/'/g, "''") + "'!A:ZZZ";
             return fetch('https://sheets.googleapis.com/v4/spreadsheets/' + EARNED_SHEET_ID + '/values/' + encodeURIComponent(range) + '?majorDimension=ROWS', {
@@ -2655,64 +2486,131 @@ function loadEarnedFromSheet() {
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (!data.values || data.values.length < 3) return { tabName: tabName, count: 0 };
-                // The sheet has a two-row header: row 0 = category groups, row 1 = credit names.
-                // Try each of the first two rows as the header and pick whichever maps more credits.
-                var colMap0 = buildSheetColMap(data.values[0], lookup);
-                var colMap1 = buildSheetColMap(data.values[1], lookup);
-                var useRow = Object.keys(colMap1).length >= Object.keys(colMap0).length ? 1 : 0;
-                var colMap = useRow === 1 ? colMap1 : colMap0;
-                var count = Object.keys(colMap).length;
-                console.log('[Sheet] tab "' + tabName + '": row0=' + Object.keys(colMap0).length + ' credits, row1=' + Object.keys(colMap1).length + ' credits → using row' + useRow);
-                return { tabName: tabName, count: count, rows: data.values, colMap: colMap, headerRow: useRow };
+                if (!data.values || data.values.length < 2) return { tabName: tabName, count: 0 };
+                // Find the header row: the row with the most distinct non-empty values in columns 1+
+                var bestHeaderRow = 0, bestCount = 0;
+                for (var ri = 0; ri < Math.min(5, data.values.length); ri++) {
+                    var row = data.values[ri] || [];
+                    var seen = {};
+                    for (var ci = 1; ci < row.length; ci++) {
+                        var v = (row[ci] || '').trim();
+                        if (v.length > 2) seen[v] = true;
+                    }
+                    var cnt = Object.keys(seen).length;
+                    if (cnt > bestCount) { bestCount = cnt; bestHeaderRow = ri; }
+                }
+                return { tabName: tabName, count: bestCount, rows: data.values, headerRow: bestHeaderRow };
             })
             .catch(function() { return { tabName: tabName, count: 0 }; });
         }));
     })
     .then(function(results) {
-        // Pick the tab with the most mapped credit columns
         results.sort(function(a, b) { return b.count - a.count; });
         var best = results[0];
         if (!best || best.count < 3) {
-            console.warn('[Sheet] No tab with credit columns found:', results.map(function(r){ return r.tabName + '(' + r.count + ')'; }).join(', '));
+            console.warn('[Sheet] No tab with credit columns found');
             return;
         }
-        console.log('[Sheet] using tab "' + best.tabName + '" with ' + best.count + ' credit columns');
-        processEarnedSheetData(best.rows, best.colMap, best.headerRow);
+        console.log('[Sheet] using tab "' + best.tabName + '" with ' + best.count + ' credits, header row ' + best.headerRow);
+        buildCreditsAndEarned(best.rows, best.headerRow);
     })
-    .catch(function(e) { console.warn('Could not load earned sheet:', e); });
+    .catch(function(e) { console.warn('[Sheet] load failed:', e); });
 }
 
-async function loadCreditsFromSheet() {
-    if (!gDriveToken) return;
+function buildCreditsAndEarned(rows, headerRow) {
+    var titleRow = rows[headerRow] || [];
+    // Row 0 is the subject row (if header is not row 0)
+    var subjectRow = headerRow > 0 ? (rows[0] || []) : [];
+
+    // Build credits and column→creditId map directly from sheet headers
+    var colMap = {};
+    var newCredits = [];
+    var idSeen = {};
+    for (var col = 1; col < titleRow.length; col++) {
+        var title = (titleRow[col] || '').trim().replace(/\s+/g, ' ');
+        if (!title || title.length < 2) continue;
+        var subject = (subjectRow[col] || '').trim();
+        var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        colMap[col] = id;
+        if (!idSeen[id]) {
+            idSeen[id] = true;
+            newCredits.push({ id: id, title: title, subject: subject, type: '', stage: '', groups: G, link: '' });
+        }
+    }
+
+    if (newCredits.length > 0) {
+        credits = newCredits;
+        console.log('[Sheet] loaded ' + credits.length + ' credits from earned sheet');
+        enhanceCreditsWithMetadata();
+        if (typeof renderAvailable === 'function') renderAvailable();
+    }
+
+    // Process earned records
+    var newEarned = [], seen = {}, studentCounts = {}, unmatchedNames = [];
+    for (var r = headerRow + 1; r < rows.length; r++) {
+        var row = rows[r];
+        if (!row || !row[0]) continue;
+        var sid = sheetNameToStudentId(row[0]);
+        if (!sid) { unmatchedNames.push(row[0]); continue; }
+        for (var c = 1; c < row.length; c++) {
+            var cellVal = (row[c] || '').trim().toLowerCase();
+            if (cellVal === 'e' && colMap[c]) {
+                var key = sid + '_' + colMap[c];
+                if (!seen[key]) {
+                    seen[key] = true;
+                    newEarned.push({ studentId: sid, creditId: colMap[c], date: '' });
+                    studentCounts[sid] = (studentCounts[sid] || 0) + 1;
+                }
+            }
+        }
+    }
+    if (unmatchedNames.length) console.log('[Sheet] unmatched students:', unmatchedNames);
+    console.log('[Sheet] parsed', newEarned.length, 'earned records. Per student:', studentCounts);
+    if (newEarned.length > 0) {
+        earned = newEarned;
+        renderPortfolio();
+        if (currentTab === 'earned') renderEarnedCredits();
+        if (currentTab === 'student' && studentTabStudentId) renderStudentTab();
+    } else {
+        console.warn('[Sheet] 0 earned records — keeping existing data.');
+    }
+}
+
+async function enhanceCreditsWithMetadata() {
+    if (!gDriveToken || !CREDITS_SHEET_ID) return;
     try {
         var resp = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CREDITS_SHEET_ID + '/values/A2:G', {
             headers: { 'Authorization': 'Bearer ' + gDriveToken }
         });
         var data = await resp.json();
         var rows = data.values || [];
-        // Build a set of existing titles so we only ADD new credits, not replace existing ones.
-        // Existing hardcoded credits keep their 'c1'/'c2' IDs so earned records keep matching.
-        var existingTitles = {};
-        credits.forEach(function(c) { existingTitles[c.title.toLowerCase().trim()] = true; });
-        var added = 0;
-        rows.forEach(function(row, i) {
-            var title   = (row[0] || '').trim();
-            var link    = (row[1] || '').trim();
-            var subject = (row[4] || '').trim();
-            var type    = (row[5] || '').trim().toLowerCase();
-            var stage   = (row[6] || '').trim();
+        var lookup = {};
+        rows.forEach(function(row) {
+            var title = (row[0] || '').trim();
             if (!title) return;
-            if (existingTitles[title.toLowerCase()]) return; // already in hardcoded list
-            var docId = (link.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1] || ('cs' + i);
-            credits.push({ id: docId, title: title, subject: subject, type: type, stage: stage, groups: G, link: link });
-            added++;
+            var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            lookup[id] = {
+                subject: (row[4] || '').trim(),
+                type:    (row[5] || '').trim().toLowerCase(),
+                stage:   (row[6] || '').trim(),
+                link:    (row[1] || '').trim()
+            };
         });
-        console.log('[Credits] added ' + added + ' new credits from sheet, total: ' + credits.length);
+        var enhanced = 0;
+        credits.forEach(function(c) {
+            var meta = lookup[c.id];
+            if (meta) {
+                if (meta.stage)   c.stage = meta.stage;
+                if (meta.type)    c.type  = meta.type;
+                if (meta.link)    c.link  = meta.link;
+                if (meta.subject && !c.subject) c.subject = meta.subject;
+                enhanced++;
+            }
+        });
+        console.log('[Credits] enhanced ' + enhanced + '/' + credits.length + ' with stage/type/link');
         if (typeof renderAvailable === 'function') renderAvailable();
-    } catch(e) { console.warn('[Credits] load failed:', e); }
-    // Always load earned AFTER credits are finalized so buildCreditLookup() uses the right IDs
-    loadEarnedFromSheet();
+        if (currentTab === 'student' && studentTabStudentId) renderStudentTab();
+    } catch(e) { console.warn('[Credits] metadata load failed:', e); }
 }
 
 function buildSheetColMap(headerRow, lookup) {
