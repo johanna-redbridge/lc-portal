@@ -2522,6 +2522,7 @@ function buildCreditsAndEarned(rows, headerRow) {
         if (!title || title.length < 2) continue;
         if (SKIP_COLS[title.toLowerCase()]) continue;
         var subject = (subjectRow[col] || '').trim();
+        if (subject.toLowerCase() === 'communication') subject = '';
         var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
         colMap[col] = id;
         if (!idSeen[id]) {
@@ -2609,7 +2610,7 @@ async function enhanceCreditsWithMetadata() {
                 if (meta.stage)   c.stage   = meta.stage;
                 if (meta.type)    c.type    = meta.type;
                 if (meta.link)    c.link    = meta.link;
-                if (meta.subject && !c.subject) c.subject = meta.subject;
+                if (meta.subject && meta.subject.toLowerCase() !== 'communication' && (!c.subject || c.subject.toLowerCase() === 'communication')) c.subject = meta.subject;
                 enhanced++;
             }
         });
@@ -5574,7 +5575,7 @@ function renderDraftModal() {
 }
 
 function renderDraftInput() {
-    var subjects = ['Communication','Computation','CTWS','Observation','Work Habits','Character Habits'];
+    var subjects = ['Reading','Writing','Computation','CTWS','Observation','Work Habits','Character Habits'];
     var stages = ['Early Emergent','Emergent','Early','Middle','Late'];
     var groupings = ['Individual','Pairs','Group'];
     var html = '<h2 style="margin:0 0 1.5rem;font-size:1.2rem;font-weight:700;">Draft New Learning Credit</h2>';
@@ -5595,7 +5596,7 @@ function renderDraftInput() {
     html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.35rem;">Skill to focus on</label>';
     html += '<textarea id="dc-skill" rows="3" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.85rem;font-family:inherit;resize:vertical;box-sizing:border-box;" placeholder="e.g. Skip counting by 3s up to 30" oninput="draftBot.skill=this.value">' + draftBot.skill + '</textarea></div>';
 
-    var ccssSubj = draftBot.subject === 'Computation' ? 'Math' : (draftBot.subject === 'Communication' || draftBot.subject === 'Reading' || draftBot.subject === 'Writing') ? 'ELA' : '';
+    var ccssSubj = draftBot.subject === 'Computation' ? 'Math' : (draftBot.subject === 'Reading' || draftBot.subject === 'Writing') ? 'ELA' : '';
     if (ccssSubj) {
     var ccssLabel = ccssSubj === 'Math' ? 'CCSS Math Standard' : 'CCSS ELA Standard';
     html += '<div><label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.4rem;">' + ccssLabel + ' <span style="font-weight:400;color:#86868b;">(optional)</span></label>';
