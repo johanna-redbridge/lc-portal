@@ -2059,7 +2059,7 @@ function fetchUserInfo() {
         loadAppLogo();
         loadCCSSStandards();
         loadDriveAssets();
-        loadCreditDocs();
+
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
@@ -2071,7 +2071,7 @@ function fetchUserInfo() {
         loadAppLogo();
         loadCCSSStandards();
         loadDriveAssets();
-        loadCreditDocs();
+
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
@@ -2542,6 +2542,7 @@ function buildCreditsAndEarned(rows, headerRow) {
         credits = newCredits;
         console.log('[Sheet] loaded ' + credits.length + ' credits from earned sheet');
         enhanceCreditsWithMetadata();
+
         if (typeof renderAvailable === 'function') renderAvailable();
     }
 
