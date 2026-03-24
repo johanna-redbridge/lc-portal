@@ -2228,7 +2228,6 @@ function fetchUserInfo() {
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
-        loadEarnedFromSheet();
         loadCreditsFromSheet();
     })
     .catch(function() {
@@ -2241,7 +2240,6 @@ function fetchUserInfo() {
         loadBadgeSingles();
         loadStudentPortraits();
         loadStudentALFromSheet();
-        loadEarnedFromSheet();
         loadCreditsFromSheet();
     });
 }
@@ -2706,9 +2704,9 @@ async function loadCreditsFromSheet() {
         });
         console.log('[Credits] loaded ' + credits.length + ' credits from sheet');
         if (typeof renderAvailable === 'function') renderAvailable();
-        if (typeof renderEarnedCredits === 'function') renderEarnedCredits();
-        if (typeof renderStudentTab === 'function') renderStudentTab();
     } catch(e) { console.warn('[Credits] load failed:', e); }
+    // Always load earned AFTER credits are finalized so buildCreditLookup() uses the right IDs
+    loadEarnedFromSheet();
 }
 
 function buildSheetColMap(headerRow, lookup) {
