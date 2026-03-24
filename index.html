@@ -1931,7 +1931,8 @@ var DRIVE_BADGES_FOLDER_ID = '13Vyr1pYAiJQdzj7wn4hx1UI4mYWo4ocY';
 var DRIVE_ASSETS_FOLDER_ID = '1v50i9vfsRR34QdAjrDqEryjXV1a_gTKL';
 var EARNED_SHEET_ID = '1JlNwaFByESyUtDx5ycx-0_bT5CCcw3vTlOnb6nm9-gw';
 var EARNED_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhFWSOucxgvjzupSJqYTg8sJ3bRuyjT00rti6sSGIb_htQfLqjocLAIML0JBY9Mje8M_sHzoAKlO2i/pub?gid=995760857&single=true&output=csv';
-var CREDITS_SHEET_ID = '1KDqP-nhcoTfeVqLNDX_UkY9WNgNV1m-9dXvaT2pFxCY';
+var CREDITS_SHEET_ID  = '1KDqP-nhcoTfeVqLNDX_UkY9WNgNV1m-9dXvaT2pFxCY'; // kept for reference
+var CREDITS_CSV_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkKlCO6R807icdGrFW2U9gitfMCZiDHOklr4qhAUxlAA-K61Soc7X0bZyHi5qUo5UmLubxkI3_eon5/pub?gid=0&single=true&output=csv';
 
 // Drive asset maps — populated by loadDriveAssets() after sign-in
 var driveBadgeSingleIds     = {}; // normDrive(title) → fileId
@@ -2570,39 +2571,52 @@ function buildCreditsAndEarned(rows, headerRow) {
 }
 
 async function enhanceCreditsWithMetadata() {
-    if (!gDriveToken || !CREDITS_SHEET_ID) return;
     try {
-        var resp = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + CREDITS_SHEET_ID + '/values/A2:G', {
-            headers: { 'Authorization': 'Bearer ' + gDriveToken }
-        });
-        var data = await resp.json();
-        var rows = data.values || [];
-        var lookup = {};
-        rows.forEach(function(row) {
+        var resp = await fetch(CREDITS_CSV_URL);
+        var text = await resp.text();
+        var rows = parseCSV(text);
+        // Row 0 is the header ("Learning Credit Title", "Please keep...", etc.) — skip it
+        var lookup = {}; // sheetNorm(title) → metadata
+        for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
             var title = (row[0] || '').trim();
-            if (!title) return;
-            var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-            lookup[id] = {
+            if (!title) continue;
+            var rawStage = (row[6] || '').trim();
+            // Stage format is "emergent/AL1", "early/AL2", etc. — take the part before "/" and capitalise
+            var stagePart = rawStage.split('/')[0].trim();
+            var stage = stagePart.charAt(0).toUpperCase() + stagePart.slice(1).toLowerCase();
+            lookup[sheetNorm(title)] = {
                 subject: (row[4] || '').trim(),
                 type:    (row[5] || '').trim().toLowerCase(),
-                stage:   (row[6] || '').trim(),
+                stage:   stage,
                 link:    (row[1] || '').trim()
             };
-        });
+        }
         var enhanced = 0;
         credits.forEach(function(c) {
-            var meta = lookup[c.id];
+            var norm = sheetNorm(c.title);
+            // Exact match first, then substring
+            var meta = lookup[norm];
+            if (!meta) {
+                var keys = Object.keys(lookup);
+                for (var k = 0; k < keys.length; k++) {
+                    if (keys[k] && (keys[k].indexOf(norm) !== -1 || norm.indexOf(keys[k]) !== -1)) {
+                        meta = lookup[keys[k]]; break;
+                    }
+                }
+            }
             if (meta) {
-                if (meta.stage)   c.stage = meta.stage;
-                if (meta.type)    c.type  = meta.type;
-                if (meta.link)    c.link  = meta.link;
+                if (meta.stage)   c.stage   = meta.stage;
+                if (meta.type)    c.type    = meta.type;
+                if (meta.link)    c.link    = meta.link;
                 if (meta.subject && !c.subject) c.subject = meta.subject;
                 enhanced++;
             }
         });
-        console.log('[Credits] enhanced ' + enhanced + '/' + credits.length + ' with stage/type/link');
+        console.log('[Credits] enhanced ' + enhanced + '/' + credits.length + ' credits with stage/type/link');
         if (typeof renderAvailable === 'function') renderAvailable();
         if (currentTab === 'student' && studentTabStudentId) renderStudentTab();
+        if (currentTab === 'earned') renderEarnedCredits();
     } catch(e) { console.warn('[Credits] metadata load failed:', e); }
 }
 
