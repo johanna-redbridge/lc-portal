@@ -932,7 +932,6 @@
 <div class="tab-content active" id="tab-available">
     <div class="view-container">
         <div style="display:flex;gap:0.4rem;align-items:center;margin-bottom:0.6rem;flex-wrap:nowrap;">
-            <div id="av-subject-btns" class="toggle-group"></div>
             <div id="av-stage-btns" class="toggle-group"></div>
             <div id="av-type-btns" class="toggle-group"></div>
             <input type="text" id="av-ccss" placeholder="Standard…" title="Filter by CCSS standard ID" oninput="avFilterCCSS=this.value.trim();renderAvailable()" style="width:100px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.72rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
@@ -3941,23 +3940,6 @@ function renderAvailable() {
         if (ti !== 0) return ti;
         return a.title.localeCompare(b.title);
     });
-
-    // Build subject filter buttons
-    var usedSubjects = [];
-    var seen = {};
-    credits.forEach(function(c) { if (!seen[c.subject]) { seen[c.subject] = true; usedSubjects.push(c.subject); } });
-    usedSubjects.sort(function(a, b) {
-        var ai = subjects.indexOf(a), bi = subjects.indexOf(b);
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-    });
-
-    var subjHtml = '<button class="toggle-btn' + (avFilterSubject === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'subject\',\'all\')">All</button>';
-    usedSubjects.forEach(function(s) {
-        var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
-        var active = avFilterSubject === s;
-        subjHtml += '<button class="toggle-btn" onclick="setAvFilter(\'subject\',\'' + s.replace(/'/g, "\\'") + '\')" title="' + s + '" style="' + (active ? 'background:' + sc.bg + ';color:' + (sc.tc||'#fff') + ';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:' + (sc.ic||sc.bg) + ';') + '">' + subjLabel(s) + '</button>';
-    });
-    document.getElementById('av-subject-btns').innerHTML = subjHtml;
 
     // Build stage filter buttons (toggle-group)
     var stageMap = [
