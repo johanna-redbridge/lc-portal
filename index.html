@@ -5256,7 +5256,13 @@ function parseDraftingLine(line) {
         title: title,
         person: parts[0].trim(),
         date: parts[1].trim(),
-        area: parts[2].trim() === 'Obs' ? 'Observation' : parts[2].trim(),
+        area: (function(a) {
+            a = a.trim();
+            if (a === 'Obs') return 'Observation';
+            if (/^communication\s*[-–]\s*reading$/i.test(a)) return 'Reading';
+            if (/^communication\s*[-–]\s*writing$/i.test(a)) return 'Writing';
+            return a;
+        })(parts[2]),
         type: parts[3].trim().toLowerCase(),
         stage: stageMap[rawStage] || rawStage.split('/')[0].replace(/^./, function(c){return c.toUpperCase();}),
         steps: [all[0]||false, all[1]||false, all[2]||false, all[4]||false, all[6]||false, all[7]||false]
