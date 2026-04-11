@@ -3921,18 +3921,7 @@ function renderAvailable() {
         return true;
     });
 
-    var stageOrder = ['Emergent', 'Early', 'Middle', 'Late'];
-    var typeOrder  = ['fluency', 'concept'];
-    filtered.sort(function(a, b) {
-        var ai = subjects.indexOf(a.subject), bi = subjects.indexOf(b.subject);
-        var si = (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-        if (si !== 0) return si;
-        var sti = stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage);
-        if (sti !== 0) return sti;
-        var ti = typeOrder.indexOf((a.type||'').toLowerCase()) - typeOrder.indexOf((b.type||'').toLowerCase());
-        if (ti !== 0) return ti;
-        return a.title.localeCompare(b.title);
-    });
+    filtered.sort(function(a, b) { return a.title.localeCompare(b.title); });
 
     // Build subject filter buttons (same style as draft tab)
     var usedSubjects = [];
