@@ -2658,6 +2658,11 @@ async function enhanceCreditsWithMetadata() {
                 enhanced++;
             }
         });
+        var creditSubjectOverrides = {
+            'first_31_sounds_part_a': 'Reading',
+            'letter_writer_a_z': 'Writing'
+        };
+        credits.forEach(function(c) { if (creditSubjectOverrides[c.id]) c.subject = creditSubjectOverrides[c.id]; });
         console.log('[Credits] enhanced ' + enhanced + '/' + credits.length + ' credits with stage/type/link');
         if (typeof renderAvailable === 'function') renderAvailable();
         if (currentTab === 'student' && studentTabStudentId) renderStudentTab();
@@ -6466,7 +6471,7 @@ function parseCoreCsv(text) {
         var name = (r[0] || '').trim();
         var period = normCorePeriod(r[1]);
         if (!period) continue;
-        if (name) {
+        if (name && (!cur || cur.name !== name)) {
             cur = { name: name, fall: null, winter: null, spring: null };
             result.push(cur);
         }
