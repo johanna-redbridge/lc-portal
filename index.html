@@ -6651,7 +6651,7 @@ function coreCellAllHtml(student, catIdx) {
             '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' +
             (pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '') +
             '</div>' +
-            '<span style="min-width:24px;font-size:0.58rem;color:#3a3a3c;text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
+            '<span style="min-width:24px;font-size:0.58rem;color:#1d1d1f;text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
             '</div>';
     });
     if (!hasAny) return '<span style="color:#c7c7cc;font-size:0.7rem;">&ndash;</span>';
@@ -6692,10 +6692,10 @@ function renderCore() {
                 var bg, color, label;
                 if (score !== null && !isNaN(score)) {
                     bg    = coreCellBg(score, cat.max);
-                    color = coreCellTextColor(bg);
+                    color = '#1d1d1f';
                     label = score + '/' + cat.max;
                 } else if (mastered) {
-                    bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
+                    bg = '#186a3b'; color = '#1d1d1f'; label = '&#10003;';
                 } else {
                     bg = 'transparent'; color = '#c7c7cc'; label = '&ndash;';
                 }
