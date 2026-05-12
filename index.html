@@ -6876,12 +6876,12 @@ function fpProgressBar(student) {
     var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round((curS - boyS) / 1.0 * 100)));
     var barColor = atMax ? '#34c759' : pct >= 66 ? '#34c759' : pct >= 50 ? '#a8d5a2' : pct >= 32 ? '#ffcc00' : pct >= 20 ? '#FF8200' : '#ff3b30';
     var targetLv = fpTargetLevel(boyLv) || '';
-    return '<div style="display:flex;align-items:center;gap:6px;min-width:160px;">'
+    return '<div style="display:flex;align-items:center;gap:6px;">'
         + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
         + '<div style="height:100%;width:' + pct + '%;background:' + barColor + ';border-radius:4px;transition:width 0.3s;"></div>'
         + '</div>'
         + '<span style="font-size:0.7rem;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
-        + '<span style="font-size:0.68rem;color:#aeaeb2;white-space:nowrap;">target&nbsp;' + fpDisplayLevel(targetLv) + '</span>'
+        + '<span style="font-size:0.68rem;color:#aeaeb2;white-space:nowrap;">→&nbsp;' + fpDisplayLevel(targetLv) + '</span>'
         + '</div>';
 }
 
@@ -6907,11 +6907,12 @@ function fpGLEBar(student) {
     var atMax = (curLvNorm === 'z' || curLvNorm === 'zz');
     var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round(curS / gleS * 100)));
     var barColor = atMax ? '#34c759' : pct >= 100 ? '#34c759' : pct >= 66 ? '#34c759' : pct >= 50 ? '#a8d5a2' : pct >= 32 ? '#ffcc00' : pct >= 20 ? '#FF8200' : '#ff3b30';
-    return '<div style="display:flex;align-items:center;gap:6px;min-width:160px;">'
+    return '<div style="display:flex;align-items:center;gap:6px;">'
         + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
         + '<div style="height:100%;width:' + Math.min(pct,100) + '%;background:' + barColor + ';border-radius:4px;transition:width 0.3s;"></div>'
         + '</div>'
         + '<span style="font-size:0.7rem;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
+        + '<span style="font-size:0.68rem;color:#aeaeb2;white-space:nowrap;">→&nbsp;' + fpDisplayLevel(gleLv) + '</span>'
         + '</div>';
 }
 
@@ -6924,58 +6925,33 @@ function renderFPTable() {
 
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
         + '<table class="core-table" style="width:100%;">'
-        + '<thead>'
-        + '<tr>'
-        + '<th class="core-name-col" rowspan="2">Student</th>'
-        + '<th rowspan="2">AL</th>'
-        + '<th colspan="2" style="text-align:center;border-bottom:1px solid #e8e8ed;">BOY</th>'
-        + '<th colspan="2" style="text-align:center;border-bottom:1px solid #e8e8ed;">MOY</th>'
-        + '<th colspan="2" style="text-align:center;border-bottom:1px solid #e8e8ed;">EOY</th>'
-        + '<th colspan="2" style="text-align:center;border-bottom:1px solid #e8e8ed;">Goal (+1.0)</th>'
-        + '<th rowspan="2" style="min-width:180px;">+1.0 Progress</th>'
-        + '<th colspan="2" style="text-align:center;border-bottom:1px solid #e8e8ed;">GLE Goal</th>'
-        + '<th rowspan="2" style="min-width:180px;">GLE Progress</th>'
-        + '<th rowspan="2"></th>'
-        + '</tr>'
-        + '<tr>'
-        + '<th>Level</th><th>Score</th>'
-        + '<th>Level</th><th>Score</th>'
-        + '<th>Level</th><th>Score</th>'
-        + '<th>Level</th><th>Score</th>'
-        + '<th>Level</th><th>Score</th>'
-        + '</tr>'
-        + '</thead><tbody>';
+        + '<thead><tr>'
+        + '<th class="core-name-col">Student</th>'
+        + '<th>AL</th>'
+        + '<th>BOY</th>'
+        + '<th>MOY</th>'
+        + '<th>EOY</th>'
+        + '<th style="min-width:200px;">+1.0 Growth Progress</th>'
+        + '<th style="min-width:200px;">GLE Progress</th>'
+        + '<th></th>'
+        + '</tr></thead><tbody>';
 
     all.forEach(function(s, idx) {
         var hasNotes = (s.noteB || s.noteM || s.noteE);
         var expanded = fpExpanded[idx];
-        var targetLv = fpTargetLevel(s.boy) || '';
-        var targetSc = targetLv ? fpScore(targetLv) : null;
-        var gleLv = gleTargetLevel(s.gle) || '';
-        var gleSc = gleLv ? fpScore(gleLv) : null;
         function lvCell(lv) {
-            return lv ? '<td style="text-align:center;">' + fpDisplayLevel(lv) + '</td>'
-                      : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>';
-        }
-        function scCell(lv, bold) {
             var sc = fpScore(lv);
-            var style = 'text-align:center;' + (bold ? 'font-weight:600;' : '');
-            return sc !== null ? '<td style="' + style + '">' + sc.toFixed(1) + '</td>'
-                               : '<td style="' + style + 'color:#c7c7cc;">&ndash;</td>';
+            var scStr = sc !== null ? '<br><span style="font-size:0.65rem;color:#aeaeb2;">' + sc.toFixed(1) + '</span>' : '';
+            return lv ? '<td style="text-align:center;">' + fpDisplayLevel(lv) + scStr + '</td>'
+                      : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>';
         }
         html += '<tr>'
             + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;">' + (s.al||'') + '</td>'
-            + lvCell(s.boy) + scCell(s.boy, true)
-            + lvCell(s.moy) + scCell(s.moy, false)
-            + lvCell(s.eoy) + scCell(s.eoy, false)
-            + lvCell(targetLv)
-            + (targetSc !== null ? '<td style="text-align:center;color:#aeaeb2;">' + targetSc.toFixed(1) + '</td>'
-                                 : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>')
+            + lvCell(s.boy)
+            + lvCell(s.moy)
+            + lvCell(s.eoy)
             + '<td>' + fpProgressBar(s) + '</td>'
-            + lvCell(gleLv)
-            + (gleSc !== null ? '<td style="text-align:center;color:#aeaeb2;">' + gleSc.toFixed(1) + '</td>'
-                              : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>')
             + '<td>' + fpGLEBar(s) + '</td>'
             + '<td style="text-align:center;">'
             + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
@@ -6983,7 +6959,7 @@ function renderFPTable() {
             + '</td>'
             + '</tr>';
         if (expanded && hasNotes) {
-            html += '<tr><td colspan="15" style="background:#f5f5f7;padding:0.5rem 1rem 0.5rem 2rem;font-size:0.75rem;color:#3a3a3c;white-space:pre-wrap;">';
+            html += '<tr><td colspan="8" style="background:#f5f5f7;padding:0.5rem 1rem 0.5rem 2rem;font-size:0.75rem;color:#3a3a3c;white-space:pre-wrap;">';
             if (s.noteB) html += '<strong>BOY:</strong> ' + s.noteB.replace(/</g,'&lt;') + '<br>';
             if (s.noteM) html += '<strong>MOY:</strong> ' + s.noteM.replace(/</g,'&lt;') + '<br>';
             if (s.noteE) html += '<strong>EOY:</strong> ' + s.noteE.replace(/</g,'&lt;');
