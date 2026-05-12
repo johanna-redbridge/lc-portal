@@ -1082,6 +1082,7 @@
         <div class="data-subtab-nav">
             <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
             <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
+            <button class="data-subtab-btn" data-subtab="map" onclick="switchDataSubtab('map')">MAP</button>
         </div>
         <div class="data-subtab-panel" id="data-subtab-core">
             <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
@@ -1124,6 +1125,20 @@
                 <span style="margin-left:auto;font-size:0.71rem;color:#86868b;">Progress bar: BOY level → +1.0 target &nbsp;|&nbsp; dot = current level</span>
             </div>
             <div id="fp-content"></div>
+        </div>
+
+        <!-- MAP sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-map" style="display:none;">
+            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn map-al-btn active" data-al="all" onclick="setMapAL('all')">All</button>
+                    <button class="toggle-btn map-al-btn" data-al="1" onclick="setMapAL('1')">AL1</button>
+                    <button class="toggle-btn map-al-btn" data-al="2" onclick="setMapAL('2')">AL2</button>
+                    <button class="toggle-btn map-al-btn" data-al="3" onclick="setMapAL('3')">AL3</button>
+                    <button class="toggle-btn map-al-btn" data-al="4" onclick="setMapAL('4')">AL4</button>
+                </div>
+            </div>
+            <div id="map-content"></div>
         </div>
     </div>
 </div>
@@ -6471,6 +6486,7 @@ function switchDataSubtab(name) {
     });
     if (name === 'core') renderCore();
     if (name === 'fp')   renderFP();
+    if (name === 'map')  renderMAP();
 }
 
 // ───────── CORE ASSESSMENT ─────────
@@ -6982,6 +6998,138 @@ function renderFP() {
     if (!el) return;
     el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading F&amp;P data…</p>';
     loadFpData(function() { renderFPTable(); });
+}
+
+/* =========================================================
+   MAP Assessment
+   ========================================================= */
+var MAP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrWKRzTAYJ5HsfjDjvvT3s5hZEvH4WwGAlPFKyQCD5QqOIDCsz1N5eTI_j4Vo_57wjxuY_zZyCMHB/pub?gid=326344071&single=true&output=csv';
+var mapData = null;
+var mapALFilter = 'all';
+
+function parseMapCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 2) return null;
+
+    var rawHeaders = rows[0].map(function(h) { return (h || '').trim(); });
+    // Math: columns K(10)–AL(37), ELA: columns AM(38)+
+    var mathHeaders = rawHeaders.slice(10, 38);
+    var elaHeaders  = rawHeaders.slice(38);
+    // trim trailing empty headers
+    while (mathHeaders.length && !mathHeaders[mathHeaders.length - 1]) mathHeaders.pop();
+    while (elaHeaders.length  && !elaHeaders[elaHeaders.length  - 1]) elaHeaders.pop();
+
+    // Detect period label from a header string
+    function detectPeriod(h) {
+        var l = h.toLowerCase();
+        if (/fall|boy/.test(l))   return 'BOY';
+        if (/winter|moy/.test(l)) return 'MOY';
+        if (/spring|eoy/.test(l)) return 'EOY';
+        return '';
+    }
+
+    var students = [];
+    for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        var name = (row[1] || '').trim();
+        if (!name) continue;
+        var alRaw = (row[5] || '').trim();
+        var alNum = alRaw.replace(/[^0-9]/g, '');
+        students.push({
+            name: name,
+            gle:  (row[4] || '').trim(),
+            al:   alNum || alRaw,
+            math: mathHeaders.map(function(_, j) { return (row[10 + j] || '').trim(); }),
+            ela:  elaHeaders.map(function(_, j)  { return (row[38 + j] || '').trim(); })
+        });
+    }
+    return { mathHeaders: mathHeaders, elaHeaders: elaHeaders, students: students, detectPeriod: detectPeriod };
+}
+
+function setMapAL(al) {
+    mapALFilter = al;
+    document.querySelectorAll('.map-al-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.al === al);
+    });
+    renderMapTable();
+}
+
+function mapCell(val, tint) {
+    if (!val) return '<td style="text-align:center;color:#c7c7cc;background:' + tint + ';">&ndash;</td>';
+    var num = parseFloat(val);
+    var style = 'text-align:center;background:' + tint + ';';
+    if (!isNaN(num)) return '<td style="' + style + '">' + val + '</td>';
+    return '<td style="' + style + 'font-size:0.7rem;">' + val.replace(/</g,'&lt;') + '</td>';
+}
+
+function renderMapTable() {
+    var el = document.getElementById('map-content');
+    if (!el || !mapData) return;
+
+    var all = mapData.students.slice();
+    if (mapALFilter !== 'all') all = all.filter(function(s) { return s.al === mapALFilter; });
+    if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var mh = mapData.mathHeaders;
+    var eh = mapData.elaHeaders;
+    var dp = mapData.detectPeriod;
+
+    // Build period-grouped sub-headers
+    function subHeaders(headers, tint) {
+        var html = '';
+        headers.forEach(function(h) {
+            var period = dp(h);
+            var label = h.replace(/fall|winter|spring|boy|moy|eoy/gi, '').replace(/^\W+|\W+$/g, '') || h;
+            html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;white-space:nowrap;">'
+                + (period ? '<span style="display:block;font-size:0.58rem;color:#86868b;font-weight:400;">' + period + '</span>' : '')
+                + label.replace(/</g,'&lt;')
+                + '</th>';
+        });
+        return html;
+    }
+
+    var mathTint = '#f0f7f2';
+    var elaTint  = '#f0f4fb';
+
+    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+        + '<table class="core-table" style="width:100%;">'
+        + '<thead><tr>'
+        + '<th class="core-name-col" rowspan="2">Student</th>'
+        + '<th rowspan="2">GLE</th>'
+        + '<th rowspan="2">AL</th>';
+
+    if (mh.length) html += '<th colspan="' + mh.length + '" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;">Math</th>';
+    if (eh.length) html += '<th colspan="' + eh.length + '" style="text-align:center;background:' + elaTint  + ';border-bottom:1px solid #c5d5f0;">ELA</th>';
+
+    html += '</tr><tr>' + subHeaders(mh, mathTint) + subHeaders(eh, elaTint) + '</tr></thead><tbody>';
+
+    all.forEach(function(s) {
+        html += '<tr>'
+            + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;">' + s.gle + '</td>'
+            + '<td style="text-align:center;">' + s.al + '</td>';
+        s.math.forEach(function(v) { html += mapCell(v, mathTint); });
+        s.ela.forEach(function(v)  { html += mapCell(v, elaTint);  });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+}
+
+function renderMAP() {
+    var el = document.getElementById('map-content');
+    if (!el) return;
+    if (mapData) { renderMapTable(); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
+    fetch(MAP_CSV_URL).then(function(r) { return r.text(); }).then(function(text) {
+        mapData = parseMapCsv(text);
+        renderMapTable();
+    }).catch(function(e) {
+        console.error('MAP fetch error', e);
+        var el2 = document.getElementById('map-content');
+        if (el2) el2.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load MAP data.</p>';
+    });
 }
 
 </script>
