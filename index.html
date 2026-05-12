@@ -6821,7 +6821,7 @@ function parseFpStudentCsv(text) {
     var rows = parseCSVFull(text);
     if (rows.length < 2) return [];
     var students = [];
-    for (var i = 1; i < rows.length; i++) {
+    for (var i = 2; i < rows.length; i++) {
         var row = rows[i];
         var name = (row[0] || '').trim();
         if (!name) continue;
