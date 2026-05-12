@@ -1096,12 +1096,16 @@
                     <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
                     <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                 </div>
-                <div style="margin-left:auto;display:flex;gap:0.8rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#2c2c2e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>mastered prior</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#1c1c1e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#34c759;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>strong</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#ffd60a;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>developing</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#ff3b30;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>needs support</span>
+                <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#0a3d20;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>mastered</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#1a5c38;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#27ae60;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥90%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#6fcf97;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥70%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#f7e463;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥50%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#f0b429;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥40%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#f6851f;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥30%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#e05c1a;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥20%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#d93025;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;20%</span>
                 </div>
             </div>
             <div id="core-content"></div>
@@ -6560,17 +6564,19 @@ function coreIsMastered(student, catIdx, period) {
 
 function coreCellBg(score, max) {
     var pct = max > 0 ? score / max : 0;
-    if (pct >= 1.0) return '#1c1c1e';
-    if (pct >= 0.85) return '#34c759';
-    if (pct >= 0.65) return '#a3d977';
-    if (pct >= 0.45) return '#ffd60a';
-    if (pct >= 0.2)  return '#ff9f0a';
-    return '#ff3b30';
+    if (pct >= 1.0) return '#1a5c38';  // 100% — dark green
+    if (pct >= 0.9) return '#27ae60';  // ≥90% — green
+    if (pct >= 0.7) return '#6fcf97';  // ≥70% — light green
+    if (pct >= 0.5) return '#f7e463';  // ≥50% — yellow
+    if (pct >= 0.4) return '#f0b429';  // ≥40% — dark yellow
+    if (pct >= 0.3) return '#f6851f';  // ≥30% — light orange
+    if (pct >= 0.2) return '#e05c1a';  // ≥20% — dark orange
+    return '#d93025';                   // <20%  — red
 }
 
 function coreCellTextColor(bg) {
-    if (bg === '#1c1c1e' || bg === '#ff3b30' || bg === '#ff9f0a') return '#ffffff';
-    return '#1d1d1f';
+    var dark = ['#1a5c38','#27ae60','#e05c1a','#d93025','#0a3d20'];
+    return dark.indexOf(bg) >= 0 ? '#ffffff' : '#1d1d1f';
 }
 
 function setCoreAL(key) {
@@ -6608,7 +6614,7 @@ function coreCellAllHtml(student, catIdx) {
             scoreLabel = score + '/' + cat.max;
             hasAny = true;
         } else if (mastered) {
-            bg = '#2c2c2e'; pct = 100; scoreLabel = '&#10003;'; hasAny = true;
+            bg = '#0a3d20'; pct = 100; scoreLabel = '&#10003;'; hasAny = true;
         } else {
             bg = '#ebebeb'; pct = 0; scoreLabel = '';
         }
@@ -6662,7 +6668,7 @@ function renderCore() {
                     color = coreCellTextColor(bg);
                     label = score + '/' + cat.max;
                 } else if (mastered) {
-                    bg = '#2c2c2e'; color = '#ffffff'; label = '&#10003;';
+                    bg = '#0a3d20'; color = '#ffffff'; label = '&#10003;';
                 } else {
                     bg = 'transparent'; color = '#c7c7cc'; label = '&ndash;';
                 }
