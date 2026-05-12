@@ -1144,102 +1144,112 @@
 <div class="tab-content" id="tab-data">
     <div class="view-container" style="padding:0;">
         <div class="data-subtab-nav">
-            <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
-            <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
-            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Benchmark</button>
-            <button class="data-subtab-btn" data-subtab="lexia" onclick="switchDataSubtab('lexia')">Lexia</button>
-            <button class="data-subtab-btn" data-subtab="map-math" onclick="switchDataSubtab('map-math')">MAP Math</button>
-            <button class="data-subtab-btn" data-subtab="map-ela" onclick="switchDataSubtab('map-ela')">MAP ELA</button>
+            <button class="data-subtab-btn active" data-subtab="reading" onclick="switchDataSubtab('reading')">Reading Dashboard</button>
+            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
         </div>
-        <div class="data-subtab-panel" id="data-subtab-core">
-            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <div class="toggle-group">
-                    <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
-                    <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
-                    <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
-                </div>
-                <div class="toggle-group">
-                    <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
-                    <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
-                    <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
-                    <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
-                </div>
-                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+
+        <!-- ── Reading Dashboard ── -->
+        <div class="data-subtab-panel" id="data-subtab-reading">
+            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
+                <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
+                <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
+                <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
             </div>
-            <div id="core-content"></div>
+            <!-- CORE -->
+            <div id="reading-panel-core">
+                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
+                        <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
+                        <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
+                    </div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
+                        <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
+                        <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
+                        <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
+                    </div>
+                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                </div>
+                <div id="core-content"></div>
+            </div>
+            <!-- F&P -->
+            <div id="reading-panel-fp" style="display:none;">
+                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
+                        <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
+                        <button class="toggle-btn fp-al-btn" data-al="2" onclick="setFpAL('2')">AL2</button>
+                        <button class="toggle-btn fp-al-btn" data-al="3" onclick="setFpAL('3')">AL3</button>
+                        <button class="toggle-btn fp-al-btn" data-al="4" onclick="setFpAL('4')">AL4</button>
+                    </div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn fp-view-btn active" data-view="table" onclick="setFpViewMode('table')">Class View</button>
+                        <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">📈 Student Growth</button>
+                    </div>
+                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                </div>
+                <div id="fp-content"></div>
+            </div>
+            <!-- Lexia -->
+            <div id="reading-panel-lexia" style="display:none;">
+                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn lexia-view-btn active" data-view="performance" onclick="setLexiaView('performance')">Performance</button>
+                        <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
+                        <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
+                    </div>
+                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                </div>
+                <div id="lexia-perf"></div>
+                <div id="lexia-prog" style="display:none;"></div>
+                <div id="lexia-stds" style="display:none;"></div>
+            </div>
+            <!-- MAP ELA -->
+            <div id="reading-panel-map-ela" style="display:none;">
+                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
+                        <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
+                        <button class="toggle-btn map-ela-al-btn" data-al="2" onclick="setMapElaAL('2')">AL2</button>
+                        <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
+                        <button class="toggle-btn map-ela-al-btn" data-al="4" onclick="setMapElaAL('4')">AL4</button>
+                    </div>
+                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                </div>
+                <div id="map-ela-content"></div>
+            </div>
         </div>
 
-        <!-- F&P sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-fp" style="display:none;">
-            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <div class="toggle-group">
-                    <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
-                    <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
-                    <button class="toggle-btn fp-al-btn" data-al="2" onclick="setFpAL('2')">AL2</button>
-                    <button class="toggle-btn fp-al-btn" data-al="3" onclick="setFpAL('3')">AL3</button>
-                    <button class="toggle-btn fp-al-btn" data-al="4" onclick="setFpAL('4')">AL4</button>
-                </div>
-                <div class="toggle-group">
-                    <button class="toggle-btn fp-view-btn active" data-view="table" onclick="setFpViewMode('table')">Class View</button>
-                    <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">📈 Student Growth</button>
-                </div>
-                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
-            </div>
-            <div id="fp-content"></div>
-        </div>
-
-        <!-- Computation Benchmark sub-tab -->
+        <!-- ── Math Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
-            <div id="comp-filters" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
+            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Benchmark</button>
+                <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
             </div>
-            <div id="comp-content"></div>
-        </div>
-
-        <!-- Lexia sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-lexia" style="display:none;">
-            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <div class="toggle-group">
-                    <button class="toggle-btn lexia-view-btn active" data-view="performance" onclick="setLexiaView('performance')">Performance</button>
-                    <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
-                    <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
+            <!-- Benchmark -->
+            <div id="math-panel-benchmark">
+                <div id="comp-filters" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
                 </div>
-                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                <div id="comp-content"></div>
             </div>
-            <div id="lexia-perf"></div>
-            <div id="lexia-prog" style="display:none;"></div>
-            <div id="lexia-stds" style="display:none;"></div>
-        </div>
-
-        <!-- MAP Math sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-map-math" style="display:none;">
-            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <div class="toggle-group">
-                    <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
-                    <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
-                    <button class="toggle-btn map-math-al-btn" data-al="2" onclick="setMapMathAL('2')">AL2</button>
-                    <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
-                    <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
+            <!-- MAP Math -->
+            <div id="math-panel-map-math" style="display:none;">
+                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
+                        <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
+                        <button class="toggle-btn map-math-al-btn" data-al="2" onclick="setMapMathAL('2')">AL2</button>
+                        <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
+                        <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
+                    </div>
+                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
                 </div>
-                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                <div id="map-math-content"></div>
             </div>
-            <div id="map-math-content"></div>
-        </div>
-
-        <!-- MAP ELA sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-map-ela" style="display:none;">
-            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-                <div class="toggle-group">
-                    <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
-                    <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
-                    <button class="toggle-btn map-ela-al-btn" data-al="2" onclick="setMapElaAL('2')">AL2</button>
-                    <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
-                    <button class="toggle-btn map-ela-al-btn" data-al="4" onclick="setMapElaAL('4')">AL4</button>
-                </div>
-                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
-            </div>
-            <div id="map-ela-content"></div>
         </div>
 
         <!-- Writing Dashboard sub-tab -->
@@ -6663,9 +6673,52 @@ function renderHtmlToBlob(html) {
 
 // ───────── DATA TAB ─────────
 
-var currentDataSubtab = 'core';
+var currentDataSubtab = 'reading';
+var readingSubtab = 'core';
+var mathSubtab = 'benchmark';
+
+function switchReadingSubtab(sub) {
+    readingSubtab = sub;
+    document.querySelectorAll('.reading-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === sub);
+    });
+    ['core', 'fp', 'lexia', 'map-ela'].forEach(function(n) {
+        var p = document.getElementById('reading-panel-' + n);
+        if (p) p.style.display = n === sub ? '' : 'none';
+    });
+    renderReadingSubtab();
+}
+
+function renderReadingSubtab() {
+    if (readingSubtab === 'core')    renderCore();
+    if (readingSubtab === 'fp')      renderFP();
+    if (readingSubtab === 'lexia')   renderLexia();
+    if (readingSubtab === 'map-ela') renderMapEla();
+}
+
+function switchMathSubtab(sub) {
+    mathSubtab = sub;
+    document.querySelectorAll('.math-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === sub);
+    });
+    ['benchmark', 'map-math'].forEach(function(n) {
+        var p = document.getElementById('math-panel-' + n);
+        if (p) p.style.display = n === sub ? '' : 'none';
+    });
+    renderMathSubtab();
+}
+
+function renderMathSubtab() {
+    if (mathSubtab === 'benchmark') renderComp();
+    if (mathSubtab === 'map-math')  renderMapMath();
+}
 
 function switchDataSubtab(name) {
+    // Legacy redirects for old direct sub-tab names
+    if (name === 'core' || name === 'fp' || name === 'lexia' || name === 'map-ela') {
+        switchDataSubtab('reading'); switchReadingSubtab(name); return;
+    }
+    if (name === 'map-math') { switchDataSubtab('comp'); switchMathSubtab('map-math'); return; }
     currentDataSubtab = name;
     document.querySelectorAll('.data-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === name);
@@ -6673,13 +6726,9 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
-    if (name === 'core')     renderCore();
-    if (name === 'fp')       renderFP();
-    if (name === 'comp')     renderComp();
-    if (name === 'lexia')    renderLexia();
-    if (name === 'map-math') renderMapMath();
-    if (name === 'map-ela')  renderMapEla();
-    if (name === 'writing')  WD.init();
+    if (name === 'reading') renderReadingSubtab();
+    if (name === 'comp')    renderMathSubtab();
+    if (name === 'writing') WD.init();
 }
 
 // ───────── CORE ASSESSMENT ─────────
