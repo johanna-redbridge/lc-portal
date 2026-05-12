@@ -898,6 +898,11 @@
         .core-table td { padding: 0.2rem 0.2rem; border: 1px solid #e8e8ed; text-align: center; vertical-align: middle; }
         .core-table td.core-name-col { position: sticky; left: 0; background: #fff; text-align: left; font-weight: 500; z-index: 1; padding-left: 0.55rem; padding-right: 0.55rem; font-size: 0.78rem; }
         .core-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; padding: 0.15rem 0.28rem; min-width: 2.7rem; font-size: 0.69rem; font-weight: 600; line-height: 1.2; }
+        /* ── Data sub-tabs ── */
+        .data-subtab-nav { display: flex; border-bottom: 2px solid #e8e8ed; padding: 0 1.25rem; background: #fff; }
+        .data-subtab-btn { padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 500; border: none; background: none; cursor: pointer; color: #86868b; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color 0.15s; white-space: nowrap; }
+        .data-subtab-btn:hover { color: #1d1d1f; }
+        .data-subtab-btn.active { color: #FF8200; border-bottom-color: #FF8200; }
     </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=true;if(typeof initGDrive==='function')initGDrive();"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -927,7 +932,7 @@
         <button class="tab-btn" onclick="switchTab('earned')">Earned</button>
         <button class="tab-btn" onclick="switchTab('portfolio')">Parent</button>
         <button class="tab-btn" onclick="switchTab('student')">Student</button>
-        <button class="tab-btn" onclick="switchTab('core')">CORE</button>
+        <button class="tab-btn" onclick="switchTab('data')">Data</button>
         <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Manage</button>
     </nav>
     <div id="drive-user-info" style="position:absolute;right:1.5rem;display:none;align-items:center;gap:0.6rem;">
@@ -1071,29 +1076,35 @@
     </div>
 </div>
 
-<!-- TAB 7: CORE Assessment -->
-<div class="tab-content" id="tab-core">
+<!-- TAB 7: Data -->
+<div class="tab-content" id="tab-data">
     <div class="view-container" style="padding:0;">
-        <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
-            <div class="toggle-group">
-                <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
-                <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
-                <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
-            </div>
-            <div class="toggle-group">
-                <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
-                <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
-                <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
-            </div>
-            <div style="margin-left:auto;display:flex;gap:0.8rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
-                <span><span style="display:inline-block;width:11px;height:11px;background:#2c2c2e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>mastered prior</span>
-                <span><span style="display:inline-block;width:11px;height:11px;background:#1c1c1e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
-                <span><span style="display:inline-block;width:11px;height:11px;background:#34c759;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>strong</span>
-                <span><span style="display:inline-block;width:11px;height:11px;background:#ffd60a;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>developing</span>
-                <span><span style="display:inline-block;width:11px;height:11px;background:#ff3b30;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>needs support</span>
-            </div>
+        <div class="data-subtab-nav">
+            <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
         </div>
-        <div id="core-content"></div>
+        <div class="data-subtab-panel" id="data-subtab-core">
+            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
+                    <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
+                    <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
+                </div>
+                <div class="toggle-group">
+                    <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
+                    <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
+                    <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
+                    <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:0.8rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#2c2c2e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>mastered prior</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#1c1c1e;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#34c759;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>strong</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#ffd60a;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>developing</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#ff3b30;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>needs support</span>
+                </div>
+            </div>
+            <div id="core-content"></div>
+        </div>
     </div>
 </div>
 
@@ -3782,7 +3793,7 @@ function applyTabRender(tab) {
     document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
-    var tabLabels = { available: 'Available', earned: 'Earned', manage: 'Manage', drafting: 'Draft', portfolio: 'Parent', student: 'Student', core: 'CORE' };
+    var tabLabels = { available: 'Available', earned: 'Earned', manage: 'Manage', drafting: 'Draft', portfolio: 'Parent', student: 'Student', data: 'Data' };
     document.querySelectorAll('.tab-btn').forEach(function(b) {
         if (b.textContent === tabLabels[tab]) b.classList.add('active');
     });
@@ -3792,7 +3803,7 @@ function applyTabRender(tab) {
     if (tab === 'drafting') { loadDraftingFromSheet(); renderDrafting(); }
     if (tab === 'portfolio') renderPortfolio();
     if (tab === 'student') renderStudentTab();
-    if (tab === 'core') renderCore();
+    if (tab === 'data') switchDataSubtab(currentDataSubtab);
 }
 
 // Navigate to a portfolio student (pushes history)
@@ -6426,6 +6437,21 @@ function renderHtmlToBlob(html) {
     });
 }
 
+// ───────── DATA TAB ─────────
+
+var currentDataSubtab = 'core';
+
+function switchDataSubtab(name) {
+    currentDataSubtab = name;
+    document.querySelectorAll('.data-subtab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.subtab === name);
+    });
+    document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
+        p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
+    });
+    if (name === 'core') renderCore();
+}
+
 // ───────── CORE ASSESSMENT ─────────
 
 var CORE_CSV_URLS = {
@@ -6546,6 +6572,41 @@ function setCorePeriod(p) {
     renderCore();
 }
 
+function coreCellAllHtml(student, catIdx) {
+    var cat = CORE_CATS[catIdx];
+    var periods = [
+        { key: 'fall',   lbl: 'B' },
+        { key: 'winter', lbl: 'M' },
+        { key: 'spring', lbl: 'E' }
+    ];
+    var rows = '', hasAny = false;
+    periods.forEach(function(pd) {
+        var pData = student[pd.key];
+        var score = pData ? pData.scores[catIdx] : null;
+        var mastered = coreIsMastered(student, catIdx, pd.key);
+        var bg, pct, scoreLabel;
+        if (score !== null && !isNaN(score)) {
+            bg = coreCellBg(score, cat.max);
+            pct = Math.max(score > 0 ? (score / cat.max) * 100 : 0, score > 0 ? 4 : 0);
+            scoreLabel = score + '/' + cat.max;
+            hasAny = true;
+        } else if (mastered) {
+            bg = '#2c2c2e'; pct = 100; scoreLabel = '&#10003;'; hasAny = true;
+        } else {
+            bg = '#ebebeb'; pct = 0; scoreLabel = '';
+        }
+        rows += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:1px;">' +
+            '<span style="width:9px;font-size:0.54rem;color:#aeaeb2;flex-shrink:0;">' + pd.lbl + '</span>' +
+            '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' +
+            (pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '') +
+            '</div>' +
+            '<span style="min-width:24px;font-size:0.58rem;color:#3a3a3c;text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
+            '</div>';
+    });
+    if (!hasAny) return '<span style="color:#c7c7cc;font-size:0.7rem;">&ndash;</span>';
+    return '<div style="padding:2px 2px;">' + rows + '</div>';
+}
+
 function renderCore() {
     var el = document.getElementById('core-content');
     if (!el) return;
@@ -6560,6 +6621,7 @@ function renderCore() {
         return;
     }
     var p = corePeriod;
+    var isAll = (p === 'all');
     var html = '<div class="core-table-wrap"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
     CORE_CATS.forEach(function(cat) {
@@ -6568,29 +6630,39 @@ function renderCore() {
     html += '<th style="text-align:left;min-width:160px;white-space:normal;font-size:0.72rem;">Notes</th>';
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
-        var pData = s[p];
+        var pData = isAll ? null : s[p];
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
         CORE_CATS.forEach(function(cat, i) {
-            var score = pData ? pData.scores[i] : null;
-            var mastered = coreIsMastered(s, i, p);
-            var bg, color, label;
-            if (score !== null && !isNaN(score)) {
-                bg    = coreCellBg(score, cat.max);
-                color = coreCellTextColor(bg);
-                label = score + '/' + cat.max;
-            } else if (mastered) {
-                bg    = '#2c2c2e';
-                color = '#ffffff';
-                label = '&#10003;';
+            if (isAll) {
+                html += '<td style="padding:2px 3px;">' + coreCellAllHtml(s, i) + '</td>';
             } else {
-                bg    = 'transparent';
-                color = '#c7c7cc';
-                label = '&ndash;';
+                var score = pData ? pData.scores[i] : null;
+                var mastered = coreIsMastered(s, i, p);
+                var bg, color, label;
+                if (score !== null && !isNaN(score)) {
+                    bg    = coreCellBg(score, cat.max);
+                    color = coreCellTextColor(bg);
+                    label = score + '/' + cat.max;
+                } else if (mastered) {
+                    bg = '#2c2c2e'; color = '#ffffff'; label = '&#10003;';
+                } else {
+                    bg = 'transparent'; color = '#c7c7cc'; label = '&ndash;';
+                }
+                html += '<td><span class="core-chip" style="background:' + bg + ';color:' + color + ';">' + label + '</span></td>';
             }
-            html += '<td><span class="core-chip" style="background:' + bg + ';color:' + color + ';">' + label + '</span></td>';
         });
-        var notes = pData ? pData.notes : '';
-        html += '<td style="text-align:left;white-space:normal;font-size:0.7rem;color:#3a3a3c;padding:0.3rem 0.5rem;">' + (notes ? notes.replace(/</g, '&lt;') : '') + '</td>';
+        var notes = '';
+        if (isAll) {
+            var noteParts = [];
+            ['fall','winter','spring'].forEach(function(pk, pi) {
+                var n = s[pk] && s[pk].notes ? s[pk].notes.trim() : '';
+                if (n) noteParts.push('<span style="color:#aeaeb2;">' + ['B','M','E'][pi] + ':</span> ' + n.replace(/</g,'&lt;'));
+            });
+            notes = noteParts.join('<br>');
+        } else {
+            notes = pData && pData.notes ? pData.notes.replace(/</g,'&lt;') : '';
+        }
+        html += '<td style="text-align:left;white-space:normal;font-size:0.7rem;color:#3a3a3c;padding:0.3rem 0.5rem;">' + notes + '</td>';
         html += '</tr>';
     });
     html += '</tbody></table></div>';
