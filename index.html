@@ -6592,9 +6592,9 @@ function setCorePeriod(p) {
 function coreCellAllHtml(student, catIdx) {
     var cat = CORE_CATS[catIdx];
     var periods = [
-        { key: 'fall',   lbl: 'B' },
-        { key: 'winter', lbl: 'M' },
-        { key: 'spring', lbl: 'E' }
+        { key: 'fall',   lbl: 'BOY' },
+        { key: 'winter', lbl: 'MOY' },
+        { key: 'spring', lbl: 'EOY' }
     ];
     var rows = '', hasAny = false;
     periods.forEach(function(pd) {
@@ -6613,7 +6613,7 @@ function coreCellAllHtml(student, catIdx) {
             bg = '#ebebeb'; pct = 0; scoreLabel = '';
         }
         rows += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:1px;">' +
-            '<span style="width:9px;font-size:0.54rem;color:#aeaeb2;flex-shrink:0;">' + pd.lbl + '</span>' +
+            '<span style="width:24px;font-size:0.54rem;color:#aeaeb2;flex-shrink:0;">' + pd.lbl + '</span>' +
             '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' +
             (pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '') +
             '</div>' +
@@ -6673,7 +6673,7 @@ function renderCore() {
             var noteParts = [];
             ['fall','winter','spring'].forEach(function(pk, pi) {
                 var n = s[pk] && s[pk].notes ? s[pk].notes.trim() : '';
-                if (n) noteParts.push('<span style="color:#aeaeb2;">' + ['B','M','E'][pi] + ':</span> ' + n.replace(/</g,'&lt;'));
+                if (n) noteParts.push('<span style="color:#aeaeb2;">' + ['BOY','MOY','EOY'][pi] + ':</span> ' + n.replace(/</g,'&lt;'));
             });
             notes = noteParts.join('<br>');
         } else {
@@ -6928,7 +6928,7 @@ function renderFPTable() {
         }
         html += '<tr>'
             + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
-            + '<td style="text-align:center;">AL' + (s.al||'') + '</td>'
+            + '<td style="text-align:center;">' + (s.al||'') + '</td>'
             + lvCell(s.boy) + scCell(s.boy, true)
             + lvCell(s.moy) + scCell(s.moy, false)
             + lvCell(s.eoy) + scCell(s.eoy, false)
