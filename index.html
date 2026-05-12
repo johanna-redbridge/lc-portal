@@ -6670,14 +6670,13 @@ function renderCore() {
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
-        var hasCurrentData = !isAll && pData && pData.scores.some(function(sc) { return sc !== null && !isNaN(sc); });
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
         CORE_CATS.forEach(function(cat, i) {
             if (isAll) {
                 html += '<td style="padding:2px 3px;">' + coreCellAllHtml(s, i) + '</td>';
             } else {
                 var score = pData ? pData.scores[i] : null;
-                var mastered = hasCurrentData && coreIsMastered(s, i, p);
+                var mastered = coreIsMastered(s, i, p);
                 var bg, color, label;
                 if (score !== null && !isNaN(score)) {
                     bg    = coreCellBg(score, cat.max);
