@@ -1110,7 +1110,7 @@
                     <span><span style="display:inline-block;width:11px;height:11px;background:#e67e22;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥25%</span>
                     <span><span style="display:inline-block;width:11px;height:11px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥20%</span>
                     <span><span style="display:inline-block;width:11px;height:11px;background:#c0392b;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥10%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#7b241c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;10%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;10%</span>
                 </div>
             </div>
             <div id="core-content"></div>
@@ -6595,7 +6595,7 @@ function pctColor(pct) {
     if (pct >= 25)  return '#e67e22';  // dark orange
     if (pct >= 20)  return '#e74c3c';  // light red
     if (pct >= 10)  return '#c0392b';  // dark red
-    return '#7b241c';                   // <10% — very dark red
+    return '#e74c3c';                   // <10% — bright red
 }
 
 function coreCellBg(score, max) {
@@ -6603,7 +6603,7 @@ function coreCellBg(score, max) {
 }
 
 function coreCellTextColor(bg) {
-    var white = ['#186a3b','#1a7a46','#27ae60','#2ecc71','#e74c3c','#c0392b','#7b241c'];
+    var white = ['#186a3b','#1a7a46','#27ae60','#2ecc71','#e74c3c','#c0392b'];
     return white.indexOf(bg) >= 0 ? '#ffffff' : '#1d1d1f';
 }
 
