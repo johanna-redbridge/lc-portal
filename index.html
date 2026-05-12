@@ -7899,7 +7899,7 @@ function parseStandardsCsv(text) {
     var gradeRow = rows[0];
     var grades = [];
     var curGrade = null, curStart = -1;
-    for (var c = 1; c < gradeRow.length; c++) {
+    for (var c = 0; c < gradeRow.length; c++) {
         var lbl = (gradeRow[c] || '').trim();
         if (lbl) {
             if (curGrade !== null) grades.push({ label: curGrade, start: curStart, end: c - 1 });
@@ -7973,7 +7973,7 @@ function renderLexiaStds() {
         html += '<thead><tr>';
         html += '<th style="position:sticky;left:0;background:#f5f5f7;z-index:2;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;">Student</th>';
         stds.forEach(function(s) {
-            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;" title="' + s.code + '">' + s.code + '</th>';
+            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + s.code + '</th>';
         });
         html += '</tr></thead>';
 
