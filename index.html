@@ -6653,9 +6653,13 @@ function coreCellAllHtml(student, catIdx) {
         var mastered = coreIsMastered(student, catIdx, pd.key);
         var bg, pct, scoreLabel;
         if (score !== null && !isNaN(score)) {
-            bg = coreCellBg(score, cat.max);
-            pct = Math.max(score > 0 ? (score / cat.max) * 100 : 0, score > 0 ? 4 : 0);
-            scoreLabel = score + '/' + cat.max;
+            if (score >= cat.max) {
+                bg = '#186a3b'; pct = 100; scoreLabel = '&#10003;';
+            } else {
+                bg = coreCellBg(score, cat.max);
+                pct = Math.max(score > 0 ? (score / cat.max) * 100 : 0, score > 0 ? 4 : 0);
+                scoreLabel = score + '/' + cat.max;
+            }
             hasAny = true;
         } else if (mastered) {
             bg = '#186a3b'; pct = 100; scoreLabel = '&#10003;'; hasAny = true;
@@ -6707,9 +6711,13 @@ function renderCore() {
                 var mastered = coreIsMastered(s, i, p);
                 var bg, color, label;
                 if (score !== null && !isNaN(score)) {
-                    bg    = coreCellBg(score, cat.max);
-                    color = '#1d1d1f';
-                    label = score + '/' + cat.max;
+                    if (score >= cat.max) {
+                        bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
+                    } else {
+                        bg    = coreCellBg(score, cat.max);
+                        color = '#1d1d1f';
+                        label = score + '/' + cat.max;
+                    }
                 } else if (mastered) {
                     bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
                 } else {
