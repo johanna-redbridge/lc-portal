@@ -1242,11 +1242,16 @@
         <div class="data-subtab-panel" id="data-subtab-writing" style="display:none;">
             <div id="wd-root">
                 <div id="wd-nav">
-                    <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">📊 Class Overview</button>
-                    <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">👤 Individual Student</button>
-                    <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">👥 Writing Groups</button>
-                    <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">🔍 Category Deep Dive</button>
-                    <span id="wd-last-updated"></span>
+                    <span style="font-size:.65rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;padding:0 4px">Level</span>
+                    <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
+                    <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
+                    <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
+                    <button class="wd-nav-btn" data-level="ms" onclick="WD.setLevel('ms')">MS</button>
+                    <div style="width:1px;height:22px;background:#ddd;align-self:center;margin:0 6px;"></div>
+                    <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">📊 Overview</button>
+                    <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">👤 Student</button>
+                    <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">📈 All Levels</button>
+                    <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">🔍 Category</button>
                 </div>
                 <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
                     <div class="wd-spinner"></div><br>Loading writing data…
@@ -8130,52 +8135,87 @@ function renderLexia() {
 // ═══════════════════════════════════════════════════════
 var WD = (function() {
 
-// ── Data URL (set to your published CSV or JSON endpoint) ──
-var DATA_URL = ''; // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
-
-// ── Constants ──
-var CATEGORIES = ["Intros","Transitions","Ending","Sequencing/Org","Elaboration","Voice/Craft","Spelling","Grammar","Overall"];
+// ── Category sets ──
+var WD_CATS_LOWER = ["Intros","Transitions","Ending","Sequencing/Org","Elaboration","Voice/Craft","Spelling","Grammar","Overall"];
+var WD_CATS_MS    = ["Main Idea","Details","Lead/Conclusion","Transition","Organization","Pacing","Voice","Word Choice","Sentence Formation","Spelling","Punctuation","Grammar/Usage"];
+var SHEET_BASE    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=';
 var SEASONS = ["fall","winter","spring"];
 
+function makeLvl(label, gid, cats, hasGoal, seasonCol, goalCol, genreCol, notesCol, avgCol, c0, c1, hwCol) {
+    return {label:label, gid:gid, cats:cats, hasGoal:hasGoal, seasonCol:seasonCol, goalCol:goalCol, genreCol:genreCol, notesCol:notesCol, avgCol:avgCol, catStart:c0, catEnd:c1, hwCol:hwCol};
+}
+var LEVELS = {
+    al1:  makeLvl('AL1',   '736032062',  WD_CATS_LOWER, true,  2, 1, 3, 4, 5, 6, 14, 15),
+    al2:  makeLvl('AL2',   '1841539554', WD_CATS_LOWER, true,  2, 1, 3, 4, 5, 6, 14, 15),
+    al34: makeLvl('AL3/4', '453010400',  WD_CATS_LOWER, true,  2, 1, 3, 4, 5, 6, 14, 15),
+    ms:   makeLvl('MS',    '1129171748', WD_CATS_MS,    false, 1, null, 2, 3, 4, 5, 16, 17)
+};
+
 // ── State ──
-var APP = { students: [], lastUpdated: '' };
+var APP = { students: [] };
 var initialized = false;
 var currentView = 'class';
-var teacherFilterOverview = '';
+var currentLevel = 'al1';
+var levelCache = {};
+var CATS = WD_CATS_LOWER;
 var rosterGrowthCol = 'fw';
 var studentGrowthCol = 'fw';
 var selectedStudent = '';
 var catDiveIdx = 0;
-var teacherFilterCat = '';
 var sortState = {
     cat:     { col:'label', dir:'asc' },
     roster:  { col:'name',  dir:'asc' },
     catDive: { col:'fallScore', dir:'desc' }
 };
 
-// ── Demo data (shown when DATA_URL is not configured) ──
-var DEMO_STUDENTS = [
-    { name:'Astra E.', al:'AL1', teacher:'Ms. Rivera', goal:3.0,
-      fall:  { avg:2.1, scores:[2,2,2,2,2,2,2,2,2], hw:2, noWork:false, hasWritingSample:true, instructional:false },
-      winter:{ avg:2.6, scores:[3,2,3,2,3,2,3,2,3], hw:2, noWork:false, hasWritingSample:true, instructional:false },
-      spring:null },
-    { name:'Jasper I.', al:'AL1', teacher:'Ms. Rivera', goal:3.0,
-      fall:  { avg:1.8, scores:[2,2,2,2,2,1,2,2,2], hw:1, noWork:false, hasWritingSample:true, instructional:false },
-      winter:{ avg:2.2, scores:[2,2,2,2,2,2,2,3,2], hw:2, noWork:false, hasWritingSample:true, instructional:false },
-      spring:null },
-    { name:'Alina A.', al:'AL2', teacher:'Mr. Park', goal:4.0,
-      fall:  { avg:3.0, scores:[3,3,3,3,3,3,3,3,3], hw:3, noWork:false, hasWritingSample:true, instructional:false },
-      winter:{ avg:3.4, scores:[4,3,3,4,3,3,4,3,3], hw:3, noWork:false, hasWritingSample:true, instructional:false },
-      spring:null },
-    { name:'Leo M.', al:'AL2', teacher:'Mr. Park', goal:4.0,
-      fall:  { avg:2.8, scores:[3,3,3,3,3,3,3,2,3], hw:2, noWork:false, hasWritingSample:true, instructional:false },
-      winter:{ avg:null, scores:[], noWork:true, hasWritingSample:false, instructional:false },
-      spring:null },
-    { name:'Sofia T.', al:'AL3', teacher:'Ms. Lee', goal:5.0,
-      fall:  { avg:4.1, scores:[4,4,4,4,4,4,4,4,5], hw:3, noWork:false, hasWritingSample:true, instructional:false },
-      winter:{ avg:4.5, scores:[5,4,4,5,4,5,4,4,5], hw:3, noWork:false, hasWritingSample:true, instructional:false },
-      spring:null },
-];
+// ── CSV parser ──
+function parseCsvText(text) {
+    var rows = [];
+    var lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        var row = [], cur = '', inQ = false;
+        for (var j = 0; j < lines[i].length; j++) {
+            var ch = lines[i][j];
+            if (ch === '"') { if (inQ && lines[i][j+1] === '"') { cur += '"'; j++; } else inQ = !inQ; }
+            else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+            else cur += ch;
+        }
+        row.push(cur.trim());
+        rows.push(row);
+    }
+    return rows;
+}
+function parseLevelCsv(text, levelKey) {
+    var cfg = LEVELS[levelKey];
+    var rows = parseCsvText(text);
+    var students = [], current = null;
+    for (var i = 3; i < rows.length; i++) {
+        var row = rows[i];
+        if (!row || row.length < cfg.avgCol + 1) continue;
+        var name = (row[0] || '').trim();
+        var seasonRaw = (row[cfg.seasonCol] || '').trim().toLowerCase();
+        var season = seasonRaw.indexOf('winter') !== -1 ? 'winter'
+                   : seasonRaw.indexOf('spring') !== -1 ? 'spring'
+                   : seasonRaw.indexOf('fall')   !== -1 ? 'fall' : null;
+        if (name) {
+            current = { name:name, al:cfg.label, goal:cfg.goalCol !== null ? (parseFloat(row[cfg.goalCol]) || null) : null, fall:null, winter:null, spring:null };
+            students.push(current);
+        }
+        if (!current || !season) continue;
+        var avgRaw = (row[cfg.avgCol] || '').trim();
+        var avg = (avgRaw && avgRaw !== '#DIV/0!') ? parseFloat(avgRaw) : null;
+        if (avg === null || isNaN(avg)) continue;
+        var cats = [];
+        for (var c = cfg.catStart; c <= cfg.catEnd; c++) {
+            var v = (row[c] || '').trim().toUpperCase();
+            cats.push(v === 'N/A' || v === '' ? null : parseFloat(row[c]));
+        }
+        var notes = cfg.notesCol !== null ? (row[cfg.notesCol] || '').trim() : '';
+        current[season] = { avg:avg, scores:cats, hw:row.length > cfg.hwCol ? (parseFloat(row[cfg.hwCol]) || null) : null, notes:notes, genre:(row[cfg.genreCol]||'').trim(), instructional:notes.toLowerCase().indexOf('instructional') !== -1, noWork:false };
+    }
+    return students;
+}
 
 // ── Helpers ──
 function safeAvg(arr) {
@@ -8212,30 +8252,22 @@ function grpAvg(members, season, catIdx) {
     var vals = members
         .filter(function(s){ return s[season]&&!s[season].noWork; })
         .map(function(s){
-            if (catIdx===-1) {
-                var sc=(s[season].scores||[]).filter(function(v){return v!=null&&v>0;});
-                return sc.length?sc.reduce(function(a,b){return a+b;},0)/sc.length:null;
-            }
-            return s[season].scores[catIdx];
+            if (catIdx===-1) { var sc=(s[season].scores||[]).filter(function(v){return v!=null&&v>0;}); return sc.length?sc.reduce(function(a,b){return a+b;},0)/sc.length:null; }
+            return (s[season].scores||[])[catIdx];
         }).filter(function(v){return v!=null&&v>0;});
     return vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:null;
 }
 function seasonHasOccurred(members, season) {
-    return members.some(function(s){ return s[season]&&s[season].hasWritingSample; });
+    return members.some(function(s){ return s[season]!=null; });
 }
 function avgGrowth(members, sA, sB, catIdx) {
-    var eligible=members.filter(function(s){
-        return s[sA]&&s[sA].hasWritingSample&&!s[sA].noWork&&s[sB]&&s[sB].hasWritingSample&&!s[sB].noWork;
-    });
+    var eligible=members.filter(function(s){ return s[sA]&&!s[sA].noWork&&s[sB]&&!s[sB].noWork; });
     if (!eligible.length) return null;
     var diffs;
     if (catIdx===-1) {
         diffs=eligible.map(function(s){return growthDiff(s[sA].avg,s[sB].avg);}).filter(function(v){return v!=null;});
     } else {
-        diffs=eligible.map(function(s){
-            var a=s[sA].scores[catIdx]||0, b=s[sB].scores[catIdx]||0;
-            return Math.round((Math.round(b*10)/10-Math.round(a*10)/10)*10)/10;
-        });
+        diffs=eligible.map(function(s){ var a=(s[sA].scores||[])[catIdx], b=(s[sB].scores||[])[catIdx]; return (a!=null&&b!=null)?growthDiff(a,b):null; }).filter(function(v){return v!=null;});
     }
     if (!diffs.length) return null;
     return Math.round(diffs.reduce(function(a,b){return a+b;},0)/diffs.length*10)/10;
@@ -8291,36 +8323,27 @@ function attachSortListeners(tableId, stateKey, renderFn) {
 
 // ── Render: Class Overview ──
 function renderClassOverview() {
-    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
-    var filtered=teacherFilterOverview?APP.students.filter(function(s){return s.teacher===teacherFilterOverview;}):APP.students;
-    var hasFall=seasonHasOccurred(filtered,'fall'), hasWinter=seasonHasOccurred(filtered,'winter'), hasSpring=seasonHasOccurred(filtered,'spring');
-    var catData=CATEGORIES.map(function(label,ci){return{label:label,ci:ci,
-        fw:hasFall&&hasWinter?avgGrowth(filtered,'fall','winter',ci):null,
-        ws:hasWinter&&hasSpring?avgGrowth(filtered,'winter','spring',ci):null,
-        fs:hasFall&&hasSpring?avgGrowth(filtered,'fall','spring',ci):null};});
-    var overallFW=hasFall&&hasWinter?avgGrowth(filtered,'fall','winter',-1):null;
-    var overallWS=hasWinter&&hasSpring?avgGrowth(filtered,'winter','spring',-1):null;
-    var overallFS=hasFall&&hasSpring?avgGrowth(filtered,'fall','spring',-1):null;
+    var students = APP.students;
+    var hasFall=seasonHasOccurred(students,'fall'), hasWinter=seasonHasOccurred(students,'winter'), hasSpring=seasonHasOccurred(students,'spring');
+    var catData=CATS.map(function(label,ci){return{label:label,ci:ci,
+        fw:hasFall&&hasWinter?avgGrowth(students,'fall','winter',ci):null,
+        ws:hasWinter&&hasSpring?avgGrowth(students,'winter','spring',ci):null,
+        fs:hasFall&&hasSpring?avgGrowth(students,'fall','spring',ci):null};});
+    var overallFW=hasFall&&hasWinter?avgGrowth(students,'fall','winter',-1):null;
+    var overallWS=hasWinter&&hasSpring?avgGrowth(students,'winter','spring',-1):null;
+    var overallFS=hasFall&&hasSpring?avgGrowth(students,'fall','spring',-1):null;
     var sortedCat=sortRows(catData,sortState.cat.col,sortState.cat.dir,function(r,c){return{label:r.label,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
-    var rosterData=filtered.map(function(s){return Object.assign({},s,{
+    var rosterData=students.map(function(s){return Object.assign({},s,{
         fallAvg:s.fall?s.fall.avg:null,
-        winterAvg:s.winter&&s.winter.noWork?null:(s.winter?s.winter.avg:null),
+        winterAvg:s.winter?s.winter.avg:null,
         springAvg:s.spring?s.spring.avg:null,
-        fw:s.winter&&s.winter.noWork?null:growthDiff(s.fall?s.fall.avg:null,s.winter?s.winter.avg:null),
-        ws:(s.winter&&s.winter.noWork)||!s.spring?null:growthDiff(s.winter?s.winter.avg:null,s.spring?s.spring.avg:null),
-        fs:!s.spring?null:growthDiff(s.fall?s.fall.avg:null,s.spring?s.spring.avg:null)});});
-    var sortedRoster=sortRows(rosterData,sortState.roster.col,sortState.roster.dir,function(r,c){return{name:r.name,al:r.al,teacher:r.teacher,goal:r.goal,fallAvg:r.fallAvg,winterAvg:r.winterAvg,springAvg:r.springAvg,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
-    function kpiGrowth(val,tf){var gc=growthColors(val,tf);return '<div class="wd-kpi-card" style="background:'+gc.bg+'"><div class="wd-kpi-label" style="color:'+gc.text+'">Avg F→W Growth</div><div class="wd-kpi-value" style="color:'+gc.text+'">'+(val!=null?gc.symbol+' '+(val>0?'+':'')+val.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of per-student diffs</div></div>';}
+        fw:growthDiff(s.fall?s.fall.avg:null,s.winter?s.winter.avg:null),
+        ws:growthDiff(s.winter?s.winter.avg:null,s.spring?s.spring.avg:null),
+        fs:growthDiff(s.fall?s.fall.avg:null,s.spring?s.spring.avg:null)});});
+    var sortedRoster=sortRows(rosterData,sortState.roster.col,sortState.roster.dir,function(r,c){return{name:r.name,goal:r.goal,fallAvg:r.fallAvg,winterAvg:r.winterAvg,springAvg:r.springAvg,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
     var gcFW=growthColors(overallFW,'half'),gcWS=growthColors(overallWS,'half'),gcFS=growthColors(overallFS,'full');
-    var html='<div class="wd-filter-bar">'
-        +'<span style="font-weight:800;font-size:.95rem">'+(teacherFilterOverview?teacherFilterOverview+"'s Students":"All Students")
-        +' <span style="font-size:.72rem;font-weight:400;color:#94a3b8">'+filtered.length+' students</span></span>'
-        +'<label>Writing Teacher</label>'
-        +'<select id="wd-sel-teacher-ov"><option value="">All Teachers</option>'
-        +teachers.map(function(t){return'<option value="'+t+'"'+(t===teacherFilterOverview?' selected':'')+'>'+t+'</option>';}).join('')
-        +'</select></div>'
-        +'<div class="wd-kpi-grid">'
-        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+filtered.length+'</div><div class="wd-kpi-sub">in view</div></div>'
+    var html='<div class="wd-kpi-grid">'
+        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+students.length+'</div><div class="wd-kpi-sub">'+LEVELS[currentLevel].label+'</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">Avg F→W Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">Avg W→S Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">Avg F→S Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
@@ -8346,29 +8369,23 @@ function renderClassOverview() {
         +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setRosterGrowth(\''+p[0]+'\')" style="padding:3px 10px;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;background:'+(rosterGrowthCol===p[0]?'#1d1d1f':'transparent')+';color:'+(rosterGrowthCol===p[0]?'#fff':'#64748b')+'">'+p[1]+'</button>';}).join('')
         +'</div></div></div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-roster"><thead><tr>'
-        +makeSortTh('Student','name','roster')+makeSortTh('AL','al','roster')+makeSortTh('Teacher','teacher','roster')
-        +makeSortTh('Goal','goal','roster',true)+makeSortTh('Fall','fallAvg','roster',true)
-        +makeSortTh('Winter','winterAvg','roster',true)+makeSortTh('Spring','springAvg','roster',true)
-        +makeSortTh(rosterGrowthCol==='fw'?'F→W':rosterGrowthCol==='ws'?'W→S':'F→S',rosterGrowthCol==='fw'?'fw':rosterGrowthCol==='ws'?'ws':'fs','roster',true)
+        +makeSortTh('Student','name','roster')
+        +(LEVELS[currentLevel].hasGoal?makeSortTh('Goal','goal','roster',true):'')
+        +makeSortTh('Fall','fallAvg','roster',true)+makeSortTh('Winter','winterAvg','roster',true)+makeSortTh('Spring','springAvg','roster',true)
+        +makeSortTh(rosterGrowthCol==='fw'?'F→W':rosterGrowthCol==='ws'?'W→S':'F→S',rosterGrowthCol,'roster',true)
         +'</tr></thead><tbody>'
         +sortedRoster.map(function(s,i){
             var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
-            var gc=rosterGrowthCol==='fw'&&s.winter&&s.winter.noWork?'—':diffBadge(0,gv,tf,true);
             return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
                 +'<td><strong>'+s.name+'</strong></td>'
-                +'<td style="font-size:.76rem;color:#64748b">'+( s.al||'—')+'</td>'
-                +'<td style="font-size:.76rem;color:#64748b">'+(s.teacher||'<em style="color:#cbd5e1">unassigned</em>')+'</td>'
-                +'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>'
+                +(LEVELS[currentLevel].hasGoal?'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>':'')
                 +'<td class="center">'+scoreChip(s.fallAvg)+'</td>'
-                +'<td class="center">'+(s.winter&&s.winter.noWork?'<span style="font-size:.7rem;color:#f87171;font-weight:700">NO WORK</span>':scoreChip(s.winterAvg))+'</td>'
+                +'<td class="center">'+scoreChip(s.winterAvg)+'</td>'
                 +'<td class="center">'+scoreChip(s.springAvg)+'</td>'
-                +'<td class="center">'+gc+'</td></tr>';
+                +'<td class="center">'+diffBadge(0,gv,tf,true)+'</td></tr>';
         }).join('')
         +'</tbody></table></div></div>';
-    var el=document.getElementById('wd-view-class');
-    el.innerHTML=html;
-    var sel=document.getElementById('wd-sel-teacher-ov');
-    if (sel) sel.addEventListener('change',function(e){teacherFilterOverview=e.target.value;renderClassOverview();});
+    document.getElementById('wd-view-class').innerHTML=html;
     attachSortListeners('wd-tbl-cat','cat',renderClassOverview);
     attachSortListeners('wd-tbl-roster','roster',renderClassOverview);
 }
@@ -8385,12 +8402,12 @@ function renderStudentView() {
     }).join('');
     var gp={fw:{sA:'fall',sB:'winter',tf:'half',label:'Fall → Winter'},ws:{sA:'winter',sB:'spring',tf:'half',label:'Winter → Spring'},fs:{sA:'fall',sB:'spring',tf:'full',label:'Fall → Spring'}}[studentGrowthCol];
     var dA=s[gp.sA],dB=s[gp.sB],pairOk=dA&&!dA.noWork&&dB&&!dB.noWork;
-    var growthChips=!pairOk?'':CATEGORIES.map(function(cat,ci){
-        var a=dA.scores[ci]||0,b=dB.scores[ci]||0;
-        var d=Math.round((Math.round(b*10)/10-Math.round(a*10)/10)*10)/10;
-        var gc=growthColors(d,gp.tf),sign=d>0?'+':'';
+    var growthChips=!pairOk?'':CATS.map(function(cat,ci){
+        var a=(dA.scores||[])[ci], b=(dB.scores||[])[ci];
+        if (a==null||b==null) return '';
+        var d=growthDiff(a,b)||0, gc=growthColors(d,gp.tf), sign=d>0?'+':'';
         return'<div class="wd-growth-chip"><div class="gc-label">'+cat+'</div>'
-            +'<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+(d!==0?d.toFixed(1):'0.0')+'</span></div>';
+            +'<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+d.toFixed(1)+'</span></div>';
     }).join('');
     var seasonCards=SEASONS.map(function(season){
         var d=s[season],border=season==='fall'?'#fde68a':season==='winter'?'#bfdbfe':'#bbf7d0';
@@ -8400,7 +8417,7 @@ function renderStudentView() {
         else {
             if (d.instructional) body+='<div style="color:#f59e0b;font-size:.72rem;margin-bottom:6px">⚠ Instructional score</div>';
             body+='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><tbody>'
-                +CATEGORIES.map(function(cat,ci){return'<tr><td style="padding:4px 0;color:#64748b;border-bottom:1px solid #f1f5f9">'+cat+'</td><td style="text-align:right;border-bottom:1px solid #f1f5f9">'+scoreChip(d.scores[ci])+'</td></tr>';}).join('')
+                +CATS.map(function(cat,ci){return'<tr><td style="padding:4px 0;color:#64748b;border-bottom:1px solid #f1f5f9">'+cat+'</td><td style="text-align:right;border-bottom:1px solid #f1f5f9">'+scoreChip((d.scores||[])[ci])+'</td></tr>';}).join('')
                 +(d.hw!=null?'<tr><td style="padding:4px 0;color:#94a3b8;font-size:.72rem">Handwriting (1–3)</td><td style="text-align:right;font-weight:600">'+d.hw+'</td></tr>':'')
                 +'</tbody></table>';
         }
@@ -8413,16 +8430,13 @@ function renderStudentView() {
         +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'rgba(255,255,255,.2)':'transparent')+';color:'+(studentGrowthCol===p[0]?'#f8f6f2':'#64748b')+'">'+p[1]+'</button>';}).join('')+'</div>';
     el.innerHTML='<div class="wd-filter-bar"><label>Student</label>'
         +'<select id="wd-sel-student">'
-        +APP.students.slice().sort(function(a,b){
-            var ai=parseInt((a.al||'').replace(/\D/g,''))||999,bi=parseInt((b.al||'').replace(/\D/g,''))||999;
-            return ai!==bi?ai-bi:(a.name||'').localeCompare(b.name||'');
-        }).map(function(st){return'<option value="'+st.name+'"'+(st.name===selectedStudent?' selected':'')+'>'+st.name+' — '+st.al+(st.teacher?' · '+st.teacher:'')+'</option>';}).join('')
+        +APP.students.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
+        .map(function(st){return'<option value="'+st.name+'"'+(st.name===selectedStudent?' selected':'')+'>'+st.name+(st.goal?' — goal: '+st.goal:'')+'</option>';}).join('')
         +'</select></div>'
         +'<div class="wd-student-header">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
         +'<div><h2>'+s.name+'</h2>'
-        +'<div style="color:#94a3b8;font-size:.8rem;margin-top:3px">'+(s.al?'Homeroom: <strong style="color:#FF8200">'+s.al+'</strong>  ':'')+' '+(s.teacher?'Writing Teacher: <strong style="color:#FF8200">'+s.teacher+'</strong>  ':'')+' EOY Goal: <strong style="color:#FF8200">'+(s.goal||'—')+'</strong> · '+gradeBand(s.goal)+' grade</div>'
-        +(s.note?'<div style="margin-top:4px;font-size:.73rem;color:#fbbf24;background:rgba(251,191,36,.15);padding:2px 9px;border-radius:5px;display:inline-block">⚠ '+s.note+'</div>':'')
+        +'<div style="color:#94a3b8;font-size:.8rem;margin-top:3px">Level: <strong style="color:#FF8200">'+s.al+'</strong>'+(s.goal?' &nbsp;·&nbsp; EOY Goal: <strong style="color:#FF8200">'+s.goal+'</strong> · '+gradeBand(s.goal)+' grade':'')+'</div>'
         +'</div><div style="display:flex;gap:12px">'+seasonScores+'</div></div>'
         +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #2d3748">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
@@ -8435,62 +8449,48 @@ function renderStudentView() {
     if (sel) sel.addEventListener('change',function(e){selectedStudent=e.target.value;renderStudentView();});
 }
 
-// ── Render: Writing Groups ──
+// ── Render: All Levels comparison ──
 function renderGroupsView() {
-    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
-    var unassigned=APP.students.filter(function(s){return !s.teacher;});
-    var groups=teachers.map(function(t){return{teacher:t,members:APP.students.filter(function(s){return s.teacher===t;})};});
-    if (unassigned.length) groups.push({teacher:null,members:unassigned});
-    var html='<div style="background:#1d1d1f;color:#fff;border-radius:10px;padding:12px 18px;margin-bottom:16px;font-size:.78rem">'
-        +'<div style="color:#94a3b8;margin-bottom:6px">Groups are derived from the <strong style="color:#FF8200">Writing Teacher</strong> column.</div>'
-        +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
-        +teachers.map(function(t){return'<span style="background:rgba(255,255,255,.1);padding:2px 9px;border-radius:10px;font-size:.76rem;font-weight:600">'+t+' · '+APP.students.filter(function(s){return s.teacher===t;}).length+' students</span>';}).join('')
-        +(unassigned.length?'<span style="background:rgba(248,113,113,.2);color:#fca5a5;padding:2px 9px;border-radius:10px;font-size:.76rem;font-weight:600">⚠ '+unassigned.length+' unassigned</span>':'')
-        +'</div></div>'
-        +groups.map(function(group){
-            var fv=grpAvg(group.members,'fall',-1),wv=grpAvg(group.members,'winter',-1),d=growthDiff(fv,wv);
-            var gc=growthColors(d,'half'),als=uniqueSorted(group.members.map(function(m){return m.al;}));
-            var catRows=CATEGORIES.map(function(cat,ci){
-                var cfv=grpAvg(group.members,'fall',ci),cwv=grpAvg(group.members,'winter',ci);
-                return'<tr style="background:'+(ci%2?'#fafafa':'#fff')+'">'
-                    +'<td>'+cat+'</td><td class="center">'+scoreChip(cfv)+'</td><td class="center">'+scoreChip(cwv)+'</td><td class="center">'+diffBadge(cfv,cwv,'half')+'</td></tr>';
-            }).join('');
-            return'<div class="wd-group-card">'
-                +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">'
-                +'<div><div style="font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8">Writing Group</div>'
-                +'<h3 style="font-size:1rem;font-weight:800;color:'+(group.teacher?'#1d1d1f':'#94a3b8')+';margin:3px 0 0">'+(group.teacher||'<em>Unassigned</em>')+'</h3>'
-                +'<div style="font-size:.73rem;color:#94a3b8;margin-top:2px">'+group.members.length+' student'+( group.members.length!==1?'s':'')+' · '+group.members.map(function(m){return m.name;}).join(', ')+'</div>'
-                +'<div style="font-size:.73rem;color:#94a3b8">ALs: '+(als.join(', ')||'—')+'</div></div>'
-                +'<div style="display:flex;gap:12px;align-items:center">'
-                +(fv!=null?'<div style="text-align:center">'+seasonPill('fall')+'<div style="font-size:1.2rem;font-weight:800">'+fmtScore(fv)+'</div><div style="font-size:.66rem;color:#94a3b8">'+gradeBand(fv)+'</div></div>':'')
-                +(wv!=null?'<div style="text-align:center">'+seasonPill('winter')+'<div style="font-size:1.2rem;font-weight:800">'+fmtScore(wv)+'</div><div style="font-size:.66rem;color:#94a3b8">'+gradeBand(wv)+'</div></div>':'')
-                +(d!=null?'<div style="text-align:center"><div style="font-size:.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">F→W</div><div style="padding:3px 10px;border-radius:10px;font-size:1rem;font-weight:800;background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+(d>0?'+':'')+d.toFixed(2)+'</div></div>':'')
-                +'</div></div>'
-                +'<table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr>'
-                +'<th style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Category</th>'
-                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">'+seasonPill('fall')+'</th>'
-                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">'+seasonPill('winter')+'</th>'
-                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">F→W Growth</th>'
-                +'</tr></thead><tbody>'+catRows+'</tbody></table></div>';
-        }).join('');
-    document.getElementById('wd-view-groups').innerHTML=html;
+    var levelKeys = Object.keys(LEVELS);
+    var html = '<div class="wd-card"><div class="wd-section-title">Cross-Level Comparison — Fall → Winter</div>'
+        + '<p style="font-size:.75rem;color:#94a3b8;margin:0 0 14px">Shows overall average scores per level. Click a level button above to load it.</p>'
+        + '<div class="wd-tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr>'
+        + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Level</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Students</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Fall Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Winter Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">F→W Growth</th>'
+        + '</tr></thead><tbody>'
+        + levelKeys.map(function(key, i) {
+            var cfg = LEVELS[key];
+            var sts = levelCache[key] || [];
+            if (!sts.length) {
+                return '<tr style="background:'+(i%2?'#fafafa':'#fff')+'"><td><strong>'+cfg.label+'</strong></td><td class="center" colspan="4"><a href="#" onclick="WD.setLevel(\''+key+'\');return false;" style="color:#FF8200;font-size:.75rem">Load '+cfg.label+'</a></td></tr>';
+            }
+            var fv=grpAvg(sts,'fall',-1), wv=grpAvg(sts,'winter',-1), gr=growthDiff(fv,wv);
+            return '<tr style="background:'+(i%2?'#fafafa':'#fff')+(key===currentLevel?';border-left:3px solid #FF8200':'')+'">'
+                + '<td><strong>'+cfg.label+'</strong>'+(key===currentLevel?' <span style="font-size:.65rem;color:#FF8200">● current</span>':'')+'</td>'
+                + '<td class="center">'+sts.length+'</td>'
+                + '<td class="center">'+scoreChip(fv)+'</td>'
+                + '<td class="center">'+scoreChip(wv)+'</td>'
+                + '<td class="center">'+diffBadge(0,gr,'half',true)+'</td></tr>';
+        }).join('')
+        + '</tbody></table></div></div>';
+    document.getElementById('wd-view-groups').innerHTML = html;
 }
 
 // ── Render: Category Deep Dive ──
 function renderCategoryView() {
-    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
-    var filtered=teacherFilterCat?APP.students.filter(function(s){return s.teacher===teacherFilterCat;}):APP.students;
-    var rows=filtered.map(function(s){return{name:s.name,al:s.al||'—',teacher:s.teacher||'—',
-        fallScore:s.fall?s.fall.scores[catDiveIdx]:null,
-        winterScore:s.winter&&s.winter.noWork?null:(s.winter?s.winter.scores[catDiveIdx]:null),
-        growth:s.winter&&s.winter.noWork?null:growthDiff(s.fall?s.fall.scores[catDiveIdx]:null,s.winter?s.winter.scores[catDiveIdx]:null),
-        noWork:s.winter&&s.winter.noWork||false};});
-    var sorted=sortRows(rows,sortState.catDive.col,sortState.catDive.dir,function(r,c){return{name:r.name,al:r.al,teacher:r.teacher,fallScore:r.fallScore,winterScore:r.winterScore,growth:r.growth}[c];});
+    var rows=APP.students.map(function(s){
+        var fs=(s.fall?s.fall.scores||[]:[])[catDiveIdx];
+        var ws=(s.winter?s.winter.scores||[]:[])[catDiveIdx];
+        return{name:s.name, al:s.al||'—', fallScore:fs!=null?fs:null, winterScore:ws!=null?ws:null, growth:growthDiff(fs,ws), noWork:s.winter&&s.winter.noWork||false};
+    });
+    var sorted=sortRows(rows,sortState.catDive.col,sortState.catDive.dir,function(r,c){return{name:r.name,al:r.al,fallScore:r.fallScore,winterScore:r.winterScore,growth:r.growth}[c];});
     var clsFall=safeAvg(rows.map(function(r){return r.fallScore;})),clsWin=safeAvg(rows.map(function(r){return r.winterScore;})),clsGrow=growthDiff(clsFall,clsWin);
     var gc=growthColors(clsGrow,'half');
     var html='<div class="wd-filter-bar">'
-        +'<label>Category</label><select id="wd-sel-cat">'+CATEGORIES.map(function(c,i){return'<option value="'+i+'"'+(i===catDiveIdx?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'
-        +'<label>Teacher</label><select id="wd-sel-tcat"><option value="">All Teachers</option>'+teachers.map(function(t){return'<option value="'+t+'"'+(t===teacherFilterCat?' selected':'')+'>'+t+'</option>';}).join('')+'</select>'
+        +'<label>Category</label><select id="wd-sel-cat">'+CATS.map(function(c,i){return'<option value="'+i+'"'+(i===catDiveIdx?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'
         +'</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
         +'<div class="wd-cat-kpi"><div class="ck-label">Fall Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
@@ -8498,9 +8498,9 @@ function renderCategoryView() {
         +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">F→W Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'')
         +'<div class="wd-cat-kpi"><div class="ck-label">Students</div><div class="ck-value">'+rows.length+'</div></div>'
         +'</div>'
-        +'<div class="wd-card"><div class="wd-section-title">'+CATEGORIES[catDiveIdx]+' — '+(teacherFilterCat||'All Teachers')+' · click header to sort</div>'
+        +'<div class="wd-card"><div class="wd-section-title">'+CATS[catDiveIdx]+' · click header to sort</div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-catdive"><thead><tr>'
-        +makeSortTh('Student','name','catDive')+makeSortTh('AL','al','catDive')+makeSortTh('Teacher','teacher','catDive')
+        +makeSortTh('Student','name','catDive')+makeSortTh('Level','al','catDive')
         +makeSortTh('Fall','fallScore','catDive',true)+'<th>Fall bar</th>'
         +makeSortTh('Winter','winterScore','catDive',true)+'<th>Winter bar</th>'
         +makeSortTh('F→W','growth','catDive',true)
@@ -8508,26 +8508,22 @@ function renderCategoryView() {
         +sorted.map(function(r,i){return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
             +'<td><strong>'+r.name+'</strong></td>'
             +'<td style="font-size:.76rem;color:#64748b">'+r.al+'</td>'
-            +'<td style="font-size:.76rem;color:#64748b">'+r.teacher+'</td>'
             +'<td class="center">'+scoreChip(r.fallScore)+'</td>'
             +'<td style="min-width:90px">'+barHTML(r.fallScore)+'</td>'
             +'<td class="center">'+(r.noWork?'<span style="font-size:.7rem;color:#f87171;font-weight:700">NO WORK</span>':scoreChip(r.winterScore))+'</td>'
             +'<td style="min-width:90px">'+barHTML(r.winterScore)+'</td>'
             +'<td class="center">'+diffBadge(r.fallScore,r.winterScore,'half')+'</td></tr>';}).join('')
         +'</tbody></table></div></div>';
-    var el=document.getElementById('wd-view-category');
-    el.innerHTML=html;
+    document.getElementById('wd-view-category').innerHTML=html;
     var sc=document.getElementById('wd-sel-cat');
     if (sc) sc.addEventListener('change',function(e){catDiveIdx=+e.target.value;renderCategoryView();});
-    var st=document.getElementById('wd-sel-tcat');
-    if (st) st.addEventListener('change',function(e){teacherFilterCat=e.target.value;renderCategoryView();});
     attachSortListeners('wd-tbl-catdive','catDive',renderCategoryView);
 }
 
 // ── Navigation ──
 function switchView(view) {
     currentView=view;
-    document.querySelectorAll('.wd-nav-btn').forEach(function(b){b.classList.toggle('active',b.dataset.view===view);});
+    document.querySelectorAll('#wd-nav .wd-nav-btn[data-view]').forEach(function(b){b.classList.toggle('active',b.dataset.view===view);});
     ['class','student','groups','category'].forEach(function(v){
         var el=document.getElementById('wd-view-'+v);
         if (el) el.style.display=view===v?'block':'none';
@@ -8543,49 +8539,60 @@ function renderCurrentView() {
 }
 
 // ── Data loading ──
-function loadData() {
-    if (initialized) { renderCurrentView(); return; }
-    if (DATA_URL) {
-        fetch(DATA_URL).then(function(r){return r.json();}).then(function(data){
-            APP.students=data.students||[];
-            APP.lastUpdated=data.lastUpdated||'';
-            if (APP.lastUpdated) {
-                var lu=document.getElementById('wd-last-updated');
-                if (lu) lu.textContent='Updated: '+new Date(APP.lastUpdated).toLocaleString();
-            }
-            onReady();
-        }).catch(function(e){
-            var el=document.getElementById('wd-loading');
-            if (el) el.innerHTML='<div style="color:#f87171;font-size:.85rem">Error loading data: '+e.message+'</div>';
+function loadLevel(levelKey, callback) {
+    if (levelCache[levelKey]) { callback(levelCache[levelKey]); return; }
+    var cfg = LEVELS[levelKey];
+    var url = SHEET_BASE + cfg.gid + '&single=true&output=csv';
+    var loadEl = document.getElementById('wd-loading');
+    var mainEl = document.getElementById('wd-main');
+    if (loadEl) loadEl.style.display = '';
+    if (mainEl) mainEl.style.display = 'none';
+    fetch(url)
+        .then(function(r){ return r.text(); })
+        .then(function(text){
+            var students = parseLevelCsv(text, levelKey);
+            levelCache[levelKey] = students;
+            callback(students);
+        })
+        .catch(function(e){
+            if (loadEl) loadEl.innerHTML='<div style="color:#f87171;font-size:.85rem;padding:20px">Error loading data: '+e.message+'</div>';
         });
-    } else {
-        // Use demo data
-        APP.students=DEMO_STUDENTS;
-        onReady(true);
-    }
 }
-function onReady(isDemo) {
-    initialized=true;
-    selectedStudent=APP.students[0]?APP.students[0].name:'';
-    document.getElementById('wd-loading').style.display='none';
-    var main=document.getElementById('wd-main');
-    if (main) main.style.display='block';
-    if (isDemo) {
-        var banner=document.createElement('div');
-        banner.style.cssText='background:#fff7f0;border:1px solid #ffcf99;border-radius:8px;padding:7px 14px;margin-bottom:14px;font-size:.75rem;color:#3a3a3c;';
-        banner.innerHTML='⚠ Showing <strong>demo data</strong>. Set <code>WD.DATA_URL</code> to your Google Apps Script endpoint to load real data.';
-        main.insertBefore(banner,main.firstChild);
-    }
+function onReady() {
+    var loadEl = document.getElementById('wd-loading');
+    var mainEl = document.getElementById('wd-main');
+    if (loadEl) loadEl.style.display = 'none';
+    if (mainEl) mainEl.style.display = 'block';
     renderCurrentView();
 }
 
 // ── Public API ──
-function init() { loadData(); }
+function init() {
+    if (initialized && levelCache[currentLevel]) { renderCurrentView(); return; }
+    initialized = true;
+    loadLevel(currentLevel, function(students) {
+        APP.students = students;
+        CATS = LEVELS[currentLevel].cats;
+        selectedStudent = students.length ? students[0].name : '';
+        onReady();
+    });
+}
+function setLevel(lvl) {
+    if (!(lvl in LEVELS)) return;
+    currentLevel = lvl;
+    CATS = LEVELS[lvl].cats;
+    catDiveIdx = 0;
+    document.querySelectorAll('#wd-nav .wd-nav-btn[data-level]').forEach(function(b){b.classList.toggle('active',b.dataset.level===lvl);});
+    loadLevel(lvl, function(students) {
+        APP.students = students;
+        selectedStudent = students.length ? students[0].name : '';
+        onReady();
+    });
+}
 function setRosterGrowth(col) { rosterGrowthCol=col; renderClassOverview(); }
 function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
-function setDataUrl(url) { DATA_URL=url; initialized=false; }
 
-return { init:init, switchView:switchView, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth, setDataUrl:setDataUrl };
+return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth };
 })();
 
 </script>
