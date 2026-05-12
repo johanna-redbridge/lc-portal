@@ -928,8 +928,7 @@
     <h1>Learning Credit Portal</h1>
     <nav class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('available')">Learning Credits</button>
-        <button class="tab-btn" onclick="switchTab('portfolio')">Parent</button>
-        <button class="tab-btn" onclick="switchTab('student')">Student</button>
+        <button class="tab-btn" onclick="switchTab('portfolio')">Digital Portfolio</button>
         <button class="tab-btn" onclick="switchTab('data')">Analytics</button>
         <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Groups</button>
     </nav>
@@ -1073,19 +1072,28 @@
 <!-- tab-drafting kept as stub for JS backward-compat -->
 <div id="tab-drafting" style="display:none;"></div>
 
-<!-- TAB 5: Digital Portfolio -->
+<!-- TAB 5: Digital Portfolio (Parent + Student sub-tabs) -->
 <div class="tab-content" id="tab-portfolio">
-    <div class="view-container">
-        <div id="portfolio-content"></div>
+    <div class="data-subtab-nav" id="dp-subtab-nav">
+        <button class="data-subtab-btn active" data-subtab="portfolio" onclick="switchDPSubtab('portfolio')">Parent</button>
+        <button class="data-subtab-btn" data-subtab="student" onclick="switchDPSubtab('student')">Student</button>
+    </div>
+    <!-- Parent sub-panel -->
+    <div id="dp-subtab-portfolio" class="dp-subtab-panel">
+        <div class="view-container">
+            <div id="portfolio-content"></div>
+        </div>
+    </div>
+    <!-- Student sub-panel -->
+    <div id="dp-subtab-student" class="dp-subtab-panel" style="display:none;">
+        <div class="view-container">
+            <div id="student-tab-content"></div>
+        </div>
     </div>
 </div>
 
-<!-- TAB 6: Student Library -->
-<div class="tab-content" id="tab-student">
-    <div class="view-container">
-        <div id="student-tab-content"></div>
-    </div>
-</div>
+<!-- tab-student kept as stub for JS backward-compat -->
+<div id="tab-student" style="display:none;"></div>
 
 <!-- TAB 7: Data -->
 <div class="tab-content" id="tab-data">
@@ -3847,6 +3855,21 @@ function renderStudentTabLibrary() {
 let selectedManageGroup = null;
 var currentTab = 'available';
 var currentLCSubtab = 'available';
+var currentDPSubtab = 'portfolio';
+
+function switchDPSubtab(name) {
+    currentDPSubtab = name;
+    document.querySelectorAll('#dp-subtab-nav .data-subtab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.subtab === name);
+    });
+    document.querySelectorAll('.dp-subtab-panel').forEach(function(p) {
+        p.style.display = 'none';
+    });
+    var panel = document.getElementById('dp-subtab-' + name);
+    if (panel) panel.style.display = '';
+    if (name === 'portfolio') renderPortfolio();
+    if (name === 'student') renderStudentTab();
+}
 
 function switchLCSubtab(name) {
     currentLCSubtab = name;
@@ -3884,20 +3907,25 @@ function applyTabRender(tab) {
     document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
-    // Earned and Draft are now sub-tabs of Learning Credits
+    // Earned and Draft are sub-tabs of Learning Credits
     if (tab === 'earned' || tab === 'drafting') {
         applyTabRender('available');
         switchLCSubtab(tab);
         return;
     }
-    var tabLabels = { available: 'Learning Credits', manage: 'Groups', portfolio: 'Parent', student: 'Student', data: 'Analytics' };
+    // Student is a sub-tab of Digital Portfolio
+    if (tab === 'student') {
+        applyTabRender('portfolio');
+        switchDPSubtab('student');
+        return;
+    }
+    var tabLabels = { available: 'Learning Credits', manage: 'Groups', portfolio: 'Digital Portfolio', data: 'Analytics' };
     document.querySelectorAll('.tab-btn').forEach(function(b) {
         if (b.textContent === tabLabels[tab]) b.classList.add('active');
     });
     if (tab === 'available') { renderAvailable(); }
     if (tab === 'manage') renderManageCombined();
-    if (tab === 'portfolio') renderPortfolio();
-    if (tab === 'student') renderStudentTab();
+    if (tab === 'portfolio') { switchDPSubtab('portfolio'); }
     if (tab === 'data') switchDataSubtab(currentDataSubtab);
 }
 
