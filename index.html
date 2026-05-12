@@ -7018,43 +7018,55 @@ var MAP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrWKRzTAYJ5
 var mapData = null;
 var mapALFilter = 'all';
 
+// Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
+// ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
+// Row index 0 = column headers, index 1 = period labels (Fall/Spring + year), index 2+ = students
+var MAP_MATH_COUNT = 12;
+var MAP_ELA_COUNT  = 12;
+
+function mapPeriodLabel(raw) {
+    if (!raw) return '';
+    return raw.trim().replace(/\bfall\b/gi, 'BOY').replace(/\bspring\b/gi, 'EOY');
+}
+
 function parseMapCsv(text) {
     var rows = parseCSVFull(text);
-    if (rows.length < 2) return null;
+    if (rows.length < 3) return null;
 
-    var rawHeaders = rows[0].map(function(h) { return (h || '').trim(); });
-    // Math: columns K(10)–AL(37), ELA: columns AM(38)+
-    var mathHeaders = rawHeaders.slice(10, 38);
-    var elaHeaders  = rawHeaders.slice(38);
-    // trim trailing empty headers
-    while (mathHeaders.length && !mathHeaders[mathHeaders.length - 1]) mathHeaders.pop();
-    while (elaHeaders.length  && !elaHeaders[elaHeaders.length  - 1]) elaHeaders.pop();
+    var periodRow = rows[1];
 
-    // Detect period label from a header string
-    function detectPeriod(h) {
-        var l = h.toLowerCase();
-        if (/fall|boy/.test(l))   return 'BOY';
-        if (/winter|moy/.test(l)) return 'MOY';
-        if (/spring|eoy/.test(l)) return 'EOY';
-        return '';
+    var mathPeriods = [], elaPeriods = [];
+    for (var j = 0; j < MAP_MATH_COUNT; j++) {
+        mathPeriods.push(mapPeriodLabel(periodRow[10 + j] || ''));
+    }
+    for (var j = 0; j < MAP_ELA_COUNT; j++) {
+        elaPeriods.push(mapPeriodLabel(periodRow[38 + j] || ''));
     }
 
     var students = [];
-    for (var i = 1; i < rows.length; i++) {
+    for (var i = 2; i < rows.length; i++) {
         var row = rows[i];
         var name = (row[1] || '').trim();
         if (!name) continue;
-        var alRaw = (row[5] || '').trim();
-        var alNum = alRaw.replace(/[^0-9]/g, '');
+        var alNum = (row[5] || '').trim().replace(/[^0-9]/g, '');
+        var mathScores = [], mathPcts = [], elaScores = [], elaPcts = [];
+        for (var j = 0; j < MAP_MATH_COUNT; j++) {
+            mathScores.push((row[10 + j] || '').trim());
+            mathPcts.push((row[25 + j] || '').trim());
+        }
+        for (var j = 0; j < MAP_ELA_COUNT; j++) {
+            elaScores.push((row[38 + j] || '').trim());
+            elaPcts.push((row[53 + j] || '').trim());
+        }
         students.push({
             name: name,
             gle:  (row[4] || '').trim(),
-            al:   alNum || alRaw,
-            math: mathHeaders.map(function(_, j) { return (row[10 + j] || '').trim(); }),
-            ela:  elaHeaders.map(function(_, j)  { return (row[38 + j] || '').trim(); })
+            al:   alNum || (row[5] || '').trim(),
+            mathScores: mathScores, mathPcts: mathPcts,
+            elaScores:  elaScores,  elaPcts:  elaPcts
         });
     }
-    return { mathHeaders: mathHeaders, elaHeaders: elaHeaders, students: students, detectPeriod: detectPeriod };
+    return { mathPeriods: mathPeriods, elaPeriods: elaPeriods, students: students };
 }
 
 function setMapAL(al) {
@@ -7065,12 +7077,9 @@ function setMapAL(al) {
     renderMapTable();
 }
 
-function mapCell(val, tint) {
-    if (!val) return '<td style="text-align:center;color:#c7c7cc;background:' + tint + ';">&ndash;</td>';
-    var num = parseFloat(val);
-    var style = 'text-align:center;background:' + tint + ';';
-    if (!isNaN(num)) return '<td style="' + style + '">' + val + '</td>';
-    return '<td style="' + style + 'font-size:0.7rem;">' + val.replace(/</g,'&lt;') + '</td>';
+function mapDataCell(val, tint) {
+    if (!val) return '<td style="text-align:center;color:#aeaeb2;background:' + tint + ';">-</td>';
+    return '<td style="text-align:center;background:' + tint + ';">' + val.replace(/</g,'&lt;') + '</td>';
 }
 
 function renderMapTable() {
@@ -7081,22 +7090,16 @@ function renderMapTable() {
     if (mapALFilter !== 'all') all = all.filter(function(s) { return s.al === mapALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var mh = mapData.mathHeaders;
-    var eh = mapData.elaHeaders;
-    var dp = mapData.detectPeriod;
+    var mp = mapData.mathPeriods;
+    var ep = mapData.elaPeriods;
 
-    // Build period-grouped sub-headers
-    function subHeaders(headers, tint) {
-        var html = '';
-        headers.forEach(function(h) {
-            var period = dp(h);
-            var label = h.replace(/fall|winter|spring|boy|moy|eoy/gi, '').replace(/^\W+|\W+$/g, '') || h;
-            html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;white-space:nowrap;">'
-                + (period ? '<span style="display:block;font-size:0.58rem;color:#86868b;font-weight:400;">' + period + '</span>' : '')
-                + label.replace(/</g,'&lt;')
-                + '</th>';
-        });
-        return html;
+    // Only show periods that have at least one student with data
+    var mathActive = [], elaActive = [];
+    for (var j = 0; j < MAP_MATH_COUNT; j++) {
+        if (all.some(function(s) { return s.mathScores[j] !== ''; })) mathActive.push(j);
+    }
+    for (var j = 0; j < MAP_ELA_COUNT; j++) {
+        if (all.some(function(s) { return s.elaScores[j] !== ''; }))  elaActive.push(j);
     }
 
     var mathTint = '#f0f7f2';
@@ -7104,23 +7107,54 @@ function renderMapTable() {
 
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
         + '<table class="core-table" style="width:100%;">'
-        + '<thead><tr>'
-        + '<th class="core-name-col" rowspan="2">Student</th>'
-        + '<th rowspan="2">GLE</th>'
-        + '<th rowspan="2">AL</th>';
+        + '<thead>'
+        // Row 1: section headers
+        + '<tr>'
+        + '<th class="core-name-col" rowspan="3">Student</th>'
+        + '<th rowspan="3">GLE</th>'
+        + '<th rowspan="3">AL</th>';
 
-    if (mh.length) html += '<th colspan="' + mh.length + '" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;">Math</th>';
-    if (eh.length) html += '<th colspan="' + eh.length + '" style="text-align:center;background:' + elaTint  + ';border-bottom:1px solid #c5d5f0;">ELA</th>';
+    if (mathActive.length) html += '<th colspan="' + (mathActive.length * 2) + '" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;">Math</th>';
+    if (elaActive.length)  html += '<th colspan="' + (elaActive.length  * 2) + '" style="text-align:center;background:' + elaTint  + ';border-bottom:1px solid #c5d5f0;">ELA</th>';
+    html += '</tr>';
 
-    html += '</tr><tr>' + subHeaders(mh, mathTint) + subHeaders(eh, elaTint) + '</tr></thead><tbody>';
+    // Row 2: period labels
+    html += '<tr>';
+    mathActive.forEach(function(j) {
+        var lbl = mp[j] || ('Period ' + (j + 1));
+        html += '<th colspan="2" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+    });
+    elaActive.forEach(function(j) {
+        var lbl = ep[j] || ('Period ' + (j + 1));
+        html += '<th colspan="2" style="text-align:center;background:' + elaTint + ';border-bottom:1px solid #c5d5f0;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+    });
+    html += '</tr>';
+
+    // Row 3: Score / %ile sub-headers
+    html += '<tr>';
+    mathActive.forEach(function() {
+        html += '<th style="background:' + mathTint + ';font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="background:' + mathTint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+    });
+    elaActive.forEach(function() {
+        html += '<th style="background:' + elaTint + ';font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="background:' + elaTint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+    });
+    html += '</tr></thead><tbody>';
 
     all.forEach(function(s) {
         html += '<tr>'
             + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;">' + s.gle + '</td>'
             + '<td style="text-align:center;">' + s.al + '</td>';
-        s.math.forEach(function(v) { html += mapCell(v, mathTint); });
-        s.ela.forEach(function(v)  { html += mapCell(v, elaTint);  });
+        mathActive.forEach(function(j) {
+            html += mapDataCell(s.mathScores[j], mathTint);
+            html += mapDataCell(s.mathPcts[j],   mathTint);
+        });
+        elaActive.forEach(function(j) {
+            html += mapDataCell(s.elaScores[j], elaTint);
+            html += mapDataCell(s.elaPcts[j],   elaTint);
+        });
         html += '</tr>';
     });
 
