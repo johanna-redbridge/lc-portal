@@ -1082,7 +1082,8 @@
         <div class="data-subtab-nav">
             <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
             <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
-            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Comp. BM</button>
+            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Benchmark</button>
+            <button class="data-subtab-btn" data-subtab="lexia" onclick="switchDataSubtab('lexia')">Lexia</button>
             <button class="data-subtab-btn" data-subtab="map-math" onclick="switchDataSubtab('map-math')">MAP Math</button>
             <button class="data-subtab-btn" data-subtab="map-ela" onclick="switchDataSubtab('map-ela')">MAP ELA</button>
         </div>
@@ -1100,21 +1101,6 @@
                     <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                 </div>
                 <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
-                <div style="display:flex;gap:0.5rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#186a3b;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>✓</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#1a7a46;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#27ae60;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥90%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#2ecc71;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥80%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#58d68d;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥70%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#a9dfbf;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥60%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#f9e642;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥50%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#f0b429;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥40%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#f39c12;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥30%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#e67e22;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥25%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥20%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#c0392b;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥10%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;10%</span>
-                </div>
             </div>
             <div id="core-content"></div>
         </div>
@@ -1130,7 +1116,6 @@
                     <button class="toggle-btn fp-al-btn" data-al="4" onclick="setFpAL('4')">AL4</button>
                 </div>
                 <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
-                <span style="font-size:0.71rem;color:#86868b;">Progress bar: BOY level → +1.0 target &nbsp;|&nbsp; dot = current level</span>
             </div>
             <div id="fp-content"></div>
         </div>
@@ -1141,6 +1126,19 @@
                 <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
             </div>
             <div id="comp-content"></div>
+        </div>
+
+        <!-- Lexia sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-lexia" style="display:none;">
+            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn lexia-view-btn active" data-view="performance" onclick="setLexiaView('performance')">Performance</button>
+                    <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
+                </div>
+                <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+            </div>
+            <div id="lexia-perf"></div>
+            <div id="lexia-prog" style="display:none;"></div>
         </div>
 
         <!-- MAP Math sub-tab -->
@@ -6516,6 +6514,7 @@ function switchDataSubtab(name) {
     if (name === 'core')     renderCore();
     if (name === 'fp')       renderFP();
     if (name === 'comp')     renderComp();
+    if (name === 'lexia')    renderLexia();
     if (name === 'map-math') renderMapMath();
     if (name === 'map-ela')  renderMapEla();
 }
@@ -7392,55 +7391,69 @@ function renderCompTable() {
         ? compData.students
         : compData.students.filter(function(s) { return s.group === compGroupFilter; });
 
-    if (!students.length) {
-        el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>';
-        return;
-    }
+    if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
-        + '<table class="core-table" style="width:auto;min-width:100%;">'
-        + '<thead><tr>'
-        + '<th style="min-width:48px;text-align:center;">GLE</th>'
-        + '<th style="min-width:36px;text-align:center;">Q</th>'
-        + '<th style="text-align:left;min-width:220px;white-space:normal;">Common Core Standard</th>'
-        + '<th style="min-width:90px;">% Mastered</th>';
+    var questions = compData.questions;
 
-    students.forEach(function(s) {
-        html += '<th style="font-size:0.63rem;white-space:nowrap;max-width:68px;overflow:hidden;text-overflow:ellipsis;text-align:center;" title="' + s.name.replace(/"/g,'&quot;') + '">'
-            + s.name.replace(/</g,'&lt;') + '</th>';
+    // Build GLE groups
+    var gleGroups = [], gleMap = {};
+    questions.forEach(function(q, idx) {
+        var gle = q.gle || '—';
+        if (!gleMap.hasOwnProperty(gle)) { gleMap[gle] = gleGroups.length; gleGroups.push({ gle: gle, items: [] }); }
+        gleGroups[gleMap[gle]].items.push({ idx: idx, q: q });
+    });
+
+    // ── GLE mastery summary cards ──────────────────────────────────
+    var cards = '<div style="display:flex;gap:10px;flex-wrap:wrap;padding:14px 1.25rem 10px;">';
+    gleGroups.forEach(function(grp) {
+        var total = grp.items.length * students.length;
+        var mastered = 0;
+        grp.items.forEach(function(item) {
+            students.forEach(function(s) { if (item.q.mastery[s.name]) mastered++; });
+        });
+        var pct = total > 0 ? Math.round(mastered / total * 100) : 0;
+        var col = pctColor(pct);
+        cards += '<div style="background:#f5f5f7;border-radius:10px;padding:10px 14px;min-width:110px;">'
+            + '<div style="font-size:0.72rem;font-weight:600;color:#1d1d1f;margin-bottom:5px;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</div>'
+            + '<div style="width:90px;height:9px;background:#e8e8ed;border-radius:5px;overflow:hidden;margin-bottom:4px;">'
+            + '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:5px;"></div></div>'
+            + '<div style="font-size:0.68rem;color:#86868b;">' + pct + '% · ' + mastered + '/' + total + '</div>'
+            + '</div>';
+    });
+    cards += '</div>';
+
+    // ── Flipped table: students as rows, questions as columns ──────
+    var html = cards
+        + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+        + '<table class="core-table" style="width:auto;">'
+        + '<thead>'
+        // Row 1: GLE group spans
+        + '<tr><th class="core-name-col" rowspan="2">Student</th>';
+    gleGroups.forEach(function(grp) {
+        html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.7rem;border-bottom:1px solid #e8e8ed;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
+    });
+    html += '</tr>';
+    // Row 2: Q numbers with standard as tooltip
+    html += '<tr>';
+    gleGroups.forEach(function(grp) {
+        grp.items.forEach(function(item) {
+            html += '<th style="text-align:center;font-size:0.63rem;white-space:nowrap;" title="' + item.q.std.replace(/"/g,'&quot;') + '">Q' + (item.q.q || (item.idx + 1)) + '</th>';
+        });
     });
     html += '</tr></thead><tbody>';
 
-    var lastGle = null;
-    compData.questions.forEach(function(qrow) {
-        if (qrow.gle && qrow.gle !== lastGle) {
-            lastGle = qrow.gle;
-            html += '<tr><td colspan="' + (4 + students.length) + '" style="background:#f5f5f7;font-weight:600;font-size:0.72rem;padding:5px 10px;color:#1d1d1f;border-top:2px solid #e8e8ed;">Grade Level ' + qrow.gle.replace(/</g,'&lt;') + '</td></tr>';
-        }
-
-        html += '<tr>'
-            + '<td style="text-align:center;font-size:0.75rem;">' + qrow.gle.replace(/</g,'&lt;') + '</td>'
-            + '<td style="text-align:center;font-size:0.75rem;">' + qrow.q.replace(/</g,'&lt;') + '</td>'
-            + '<td style="font-size:0.72rem;white-space:normal;">' + qrow.std.replace(/</g,'&lt;') + '</td>';
-
-        // % mastered bar
-        var barColor = pctColor(qrow.pct);
-        var barW = Math.min(Math.max(qrow.pct, 0), 100);
-        html += '<td style="padding:3px 6px;">'
-            + '<div style="width:58px;height:7px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
-            + (barW > 0 ? '<div style="width:' + barW + '%;height:100%;background:' + barColor + ';"></div>' : '')
-            + '</div>'
-            + '<span style="font-size:0.63rem;color:#1d1d1f;">' + Math.round(qrow.pct) + '%</span>'
-            + '</td>';
-
-        students.forEach(function(s) {
-            if (qrow.mastery[s.name]) {
-                html += '<td style="text-align:center;background:#186a3b;color:#fff;font-size:0.85rem;">✓</td>';
-            } else {
-                html += '<td style="text-align:center;color:#c7c7cc;font-size:0.7rem;">&ndash;</td>';
-            }
+    // One row per student
+    students.forEach(function(s) {
+        html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
+        gleGroups.forEach(function(grp) {
+            grp.items.forEach(function(item) {
+                if (item.q.mastery[s.name]) {
+                    html += '<td style="text-align:center;background:#186a3b;color:#fff;font-size:0.85rem;">✓</td>';
+                } else {
+                    html += '<td style="text-align:center;color:#c7c7cc;font-size:0.7rem;">&ndash;</td>';
+                }
+            });
         });
-
         html += '</tr>';
     });
 
@@ -7460,10 +7473,273 @@ function renderComp() {
         renderCompFilters();
         renderCompTable();
     }).catch(function(e) {
-        console.error('Comp BM fetch error', e);
+        console.error('Math BM fetch error', e);
         var el2 = document.getElementById('comp-content');
         if (el2) el2.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load data.</p>';
     });
+}
+
+/* =========================================================
+   Lexia
+   ========================================================= */
+var LEXIA_PERF_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1508348163&single=true&output=csv';
+var LEXIA_PROG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1360757999&single=true&output=csv';
+var lexiaPerfData = null;
+var lexiaProgData = null;
+var lexiaView     = 'performance';
+
+// 21 Lexia units in 7 skill groups
+var LEXIA_GROUPS = [
+    { label: 'Pre-K', count: 1  },
+    { label: 'K',     count: 4  },
+    { label: '1st',   count: 4  },
+    { label: '2nd',   count: 3  },
+    { label: '3rd',   count: 3  },
+    { label: '4th',   count: 3  },
+    { label: '5th',   count: 3  },
+];
+
+function lexiaFlipName(raw) {
+    var m = raw.match(/^([^,]+),\s*(.+)$/);
+    return m ? m[2].trim() + ' ' + m[1].trim() : raw.trim();
+}
+
+function parsePerformanceCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 2) return [];
+    var result = [];
+    for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[0] || '').trim();
+        if (!name) continue;
+        var pred = parseFloat((r[2] || '').trim());
+        var usage = parseFloat((r[4] || '').trim());
+        result.push({
+            name: lexiaFlipName(name),
+            grade: (r[1] || '').trim(),
+            predictor: isNaN(pred) ? 0 : pred,
+            riskLevel: (r[3] || '').trim(),
+            usagePct: isNaN(usage) ? 0 : usage,
+        });
+    }
+    var order = { 'At Risk': 0, 'High Risk': 0, 'Some Risk': 1, 'On Target': 2 };
+    result.sort(function(a, b) {
+        var ra = order.hasOwnProperty(a.riskLevel) ? order[a.riskLevel] : 1;
+        var rb = order.hasOwnProperty(b.riskLevel) ? order[b.riskLevel] : 1;
+        return ra - rb || a.name.localeCompare(b.name);
+    });
+    return result;
+}
+
+function parseProgressCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 4) return [];
+    var result = [];
+    for (var i = 3; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1] || '').trim();
+        if (!name || name.toLowerCase().indexOf('student') >= 0) continue;
+        var units = [];
+        for (var j = 0; j < 21; j++) units.push((r[2 + j] || '').trim());
+
+        // Units Gained / To Target: handle both col-23 and col-24 layouts
+        var g24 = parseFloat((r[24] || '').trim());
+        var g25 = parseFloat((r[25] || '').trim());
+        var g23 = parseFloat((r[23] || '').trim());
+        var gained, toTarget;
+        if (!isNaN(g24) && !isNaN(g25)) { gained = g24; toTarget = g25; }
+        else if (!isNaN(g23) && !isNaN(g24)) { gained = g23; toTarget = g24; }
+        else { gained = isNaN(g24) ? (isNaN(g23) ? 0 : g23) : g24; toTarget = 0; }
+
+        result.push({
+            name: lexiaFlipName(name),
+            struggling: (r[0] || '').trim().toLowerCase() !== 'none' && !!(r[0] || '').trim(),
+            units: units,
+            gained: gained || 0,
+            toTarget: toTarget || 0,
+        });
+    }
+    result.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    return result;
+}
+
+function lexiaRiskColor(level) {
+    if (/at.risk|high.risk/i.test(level)) return '#e74c3c';
+    if (/some.risk/i.test(level))         return '#f0b429';
+    if (/on.target/i.test(level))         return '#27ae60';
+    return '#aeaeb2';
+}
+
+function lexiaUnitColor(val) {
+    if (!val) return '#e8e8ed';
+    if (val === '>') return '#186a3b';
+    var p = parseFloat(val.replace('%', ''));
+    return isNaN(p) ? '#e8e8ed' : pctColor(p);
+}
+
+function lexiaUnitPct(val) {
+    if (!val) return 0;
+    if (val === '>') return 100;
+    var p = parseFloat(val.replace('%', ''));
+    return isNaN(p) ? 0 : p;
+}
+
+function setLexiaView(v) {
+    lexiaView = v;
+    document.querySelectorAll('.lexia-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === v);
+    });
+    var pe = document.getElementById('lexia-perf');
+    var pr = document.getElementById('lexia-prog');
+    if (pe) pe.style.display = v === 'performance' ? '' : 'none';
+    if (pr) pr.style.display = v === 'progress'    ? '' : 'none';
+}
+
+function renderLexiaPerf() {
+    var el = document.getElementById('lexia-perf');
+    if (!el || !lexiaPerfData) return;
+    var data = lexiaPerfData;
+    if (!data.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    // Summary chips
+    var counts = { 'On Target': 0, 'Some Risk': 0, 'At Risk': 0 };
+    data.forEach(function(s) {
+        if (/on.target/i.test(s.riskLevel))          counts['On Target']++;
+        else if (/some.risk/i.test(s.riskLevel))     counts['Some Risk']++;
+        else if (/at.risk|high.risk/i.test(s.riskLevel)) counts['At Risk']++;
+    });
+    var summary = '<div style="display:flex;gap:10px;flex-wrap:wrap;padding:12px 1.25rem 6px;">';
+    [['On Target','#27ae60'],['Some Risk','#f0b429'],['At Risk','#e74c3c']].forEach(function(pair) {
+        summary += '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:' + pair[1] + ';color:#fff;font-size:0.75rem;font-weight:600;">'
+            + counts[pair[0]] + ' ' + pair[0] + '</span>';
+    });
+    summary += '</div>';
+
+    var html = summary
+        + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+        + '<table class="core-table" style="width:100%;"><thead><tr>'
+        + '<th class="core-name-col">Student</th>'
+        + '<th style="text-align:center;">Grade</th>'
+        + '<th style="min-width:150px;">Predictor Score</th>'
+        + '<th>Risk Level</th>'
+        + '<th style="min-width:150px;">Usage This Year</th>'
+        + '</tr></thead><tbody>';
+
+    data.forEach(function(s) {
+        var predCol  = pctColor(s.predictor);
+        var usageCol = pctColor(s.usagePct);
+        var riskCol  = lexiaRiskColor(s.riskLevel);
+        html += '<tr>'
+            + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;font-size:0.8rem;">' + s.grade + '</td>'
+            + '<td style="padding:4px 8px;">'
+            +   '<div style="display:flex;align-items:center;gap:6px;">'
+            +   '<div style="flex:1;height:10px;background:#e8e8ed;border-radius:5px;overflow:hidden;">'
+            +   '<div style="width:' + Math.min(s.predictor,100) + '%;height:100%;background:' + predCol + ';border-radius:5px;"></div></div>'
+            +   '<span style="font-size:0.75rem;min-width:26px;">' + s.predictor + '</span>'
+            +   '</div></td>'
+            + '<td style="padding:4px 8px;">'
+            +   '<span style="display:inline-block;padding:2px 9px;border-radius:10px;background:' + riskCol + ';color:#fff;font-size:0.69rem;font-weight:600;">'
+            +   s.riskLevel.replace(/</g,'&lt;') + '</span></td>'
+            + '<td style="padding:4px 8px;">'
+            +   '<div style="display:flex;align-items:center;gap:6px;">'
+            +   '<div style="flex:1;height:10px;background:#e8e8ed;border-radius:5px;overflow:hidden;">'
+            +   '<div style="width:' + Math.min(s.usagePct,100) + '%;height:100%;background:' + usageCol + ';border-radius:5px;"></div></div>'
+            +   '<span style="font-size:0.75rem;min-width:30px;">' + Math.round(s.usagePct) + '%</span>'
+            +   '</div></td>'
+            + '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+}
+
+function renderLexiaProg() {
+    var el = document.getElementById('lexia-prog');
+    if (!el || !lexiaProgData) return;
+    var data = lexiaProgData;
+    if (!data.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var BOX = 22;
+    var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
+
+    var html = '<div style="padding:12px 1.25rem 1.5rem;">';
+
+    // Group legend
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:0.69rem;color:#86868b;">';
+    LEXIA_GROUPS.forEach(function(g, i) {
+        html += '<span><span style="display:inline-block;width:12px;height:12px;background:' + GROUP_COLORS[i] + ';border:1px solid #c8c8cc;border-radius:2px;vertical-align:middle;margin-right:3px;"></span>' + g.label + ' Skills</span>';
+    });
+    html += '<span style="margin-left:6px;"><span style="display:inline-block;width:12px;height:12px;background:#186a3b;border-radius:2px;vertical-align:middle;margin-right:3px;"></span>Completed prior year</span>';
+    html += '</div>';
+
+    data.forEach(function(s) {
+        // Find current active unit
+        var cur = 20;
+        for (var j = 0; j < 21; j++) {
+            var v = s.units[j];
+            if (!v) { cur = j; break; }
+            if (v !== '>' && lexiaUnitPct(v) < 100) { cur = j; break; }
+        }
+
+        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">';
+        html += '<div style="min-width:150px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + s.name.replace(/"/g,'&quot;') + '">'
+            + (s.struggling ? '<span style="color:#e74c3c;margin-right:4px;font-size:0.65rem;">●</span>' : '')
+            + s.name.replace(/</g,'&lt;') + '</div>';
+
+        // Unit boxes grouped
+        html += '<div style="display:flex;gap:3px;align-items:center;">';
+        var unitIdx = 0;
+        LEXIA_GROUPS.forEach(function(grp, gi) {
+            html += '<div style="display:flex;gap:1px;background:' + GROUP_COLORS[gi] + ';padding:2px;border-radius:4px;">';
+            for (var k = 0; k < grp.count; k++) {
+                var val = s.units[unitIdx] || '';
+                var color = lexiaUnitColor(val);
+                var pct = lexiaUnitPct(val);
+                var isActive = (unitIdx === cur && val !== '>');
+                var border = isActive ? '2px solid #1d1d1f' : '1px solid rgba(0,0,0,0.08)';
+                var tip = 'Unit ' + (unitIdx + 1) + ' (' + grp.label + '): ' + (val === '>' ? 'Prior year' : val || 'Not started');
+                html += '<div title="' + tip + '" style="width:' + BOX + 'px;height:' + BOX + 'px;background:' + color + ';border:' + border + ';border-radius:3px;"></div>';
+                unitIdx++;
+            }
+            html += '</div>';
+        });
+        html += '</div>';
+
+        // Units gained / to target
+        html += '<div style="font-size:0.72rem;white-space:nowrap;margin-left:4px;">';
+        if (s.gained) html += '<span style="color:#27ae60;font-weight:600;">+' + s.gained + '</span><span style="color:#86868b;"> gained</span>';
+        if (s.toTarget > 0) html += '&nbsp;&nbsp;<span style="color:#e74c3c;font-weight:600;">' + s.toTarget + '</span><span style="color:#86868b;"> to target</span>';
+        else if (s.gained)  html += '&nbsp;&nbsp;<span style="color:#186a3b;font-weight:600;">✓ on track</span>';
+        html += '</div>';
+
+        html += '</div>';
+    });
+
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function renderLexia() {
+    var loaded = 0;
+    var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0);
+    var pe = document.getElementById('lexia-perf');
+    var pr = document.getElementById('lexia-prog');
+    if (total === 0) { renderLexiaPerf(); renderLexiaProg(); return; }
+    if (pe) pe.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
+    if (pr) pr.innerHTML = '';
+
+    function onDone() { if (++loaded >= total) { renderLexiaPerf(); renderLexiaProg(); } }
+
+    if (!lexiaPerfData) {
+        fetch(LEXIA_PERF_URL).then(function(r){return r.text();}).then(function(t){
+            lexiaPerfData = parsePerformanceCsv(t); onDone();
+        }).catch(function(){ lexiaPerfData = []; onDone(); });
+    }
+    if (!lexiaProgData) {
+        fetch(LEXIA_PROG_URL).then(function(r){return r.text();}).then(function(t){
+            lexiaProgData = parseProgressCsv(t); onDone();
+        }).catch(function(){ lexiaProgData = []; onDone(); });
+    }
 }
 
 </script>
