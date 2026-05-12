@@ -6771,7 +6771,6 @@ function coreCellAllHtml(student, catIdx) {
         var barFill = pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '';
         var lblColor = (raw === null || scoreLabel === '0') ? '#aeaeb2' : '#1d1d1f';
         rows += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:1px;">' +
-            '<span style="width:24px;font-size:0.54rem;color:#aeaeb2;flex-shrink:0;">' + pd.lbl + '</span>' +
             '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' + barFill + '</div>' +
             '<span style="min-width:24px;font-size:0.58rem;color:' + lblColor + ';text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
             '</div>';
@@ -6797,6 +6796,7 @@ function renderCore() {
     var isAll = (p === 'all');
     var html = '<div class="core-table-wrap"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
+    if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:#aeaeb2;font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
     CORE_CATS.forEach(function(cat) {
         html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:#86868b;font-size:0.63rem;">/' + cat.max + '</span></th>';
     });
@@ -6805,6 +6805,14 @@ function renderCore() {
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
+        if (isAll) {
+            html += '<td style="padding:2px 4px;vertical-align:middle;white-space:nowrap;">'
+                + '<div style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;">'
+                + '<span style="font-size:0.54rem;color:#aeaeb2;line-height:14px;">BOY</span>'
+                + '<span style="font-size:0.54rem;color:#aeaeb2;line-height:14px;">MOY</span>'
+                + '<span style="font-size:0.54rem;color:#aeaeb2;line-height:14px;">EOY</span>'
+                + '</div></td>';
+        }
         CORE_CATS.forEach(function(cat, i) {
             if (isAll) {
                 html += '<td style="padding:2px 3px;">' + coreCellAllHtml(s, i) + '</td>';
