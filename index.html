@@ -927,13 +927,11 @@
     <img id="app-logo-header" src="https://drive.google.com/thumbnail?id=1-bF7UTdKzEtoby0_ZIW8HtMe0-4n1MgX&sz=w400" alt="Logo" class="header-logo">
     <h1>Learning Credit Portal</h1>
     <nav class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('available')">Available</button>
-        <button class="tab-btn" onclick="switchTab('drafting')">Draft</button>
-        <button class="tab-btn" onclick="switchTab('earned')">Earned</button>
+        <button class="tab-btn active" onclick="switchTab('available')">Learning Credits</button>
         <button class="tab-btn" onclick="switchTab('portfolio')">Parent</button>
         <button class="tab-btn" onclick="switchTab('student')">Student</button>
-        <button class="tab-btn" onclick="switchTab('data')">Data</button>
-        <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Manage</button>
+        <button class="tab-btn" onclick="switchTab('data')">Analytics</button>
+        <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Groups</button>
     </nav>
     <div id="drive-user-info" style="position:absolute;right:1.5rem;display:none;align-items:center;gap:0.6rem;">
         <span id="drive-user-name" style="font-size:0.78rem;color:#86868b;"></span>
@@ -942,69 +940,100 @@
     </div>
 </header>
 
-<!-- TAB 1: Available Credits -->
+<!-- TAB 1: Learning Credits (Available / Earned / Draft sub-tabs) -->
 <div class="tab-content active" id="tab-available">
-    <div class="view-container">
-        <div style="display:flex;gap:0.3rem;align-items:center;margin-bottom:0.6rem;flex-wrap:nowrap;">
-            <div id="av-subject-btns" class="toggle-group"></div>
-            <div id="av-stage-btns" class="toggle-group"></div>
-            <div id="av-type-btns" class="toggle-group"></div>
-            <input type="text" id="av-ccss" placeholder="Standard…" title="Filter by CCSS standard ID" oninput="avFilterCCSS=this.value.trim();renderAvailable()" style="width:100px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.72rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
-            <div style="display:flex;align-items:center;gap:0.25rem;margin-left:auto;">
-                <button onclick="avSearchToggle()" id="av-search-icon-btn" title="Search" style="background:none;border:none;cursor:pointer;font-size:0.95rem;padding:0.3rem;line-height:1;color:#86868b;border-radius:6px;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&#128269;</button>
-                <input type="text" id="av-search" placeholder="Search…" oninput="renderAvailable()" style="display:none;width:130px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.72rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'" onkeydown="if(event.key==='Escape'){avSearchToggle();}">
-            </div>
-        </div>
-
-        <div class="progress-table-wrapper" id="available-grid"></div>
+    <div class="data-subtab-nav" id="lc-subtab-nav">
+        <button class="data-subtab-btn active" data-subtab="available" onclick="switchLCSubtab('available')">Available</button>
+        <button class="data-subtab-btn" data-subtab="earned" onclick="switchLCSubtab('earned')">Earned</button>
+        <button class="data-subtab-btn" data-subtab="drafting" onclick="switchLCSubtab('drafting')">Draft</button>
     </div>
-</div>
 
-<!-- TAB 2: Earned Credits -->
-<div class="tab-content" id="tab-earned">
-    <div class="view-container">
-        <!-- Single filter row -->
-        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:nowrap;">
-            <div class="toggle-group" style="background:none;padding:0;gap:0;">
-                <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">All</button>
-                <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL1';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL1</button>
-                <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL2';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL2</button>
-                <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL3';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL3</button>
-                <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL4';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL4</button>
-            </div>
-            <div class="toggle-group" id="earned-mode-toggle" style="flex-shrink:0;">
-                <button class="toggle-btn active" data-value="student" onclick="setToggle('earned-mode-toggle', 'student'); renderEarnedCredits()">Student</button>
-                <button class="toggle-btn" data-value="group" onclick="setToggle('earned-mode-toggle', 'group'); renderEarnedCredits()">Group</button>
-                <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">All</button>
-            </div>
-            <div id="earned-group-filter" style="flex-shrink:0;">
-                <select id="gp-group" onchange="renderEarnedCredits()" style="padding:0.4rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;"></select>
-            </div>
-            <div id="earned-subject-filter" style="display:none;">
-                <select id="gp-subject" style="display:none;"><option value="all">All Subjects</option></select>
-            </div>
-            <div id="earned-period-toggle-wrap" style="flex-shrink:0;">
-                <div class="toggle-group" id="earned-period-toggle">
-                    <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">All Time</button>
-                    <button class="toggle-btn" data-value="2026" onclick="setToggle('earned-period-toggle', '2026'); renderEarnedCredits()">This Year</button>
-                    <button class="toggle-btn" data-value="previous" onclick="setToggle('earned-period-toggle', 'previous'); renderEarnedCredits()">Previous Years</button>
+    <!-- Available sub-panel -->
+    <div id="lc-subtab-available" class="lc-subtab-panel">
+        <div class="view-container">
+            <div style="display:flex;gap:0.3rem;align-items:center;margin-bottom:0.6rem;flex-wrap:nowrap;">
+                <div id="av-subject-btns" class="toggle-group"></div>
+                <div id="av-stage-btns" class="toggle-group"></div>
+                <div id="av-type-btns" class="toggle-group"></div>
+                <input type="text" id="av-ccss" placeholder="Standard…" title="Filter by CCSS standard ID" oninput="avFilterCCSS=this.value.trim();renderAvailable()" style="width:100px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.72rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
+                <div style="display:flex;align-items:center;gap:0.25rem;margin-left:auto;">
+                    <button onclick="avSearchToggle()" id="av-search-icon-btn" title="Search" style="background:none;border:none;cursor:pointer;font-size:0.95rem;padding:0.3rem;line-height:1;color:#86868b;border-radius:6px;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&#128269;</button>
+                    <input type="text" id="av-search" placeholder="Search…" oninput="renderAvailable()" style="display:none;width:130px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.72rem;font-family:inherit;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'" onkeydown="if(event.key==='Escape'){avSearchToggle();}">
                 </div>
             </div>
-            <div style="flex:1;"></div>
-            <div id="earned-student-filter" style="display:none;position:relative;flex-shrink:0;">
-                <input type="text" id="st-student-search" placeholder="Search student..." autocomplete="off"
-                    oninput="showEarnedStudentSuggestions()"
-                    onfocus="showEarnedStudentSuggestions()"
-                    onkeydown="handleEarnedStudentKey(event)"
-                    style="padding:0.3rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;width:150px;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
-                <div id="st-student-suggestions" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:#fff;border:1px solid #d2d2d7;border-radius:8px;max-height:200px;overflow-y:auto;width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-top:2px;"></div>
-                <input type="hidden" id="st-student" value="">
-            </div>
-            <input type="text" id="earned-search" placeholder="Search credits…" oninput="earnedCreditSearch=this.value.toLowerCase();renderEarnedCredits()" style="width:140px;padding:0.3rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;outline:none;box-sizing:border-box;flex-shrink:0;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
+            <div class="progress-table-wrapper" id="available-grid"></div>
         </div>
-        <div id="earned-content"></div>
+    </div>
+
+    <!-- Earned sub-panel -->
+    <div id="lc-subtab-earned" class="lc-subtab-panel" style="display:none;">
+        <div class="view-container">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:nowrap;">
+                <div class="toggle-group" style="background:none;padding:0;gap:0;">
+                    <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">All</button>
+                    <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL1';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL1</button>
+                    <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL2';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL2</button>
+                    <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL3';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL3</button>
+                    <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL4';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL4</button>
+                </div>
+                <div class="toggle-group" id="earned-mode-toggle" style="flex-shrink:0;">
+                    <button class="toggle-btn active" data-value="student" onclick="setToggle('earned-mode-toggle', 'student'); renderEarnedCredits()">Student</button>
+                    <button class="toggle-btn" data-value="group" onclick="setToggle('earned-mode-toggle', 'group'); renderEarnedCredits()">Group</button>
+                    <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">All</button>
+                </div>
+                <div id="earned-group-filter" style="flex-shrink:0;">
+                    <select id="gp-group" onchange="renderEarnedCredits()" style="padding:0.4rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;"></select>
+                </div>
+                <div id="earned-subject-filter" style="display:none;">
+                    <select id="gp-subject" style="display:none;"><option value="all">All Subjects</option></select>
+                </div>
+                <div id="earned-period-toggle-wrap" style="flex-shrink:0;">
+                    <div class="toggle-group" id="earned-period-toggle">
+                        <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">All Time</button>
+                        <button class="toggle-btn" data-value="2026" onclick="setToggle('earned-period-toggle', '2026'); renderEarnedCredits()">This Year</button>
+                        <button class="toggle-btn" data-value="previous" onclick="setToggle('earned-period-toggle', 'previous'); renderEarnedCredits()">Previous Years</button>
+                    </div>
+                </div>
+                <div style="flex:1;"></div>
+                <div id="earned-student-filter" style="display:none;position:relative;flex-shrink:0;">
+                    <input type="text" id="st-student-search" placeholder="Search student..." autocomplete="off"
+                        oninput="showEarnedStudentSuggestions()"
+                        onfocus="showEarnedStudentSuggestions()"
+                        onkeydown="handleEarnedStudentKey(event)"
+                        style="padding:0.3rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;width:150px;outline:none;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
+                    <div id="st-student-suggestions" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:#fff;border:1px solid #d2d2d7;border-radius:8px;max-height:200px;overflow-y:auto;width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-top:2px;"></div>
+                    <input type="hidden" id="st-student" value="">
+                </div>
+                <input type="text" id="earned-search" placeholder="Search credits…" oninput="earnedCreditSearch=this.value.toLowerCase();renderEarnedCredits()" style="width:140px;padding:0.3rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;outline:none;box-sizing:border-box;flex-shrink:0;" onfocus="this.style.borderColor='#FF8200'" onblur="this.style.borderColor='#d2d2d7'">
+            </div>
+            <div id="earned-content"></div>
+        </div>
+    </div>
+
+    <!-- Draft sub-panel -->
+    <div id="lc-subtab-drafting" class="lc-subtab-panel" style="display:none;">
+        <div class="view-container">
+            <div id="drafting-add-form"></div>
+            <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.6rem;">
+                <div id="drafting-subject-btns" class="toggle-group"></div>
+                <div id="drafting-stage-btns" class="toggle-group"></div>
+                <div style="position:relative;display:inline-flex;align-items:center;">
+                    <span onclick="var inp=this.nextElementSibling;inp.style.display=inp.style.display==='none'?'inline-block':'none';if(inp.style.display!=='none')inp.focus();" style="cursor:pointer;font-size:1rem;color:#86868b;">&#128269;</span>
+                    <input type="text" id="dr-search" placeholder="Search..." oninput="renderDrafting()" style="display:none;width:150px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.78rem;font-family:inherit;margin-left:0.3rem;">
+                </div>
+            </div>
+            <div class="progress-table-wrapper">
+                <table>
+                    <thead id="drafting-thead"></thead>
+                    <tbody id="drafting-tbody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- (kept for JS backward-compat) -->
+<div id="tab-earned" style="display:none;"></div>
 
 <!-- TAB 3: Manage -->
 <div class="tab-content" id="tab-manage">
@@ -1041,26 +1070,8 @@
     </div>
 </div>
 
-<!-- TAB 4: Drafting Progress -->
-<div class="tab-content" id="tab-drafting">
-    <div class="view-container">
-        <div id="drafting-add-form"></div>
-        <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.6rem;">
-            <div id="drafting-subject-btns" class="toggle-group"></div>
-            <div id="drafting-stage-btns" class="toggle-group"></div>
-            <div style="position:relative;display:inline-flex;align-items:center;">
-                <span onclick="var inp=this.nextElementSibling;inp.style.display=inp.style.display==='none'?'inline-block':'none';if(inp.style.display!=='none')inp.focus();" style="cursor:pointer;font-size:1rem;color:#86868b;">&#128269;</span>
-                <input type="text" id="dr-search" placeholder="Search..." oninput="renderDrafting()" style="display:none;width:150px;padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.78rem;font-family:inherit;margin-left:0.3rem;">
-            </div>
-        </div>
-        <div class="progress-table-wrapper">
-            <table>
-                <thead id="drafting-thead"></thead>
-                <tbody id="drafting-tbody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+<!-- tab-drafting kept as stub for JS backward-compat -->
+<div id="tab-drafting" style="display:none;"></div>
 
 <!-- TAB 5: Digital Portfolio -->
 <div class="tab-content" id="tab-portfolio">
@@ -1134,11 +1145,13 @@
                 <div class="toggle-group">
                     <button class="toggle-btn lexia-view-btn active" data-view="performance" onclick="setLexiaView('performance')">Performance</button>
                     <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
+                    <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                 </div>
                 <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
             </div>
             <div id="lexia-perf"></div>
             <div id="lexia-prog" style="display:none;"></div>
+            <div id="lexia-stds" style="display:none;"></div>
         </div>
 
         <!-- MAP Math sub-tab -->
@@ -3833,6 +3846,22 @@ function renderStudentTabLibrary() {
 
 let selectedManageGroup = null;
 var currentTab = 'available';
+var currentLCSubtab = 'available';
+
+function switchLCSubtab(name) {
+    currentLCSubtab = name;
+    document.querySelectorAll('#lc-subtab-nav .data-subtab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.subtab === name);
+    });
+    document.querySelectorAll('.lc-subtab-panel').forEach(function(p) {
+        p.style.display = 'none';
+    });
+    var panel = document.getElementById('lc-subtab-' + name);
+    if (panel) panel.style.display = '';
+    if (name === 'available') renderAvailable();
+    if (name === 'earned') { loadEarnedFromSheet(); renderEarnedCredits(); }
+    if (name === 'drafting') { loadDraftingFromSheet(); renderDrafting(); }
+}
 
 // ── Browser history helpers ──────────────────────────────────────────────────
 
@@ -3850,19 +3879,23 @@ function applyNavState(state) {
 // Low-level: update DOM and render for a tab (shared by switchTab and applyNavState)
 function applyTabRender(tab) {
     currentTab = tab;
-    if (tab === 'earned' || tab === 'portfolio' || tab === 'student') loadEarnedFromSheet();
+    if (tab === 'earned' || tab === 'available' || tab === 'portfolio' || tab === 'student') loadEarnedFromSheet();
     loadStudentALFromSheet();
     document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
-    var tabLabels = { available: 'Available', earned: 'Earned', manage: 'Manage', drafting: 'Draft', portfolio: 'Parent', student: 'Student', data: 'Data' };
+    // Earned and Draft are now sub-tabs of Learning Credits
+    if (tab === 'earned' || tab === 'drafting') {
+        applyTabRender('available');
+        switchLCSubtab(tab);
+        return;
+    }
+    var tabLabels = { available: 'Learning Credits', manage: 'Groups', portfolio: 'Parent', student: 'Student', data: 'Analytics' };
     document.querySelectorAll('.tab-btn').forEach(function(b) {
         if (b.textContent === tabLabels[tab]) b.classList.add('active');
     });
-    if (tab === 'available') renderAvailable();
-    if (tab === 'earned') renderEarnedCredits();
+    if (tab === 'available') { renderAvailable(); }
     if (tab === 'manage') renderManageCombined();
-    if (tab === 'drafting') { loadDraftingFromSheet(); renderDrafting(); }
     if (tab === 'portfolio') renderPortfolio();
     if (tab === 'student') renderStudentTab();
     if (tab === 'data') switchDataSubtab(currentDataSubtab);
@@ -4035,7 +4068,11 @@ function renderAvailable() {
         return true;
     });
 
-    filtered.sort(function(a, b) { return a.title.localeCompare(b.title); });
+    filtered.sort(function(a, b) {
+        var ai = subjects.indexOf(a.subject), bi = subjects.indexOf(b.subject);
+        if (ai !== bi) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        return a.title.localeCompare(b.title);
+    });
 
     // Build subject filter buttons (same style as draft tab)
     var usedSubjects = [];
@@ -4076,7 +4113,27 @@ function renderAvailable() {
     });
     document.getElementById('av-type-btns').innerHTML = typeHtml;
 
-    var html = '<table style="table-layout:fixed;width:100%;">';
+    var WH_CATS = [
+        { code: 'WH.AL2.CL', range: '1–3', name: '—' },
+        { code: 'WH.AL2.CO', range: '1–2', name: 'Comprehension' },
+        { code: 'WH.AL2.GM', range: '1–2', name: 'Goal Management' },
+        { code: 'WH.AL2.IN', range: '1–3', name: 'Initiative' },
+        { code: 'WH.AL2.RM', range: '1–3', name: 'Resource Management' },
+        { code: 'WH.AL2.SK', range: '1–4', name: 'Self-Knowledge' }
+    ];
+    var whPanel = '';
+    if (avFilterSubject === 'Work Habits') {
+        whPanel = '<div style="display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 14px;">';
+        WH_CATS.forEach(function(cat) {
+            whPanel += '<div style="background:#fff7f0;border:1px solid #ffcf99;border-radius:8px;padding:7px 12px;min-width:140px;">'
+                + '<div style="font-size:0.65rem;font-weight:700;color:#FF8200;letter-spacing:0.02em;">' + cat.code + '.' + cat.range + '</div>'
+                + '<div style="font-size:0.75rem;color:#1d1d1f;margin-top:2px;">' + cat.name + '</div>'
+                + '</div>';
+        });
+        whPanel += '</div>';
+    }
+
+    var html = whPanel + '<table style="table-layout:fixed;width:100%;">';
     html += '<colgroup><col style="width:36px"><col style="width:34%"><col style="width:6%"><col style="width:12%"><col style="width:12%"><col style="width:14%"><col style="width:14%"></colgroup>';
     html += '<thead><tr>';
     html += '<th></th>';
@@ -6572,7 +6629,7 @@ function parseCoreCsv(text) {
         var scores = [];
         for (var j = 2; j <= 14; j++) {
             var v = (r[j] || '').trim();
-            scores.push(v === '' ? null : parseInt(v, 10));
+            scores.push(v === '' ? null : v); // keep raw string so checkmarks are preserved
         }
         cur[period] = { scores: scores, notes: (r[15] || '').trim() };
     }
@@ -6596,16 +6653,19 @@ function loadCoreData(key, callback) {
         });
 }
 
+function coreRawIsMastered(raw) {
+    if (raw === null || raw === undefined) return false;
+    var r = String(raw).trim().toLowerCase();
+    return r === '✓' || r === '✔' || r === 'true' || r === 'done' || r === 'x' || r === 'yes' || r === 'y' || r === '☑';
+}
+
 function coreIsMastered(student, catIdx, period) {
-    var max = CORE_CATS[catIdx].max;
-    if (period === 'winter') {
-        return !!(student.fall && student.fall.scores[catIdx] === max);
-    }
-    if (period === 'spring') {
-        return !!(student.fall && student.fall.scores[catIdx] === max) ||
-               !!(student.winter && student.winter.scores[catIdx] === max);
-    }
-    return false;
+    var pData = student[period];
+    if (!pData) return false;
+    var raw = pData.scores[catIdx];
+    if (coreRawIsMastered(raw)) return true;
+    var n = parseInt(raw, 10);
+    return !isNaN(n) && n >= CORE_CATS[catIdx].max;
 }
 
 // Shared color scale for all Data-tab progress indicators
@@ -6659,29 +6719,33 @@ function coreCellAllHtml(student, catIdx) {
     var rows = '', hasAny = false;
     periods.forEach(function(pd) {
         var pData = student[pd.key];
-        var score = pData ? pData.scores[catIdx] : null;
-        var mastered = coreIsMastered(student, catIdx, pd.key);
+        var raw = pData ? pData.scores[catIdx] : null;
         var bg, pct, scoreLabel;
-        if (score !== null && !isNaN(score)) {
-            if (score >= cat.max) {
-                bg = '#186a3b'; pct = 100; scoreLabel = '&#10003;';
-            } else {
-                bg = coreCellBg(score, cat.max);
-                pct = Math.max(score > 0 ? (score / cat.max) * 100 : 0, score > 0 ? 4 : 0);
-                scoreLabel = score + '/' + cat.max;
-            }
-            hasAny = true;
-        } else if (mastered) {
+        if (raw === null) {
+            bg = '#d1d1d6'; pct = 0; scoreLabel = '0';
+        } else if (coreRawIsMastered(raw)) {
             bg = '#186a3b'; pct = 100; scoreLabel = '&#10003;'; hasAny = true;
         } else {
-            bg = '#ebebeb'; pct = 0; scoreLabel = '';
+            var score = parseInt(raw, 10);
+            if (!isNaN(score)) {
+                if (score >= cat.max) {
+                    bg = '#186a3b'; pct = 100; scoreLabel = '&#10003;';
+                } else {
+                    bg = coreCellBg(score, cat.max);
+                    pct = score > 0 ? Math.max((score / cat.max) * 100, 4) : 0;
+                    scoreLabel = score + '/' + cat.max;
+                }
+                hasAny = true;
+            } else {
+                bg = '#d1d1d6'; pct = 0; scoreLabel = '0';
+            }
         }
+        var barFill = pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '';
+        var lblColor = (raw === null || scoreLabel === '0') ? '#aeaeb2' : '#1d1d1f';
         rows += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:1px;">' +
             '<span style="width:24px;font-size:0.54rem;color:#aeaeb2;flex-shrink:0;">' + pd.lbl + '</span>' +
-            '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' +
-            (pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '') +
-            '</div>' +
-            '<span style="min-width:24px;font-size:0.58rem;color:#1d1d1f;text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
+            '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' + barFill + '</div>' +
+            '<span style="min-width:24px;font-size:0.58rem;color:' + lblColor + ';text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
             '</div>';
     });
     if (!hasAny) return '<span style="color:#c7c7cc;font-size:0.7rem;">&ndash;</span>';
@@ -6717,21 +6781,21 @@ function renderCore() {
             if (isAll) {
                 html += '<td style="padding:2px 3px;">' + coreCellAllHtml(s, i) + '</td>';
             } else {
-                var score = pData ? pData.scores[i] : null;
-                var mastered = coreIsMastered(s, i, p);
+                var raw = pData ? pData.scores[i] : null;
                 var bg, color, label;
-                if (score !== null && !isNaN(score)) {
-                    if (score >= cat.max) {
-                        bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
-                    } else {
-                        bg    = coreCellBg(score, cat.max);
-                        color = '#1d1d1f';
-                        label = score + '/' + cat.max;
-                    }
-                } else if (mastered) {
+                if (raw === null) {
+                    bg = '#d1d1d6'; color = '#86868b'; label = '0';
+                } else if (coreRawIsMastered(raw)) {
                     bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
                 } else {
-                    bg = 'transparent'; color = '#c7c7cc'; label = '&ndash;';
+                    var score = parseInt(raw, 10);
+                    if (!isNaN(score) && score >= cat.max) {
+                        bg = '#186a3b'; color = '#ffffff'; label = '&#10003;';
+                    } else if (!isNaN(score)) {
+                        bg = coreCellBg(score, cat.max); color = '#1d1d1f'; label = score + '/' + cat.max;
+                    } else {
+                        bg = '#d1d1d6'; color = '#86868b'; label = '0';
+                    }
                 }
                 html += '<td><span class="core-chip" style="background:' + bg + ';color:' + color + ';">' + label + '</span></td>';
             }
@@ -7347,7 +7411,11 @@ function parseCompCsv(text) {
         }
 
         var mastery = {};
-        students.forEach(function(s) { mastery[s.name] = !!(row[s.col] || '').trim(); });
+        students.forEach(function(s) {
+            var raw = (row[s.col] || '').trim().toLowerCase();
+            // Mastered = cell has a checkmark or any truthy value; not mastered = empty or explicit false/0
+            mastery[s.name] = raw.length > 0 && raw !== 'false' && raw !== '0' && raw !== 'no' && raw !== 'n' && raw !== '-';
+        });
 
         questions.push({ gle: gle, q: q, std: std, pct: pct, mastery: mastery });
     }
@@ -7484,8 +7552,10 @@ function renderComp() {
    ========================================================= */
 var LEXIA_PERF_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1508348163&single=true&output=csv';
 var LEXIA_PROG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1360757999&single=true&output=csv';
+var LEXIA_STDS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1768489462&single=true&output=csv';
 var lexiaPerfData = null;
 var lexiaProgData = null;
+var lexiaStdsData = null;
 var lexiaView     = 'performance';
 
 // 21 Lexia units in 7 skill groups
@@ -7591,8 +7661,11 @@ function setLexiaView(v) {
     });
     var pe = document.getElementById('lexia-perf');
     var pr = document.getElementById('lexia-prog');
+    var st = document.getElementById('lexia-stds');
     if (pe) pe.style.display = v === 'performance' ? '' : 'none';
     if (pr) pr.style.display = v === 'progress'    ? '' : 'none';
+    if (st) st.style.display = v === 'standards'   ? '' : 'none';
+    if (v === 'standards' && lexiaStdsData) renderLexiaStds();
 }
 
 function renderLexiaPerf() {
@@ -7601,19 +7674,33 @@ function renderLexiaPerf() {
     var data = lexiaPerfData;
     if (!data.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    // Summary chips
+    // Count risk levels
     var counts = { 'On Target': 0, 'Some Risk': 0, 'At Risk': 0 };
     data.forEach(function(s) {
-        if (/on.target/i.test(s.riskLevel))          counts['On Target']++;
-        else if (/some.risk/i.test(s.riskLevel))     counts['Some Risk']++;
+        if (/on.target/i.test(s.riskLevel))              counts['On Target']++;
+        else if (/some.risk/i.test(s.riskLevel))         counts['Some Risk']++;
         else if (/at.risk|high.risk/i.test(s.riskLevel)) counts['At Risk']++;
     });
-    var summary = '<div style="display:flex;gap:10px;flex-wrap:wrap;padding:12px 1.25rem 6px;">';
-    [['On Target','#27ae60'],['Some Risk','#f0b429'],['At Risk','#e74c3c']].forEach(function(pair) {
-        summary += '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:' + pair[1] + ';color:#fff;font-size:0.75rem;font-weight:600;">'
-            + counts[pair[0]] + ' ' + pair[0] + '</span>';
+    var total = data.length;
+    var slices = [
+        { label: 'On Target', color: '#27ae60', count: counts['On Target'] },
+        { label: 'Some Risk', color: '#f0b429', count: counts['Some Risk'] },
+        { label: 'At Risk',   color: '#e74c3c', count: counts['At Risk']   }
+    ];
+
+    var summary = '<div style="display:flex;align-items:center;gap:24px;padding:16px 1.25rem 10px;flex-wrap:wrap;">'
+        + '<canvas id="lexia-perf-pie" width="130" height="130" style="flex-shrink:0;"></canvas>'
+        + '<div style="display:flex;flex-direction:column;gap:8px;">';
+    slices.forEach(function(s) {
+        var pct = total > 0 ? Math.round(s.count / total * 100) : 0;
+        summary += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<span style="width:12px;height:12px;border-radius:50%;background:' + s.color + ';flex-shrink:0;display:inline-block;"></span>'
+            + '<span style="font-size:0.82rem;color:#1d1d1f;">' + s.label + '</span>'
+            + '<span style="font-size:0.82rem;font-weight:600;color:#1d1d1f;margin-left:4px;">' + s.count + '</span>'
+            + '<span style="font-size:0.75rem;color:#86868b;">(' + pct + '%)</span>'
+            + '</div>';
     });
-    summary += '</div>';
+    summary += '</div></div>';
 
     var html = summary
         + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
@@ -7651,6 +7738,42 @@ function renderLexiaPerf() {
     });
     html += '</tbody></table></div>';
     el.innerHTML = html;
+
+    // Draw pie chart
+    var canvas = document.getElementById('lexia-perf-pie');
+    if (canvas && canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+        var cx = 65, cy = 65, r = 58;
+        var angle = -Math.PI / 2;
+        var drawn = slices.filter(function(s) { return s.count > 0; });
+        if (drawn.length === 0) {
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#e8e8ed'; ctx.fill();
+        } else {
+            drawn.forEach(function(s) {
+                var sweep = (s.count / total) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, angle, angle + sweep);
+                ctx.closePath();
+                ctx.fillStyle = s.color;
+                ctx.fill();
+                angle += sweep;
+            });
+            // Inner circle for donut effect
+            ctx.beginPath(); ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff'; ctx.fill();
+            // Total count in center
+            ctx.fillStyle = '#1d1d1f';
+            ctx.font = 'bold 22px -apple-system,sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(total, cx, cy - 6);
+            ctx.font = '11px -apple-system,sans-serif';
+            ctx.fillStyle = '#86868b';
+            ctx.fillText('students', cx, cy + 11);
+        }
+    }
 }
 
 function renderLexiaProg() {
@@ -7719,16 +7842,150 @@ function renderLexiaProg() {
     el.innerHTML = html;
 }
 
+// Parse the Lexia Standards Report CSV
+// Row 0: grade labels (Kindergarten, Grade 1, Grade 2)
+// Row 1: standard codes at cols 1, 4, 7, ... (every 3rd starting at 1)
+// Row 2: sub-headers (Student Name, Accuracy, Unit Progress, % Complete, ...)
+// Row 3+: student data
+function parseStandardsCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 4) return { grades: [], standards: [], students: [] };
+
+    // Determine grade spans: scan row 0 for non-empty labels
+    var gradeRow = rows[0];
+    var grades = [];
+    var curGrade = null, curStart = -1;
+    for (var c = 1; c < gradeRow.length; c++) {
+        var lbl = (gradeRow[c] || '').trim();
+        if (lbl) {
+            if (curGrade !== null) grades.push({ label: curGrade, start: curStart, end: c - 1 });
+            curGrade = lbl; curStart = c;
+        }
+    }
+    if (curGrade !== null) grades.push({ label: curGrade, start: curStart, end: gradeRow.length - 1 });
+
+    // Standard codes from row 1 at every 3rd col starting at index 1
+    var codeRow = rows[1];
+    var standards = []; // { code, col } — col is the base column index (% Complete is col+2)
+    for (var c = 1; c < codeRow.length; c += 3) {
+        var code = (codeRow[c] || '').trim();
+        if (code) standards.push({ code: code, col: c });
+    }
+
+    // Assign each standard to its grade
+    standards.forEach(function(s) {
+        var grd = grades.find(function(g) { return s.col >= g.start && s.col <= g.end; });
+        s.grade = grd ? grd.label : '';
+    });
+
+    // Student rows from index 3 onward
+    var students = [];
+    for (var r = 3; r < rows.length; r++) {
+        var row = rows[r];
+        var rawName = (row[0] || '').trim();
+        if (!rawName) continue;
+        var name = lexiaFlipName(rawName);
+        var scores = {}; // code → pct (0-100)
+        standards.forEach(function(s) {
+            var pctStr = (row[s.col + 2] || '').trim(); // % Complete is 2 cols after code col
+            var pct = parseFloat(pctStr.replace('%', ''));
+            scores[s.code] = isNaN(pct) ? null : pct;
+        });
+        students.push({ name: name, scores: scores });
+    }
+
+    return { grades: grades, standards: standards, students: students };
+}
+
+function renderLexiaStds() {
+    var el = document.getElementById('lexia-stds');
+    if (!el || !lexiaStdsData) return;
+    var d = lexiaStdsData;
+    if (!d.students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var html = '<div style="padding:1rem 1.25rem;">';
+
+    // One section per grade
+    var gradeNames = [];
+    d.grades.forEach(function(g) { gradeNames.push(g.label); });
+
+    gradeNames.forEach(function(gradeName) {
+        var stds = d.standards.filter(function(s) { return s.grade === gradeName; });
+        if (!stds.length) return;
+
+        // Compute class average per standard
+        var avgs = {};
+        stds.forEach(function(s) {
+            var vals = d.students.map(function(st) { return st.scores[s.code]; }).filter(function(v) { return v !== null; });
+            avgs[s.code] = vals.length ? vals.reduce(function(a, b) { return a + b; }, 0) / vals.length : null;
+        });
+
+        html += '<div style="margin-bottom:2rem;">';
+        html += '<h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;margin:0 0 0.75rem 0;">' + gradeName + '</h3>';
+        html += '<div style="overflow-x:auto;">';
+        html += '<table style="border-collapse:collapse;font-size:0.72rem;min-width:max-content;">';
+
+        // Header row: standard codes
+        html += '<thead><tr>';
+        html += '<th style="position:sticky;left:0;background:#f5f5f7;z-index:2;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;">Student</th>';
+        stds.forEach(function(s) {
+            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;" title="' + s.code + '">' + s.code + '</th>';
+        });
+        html += '</tr></thead>';
+
+        html += '<tbody>';
+
+        // Class average row
+        html += '<tr style="background:#f0f0f5;">';
+        html += '<td style="position:sticky;left:0;background:#f0f0f5;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;font-weight:600;white-space:nowrap;">Class Avg</td>';
+        stds.forEach(function(s) {
+            var avg = avgs[s.code];
+            if (avg === null) {
+                html += '<td style="border:1px solid #d1d1d6;text-align:center;color:#aeaeb2;">—</td>';
+            } else {
+                var bg = pctColor(avg);
+                var fg = avg >= 50 ? '#fff' : '#1d1d1f';
+                html += '<td style="border:1px solid #d1d1d6;text-align:center;background:' + bg + ';color:' + fg + ';font-weight:600;padding:3px 2px;">' + Math.round(avg) + '%</td>';
+            }
+        });
+        html += '</tr>';
+
+        // Student rows
+        d.students.forEach(function(st) {
+            html += '<tr>';
+            html += '<td style="position:sticky;left:0;background:#fff;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;">' + st.name + '</td>';
+            stds.forEach(function(s) {
+                var pct = st.scores[s.code];
+                if (pct === null) {
+                    html += '<td style="border:1px solid #d1d1d6;text-align:center;color:#aeaeb2;background:#fafafa;">—</td>';
+                } else {
+                    var bg = pctColor(pct);
+                    var fg = pct >= 50 ? '#fff' : '#1d1d1f';
+                    html += '<td style="border:1px solid #d1d1d6;text-align:center;background:' + bg + ';color:' + fg + ';padding:3px 2px;" title="' + s.code + ': ' + pct + '%">' + Math.round(pct) + '%</td>';
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div></div>';
+    });
+
+    html += '</div>';
+    el.innerHTML = html;
+}
+
 function renderLexia() {
     var loaded = 0;
-    var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0);
+    var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0) + (!lexiaStdsData ? 1 : 0);
     var pe = document.getElementById('lexia-perf');
     var pr = document.getElementById('lexia-prog');
-    if (total === 0) { renderLexiaPerf(); renderLexiaProg(); return; }
+    var st = document.getElementById('lexia-stds');
+    if (total === 0) { renderLexiaPerf(); renderLexiaProg(); if (lexiaView === 'standards') renderLexiaStds(); return; }
     if (pe) pe.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
     if (pr) pr.innerHTML = '';
+    if (st) st.innerHTML = '';
 
-    function onDone() { if (++loaded >= total) { renderLexiaPerf(); renderLexiaProg(); } }
+    function onDone() { if (++loaded >= total) { renderLexiaPerf(); renderLexiaProg(); if (lexiaView === 'standards') renderLexiaStds(); } }
 
     if (!lexiaPerfData) {
         fetch(LEXIA_PERF_URL).then(function(r){return r.text();}).then(function(t){
@@ -7739,6 +7996,11 @@ function renderLexia() {
         fetch(LEXIA_PROG_URL).then(function(r){return r.text();}).then(function(t){
             lexiaProgData = parseProgressCsv(t); onDone();
         }).catch(function(){ lexiaProgData = []; onDone(); });
+    }
+    if (!lexiaStdsData) {
+        fetch(LEXIA_STDS_URL).then(function(r){return r.text();}).then(function(t){
+            lexiaStdsData = parseStandardsCsv(t); onDone();
+        }).catch(function(){ lexiaStdsData = { grades: [], standards: [], students: [] }; onDone(); });
     }
 }
 
