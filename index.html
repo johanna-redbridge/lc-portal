@@ -7346,8 +7346,15 @@ function renderFPGrowthView() {
 }
 
 function drawFpGrowthGraph(canvas, points) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
     var ctx = canvas.getContext('2d');
-    var W = canvas.width, H = canvas.height;
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
     var padL = 50, padR = 22, padT = 22, padB = 62;
     var plotW = W - padL - padR, plotH = H - padT - padB;
 
