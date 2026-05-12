@@ -903,6 +903,51 @@
         .data-subtab-btn { padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 500; border: none; background: none; cursor: pointer; color: #86868b; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color 0.15s; white-space: nowrap; }
         .data-subtab-btn:hover { color: #1d1d1f; }
         .data-subtab-btn.active { color: #FF8200; border-bottom-color: #FF8200; }
+
+        /* ── Writing Dashboard scoped styles ── */
+        #wd-root { font-family: -apple-system, 'DM Sans', system-ui, sans-serif; color: #1a1a2e; }
+        #wd-nav { display:flex; gap:6px; flex-wrap:wrap; align-items:center; background:#f5f5f7; padding:10px 20px; border-bottom:1px solid #e8e8ed; }
+        .wd-nav-btn { padding:5px 14px; border-radius:20px; border:none; cursor:pointer; font-family:inherit; font-size:.8rem; font-weight:600; background:transparent; color:#4a4a6a; transition:background .15s,color .15s; }
+        .wd-nav-btn.active { background:#1d1d1f; color:#fff; }
+        #wd-last-updated { margin-left:auto; font-size:.7rem; color:#aeaeb2; }
+        .wd-spinner { display:inline-block; width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#FF8200; border-radius:50%; animation:spin .7s linear infinite; margin-bottom:10px; }
+        #wd-root .wd-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; margin-bottom:18px; }
+        #wd-root .wd-section-title { font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94a3b8; margin-bottom:10px; }
+        #wd-root .wd-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
+        #wd-root .wd-kpi-card { padding:12px 16px; border-radius:10px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+        #wd-root .wd-kpi-label { font-size:.63rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#94a3b8; margin-bottom:3px; }
+        #wd-root .wd-kpi-value { font-size:1.4rem; font-weight:800; line-height:1; color:#1a1a2e; }
+        #wd-root .wd-kpi-sub { font-size:.7rem; color:#94a3b8; margin-top:2px; }
+        #wd-root .wd-filter-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+        #wd-root .wd-filter-bar label { font-weight:700; font-size:.7rem; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
+        #wd-root .wd-filter-bar select { padding:5px 10px; border-radius:8px; border:1px solid #d1d1d6; background:#fff; font-family:inherit; font-size:.8rem; color:#1a1a2e; cursor:pointer; }
+        #wd-root .wd-tbl-wrap { overflow-x:auto; }
+        #wd-root table { width:100%; border-collapse:collapse; font-size:.8rem; }
+        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#64748b; border-bottom:2px solid #e2e8f0; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; }
+        #wd-root thead th:hover, #wd-root thead th.sort-active { color:#FF8200; background:#fff7f0; }
+        #wd-root thead th.center { text-align:center; }
+        #wd-root tbody tr:hover td { background:#fff7f0 !important; }
+        #wd-root tbody td { padding:6px 9px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        #wd-root tbody td.center { text-align:center; }
+        #wd-root .wd-chip { display:inline-block; padding:2px 7px; border-radius:5px; font-weight:600; font-size:.8rem; }
+        #wd-root .wd-diff { display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:.75rem; font-weight:700; }
+        #wd-root .wd-pill { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:12px; font-size:.68rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+        #wd-root .wd-pill-fall { background:#fde68a; color:#92400e; }
+        #wd-root .wd-pill-winter { background:#bfdbfe; color:#1e40af; }
+        #wd-root .wd-pill-spring { background:#bbf7d0; color:#166534; }
+        #wd-root .wd-goal-tag { display:inline-block; padding:1px 7px; border-radius:8px; font-size:.7rem; font-weight:700; background:#e0e7ff; color:#3730a3; }
+        #wd-root .wd-bar-wrap { background:#f1f5f9; border-radius:4px; height:10px; overflow:hidden; width:100%; }
+        #wd-root .wd-bar-fill { height:100%; border-radius:4px; }
+        #wd-root .wd-student-header { background:#1d1d1f; color:#fff; border-radius:10px; padding:18px 22px; margin-bottom:14px; }
+        #wd-root .wd-student-header h2 { font-size:1.3rem; font-weight:800; }
+        #wd-root .wd-season-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+        #wd-root .wd-season-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; }
+        #wd-root .wd-growth-chip { background:rgba(255,255,255,.07); border-radius:6px; padding:5px 9px; min-width:90px; }
+        #wd-root .wd-growth-chip .gc-label { font-size:.63rem; color:#94a3b8; margin-bottom:2px; }
+        #wd-root .wd-group-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; margin-bottom:14px; }
+        #wd-root .wd-cat-kpi { padding:9px 16px; border-radius:10px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.08); min-width:100px; }
+        #wd-root .wd-cat-kpi .ck-label { font-size:.63rem; color:#94a3b8; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+        #wd-root .wd-cat-kpi .ck-value { font-size:1.3rem; font-weight:800; }
     </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=true;if(typeof initGDrive==='function')initGDrive();"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -1105,6 +1150,7 @@
             <button class="data-subtab-btn" data-subtab="lexia" onclick="switchDataSubtab('lexia')">Lexia</button>
             <button class="data-subtab-btn" data-subtab="map-math" onclick="switchDataSubtab('map-math')">MAP Math</button>
             <button class="data-subtab-btn" data-subtab="map-ela" onclick="switchDataSubtab('map-ela')">MAP ELA</button>
+            <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
         </div>
         <div class="data-subtab-panel" id="data-subtab-core">
             <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
@@ -1190,6 +1236,28 @@
                 <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
             </div>
             <div id="map-ela-content"></div>
+        </div>
+
+        <!-- Writing Dashboard sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-writing" style="display:none;">
+            <div id="wd-root">
+                <div id="wd-nav">
+                    <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">📊 Class Overview</button>
+                    <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">👤 Individual Student</button>
+                    <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">👥 Writing Groups</button>
+                    <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">🔍 Category Deep Dive</button>
+                    <span id="wd-last-updated"></span>
+                </div>
+                <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
+                    <div class="wd-spinner"></div><br>Loading writing data…
+                </div>
+                <div id="wd-main" style="display:none;padding:20px 24px;">
+                    <div id="wd-view-class"></div>
+                    <div id="wd-view-student" style="display:none;"></div>
+                    <div id="wd-view-groups"  style="display:none;"></div>
+                    <div id="wd-view-category" style="display:none;"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -6602,6 +6670,7 @@ function switchDataSubtab(name) {
     if (name === 'lexia')    renderLexia();
     if (name === 'map-math') renderMapMath();
     if (name === 'map-ela')  renderMapEla();
+    if (name === 'writing')  WD.init();
 }
 
 // ───────── CORE ASSESSMENT ─────────
@@ -8055,6 +8124,469 @@ function renderLexia() {
         }).catch(function(){ lexiaStdsData = { grades: [], standards: [], students: [] }; onDone(); });
     }
 }
+
+// ═══════════════════════════════════════════════════════
+// WRITING DASHBOARD  (WD namespace)
+// ═══════════════════════════════════════════════════════
+var WD = (function() {
+
+// ── Data URL (set to your published CSV or JSON endpoint) ──
+var DATA_URL = ''; // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
+
+// ── Constants ──
+var CATEGORIES = ["Intros","Transitions","Ending","Sequencing/Org","Elaboration","Voice/Craft","Spelling","Grammar","Overall"];
+var SEASONS = ["fall","winter","spring"];
+
+// ── State ──
+var APP = { students: [], lastUpdated: '' };
+var initialized = false;
+var currentView = 'class';
+var teacherFilterOverview = '';
+var rosterGrowthCol = 'fw';
+var studentGrowthCol = 'fw';
+var selectedStudent = '';
+var catDiveIdx = 0;
+var teacherFilterCat = '';
+var sortState = {
+    cat:     { col:'label', dir:'asc' },
+    roster:  { col:'name',  dir:'asc' },
+    catDive: { col:'fallScore', dir:'desc' }
+};
+
+// ── Demo data (shown when DATA_URL is not configured) ──
+var DEMO_STUDENTS = [
+    { name:'Astra E.', al:'AL1', teacher:'Ms. Rivera', goal:3.0,
+      fall:  { avg:2.1, scores:[2,2,2,2,2,2,2,2,2], hw:2, noWork:false, hasWritingSample:true, instructional:false },
+      winter:{ avg:2.6, scores:[3,2,3,2,3,2,3,2,3], hw:2, noWork:false, hasWritingSample:true, instructional:false },
+      spring:null },
+    { name:'Jasper I.', al:'AL1', teacher:'Ms. Rivera', goal:3.0,
+      fall:  { avg:1.8, scores:[2,2,2,2,2,1,2,2,2], hw:1, noWork:false, hasWritingSample:true, instructional:false },
+      winter:{ avg:2.2, scores:[2,2,2,2,2,2,2,3,2], hw:2, noWork:false, hasWritingSample:true, instructional:false },
+      spring:null },
+    { name:'Alina A.', al:'AL2', teacher:'Mr. Park', goal:4.0,
+      fall:  { avg:3.0, scores:[3,3,3,3,3,3,3,3,3], hw:3, noWork:false, hasWritingSample:true, instructional:false },
+      winter:{ avg:3.4, scores:[4,3,3,4,3,3,4,3,3], hw:3, noWork:false, hasWritingSample:true, instructional:false },
+      spring:null },
+    { name:'Leo M.', al:'AL2', teacher:'Mr. Park', goal:4.0,
+      fall:  { avg:2.8, scores:[3,3,3,3,3,3,3,2,3], hw:2, noWork:false, hasWritingSample:true, instructional:false },
+      winter:{ avg:null, scores:[], noWork:true, hasWritingSample:false, instructional:false },
+      spring:null },
+    { name:'Sofia T.', al:'AL3', teacher:'Ms. Lee', goal:5.0,
+      fall:  { avg:4.1, scores:[4,4,4,4,4,4,4,4,5], hw:3, noWork:false, hasWritingSample:true, instructional:false },
+      winter:{ avg:4.5, scores:[5,4,4,5,4,5,4,4,5], hw:3, noWork:false, hasWritingSample:true, instructional:false },
+      spring:null },
+];
+
+// ── Helpers ──
+function safeAvg(arr) {
+    var v = arr.filter(function(x){ return x!=null&&x>0; });
+    return v.length ? v.reduce(function(a,b){return a+b;},0)/v.length : null;
+}
+function fmtScore(v,d) { d=d||2; return v==null?'—':Number(v).toFixed(d); }
+function growthDiff(a,b) {
+    if (a==null||b==null||a<=0||b<=0) return null;
+    var ra=Math.round(a*10)/10, rb=Math.round(b*10)/10;
+    return Math.round((rb-ra)*10)/10;
+}
+function gradeBand(v) {
+    if (v==null) return '';
+    if (v<=1.0) return 'K'; if (v<=2.0) return '1st'; if (v<=3.0) return '2nd';
+    if (v<=4.0) return '3rd'; if (v<=5.0) return '4th'; if (v<=6.0) return '5th';
+    return '6th+';
+}
+function scoreColor(v) {
+    if (v==null||v===0) return '#e5e5e5';
+    if (v>=5.0) return '#4ade80'; if (v>=4.0) return '#a3e635';
+    if (v>=3.0) return '#fbbf24'; if (v>=2.0) return '#fb923c';
+    return '#f87171';
+}
+function growthColors(d, timeframe) {
+    if (d==null) return { bg:'#f5f5f5', text:'#999', symbol:'–' };
+    var target=timeframe==='full'?1.0:0.5, low=target*0.33, high=target*0.67;
+    if (d<0)    return { bg:'#fca5a5', text:'#7f1d1d', symbol:'▼' };
+    if (d<low)  return { bg:'#fee2e2', text:'#dc2626', symbol:'●' };
+    if (d<high) return { bg:'#fef9c3', text:'#854d0e', symbol:'▲' };
+    return             { bg:'#bbf7d0', text:'#166534', symbol:'▲' };
+}
+function grpAvg(members, season, catIdx) {
+    var vals = members
+        .filter(function(s){ return s[season]&&!s[season].noWork; })
+        .map(function(s){
+            if (catIdx===-1) {
+                var sc=(s[season].scores||[]).filter(function(v){return v!=null&&v>0;});
+                return sc.length?sc.reduce(function(a,b){return a+b;},0)/sc.length:null;
+            }
+            return s[season].scores[catIdx];
+        }).filter(function(v){return v!=null&&v>0;});
+    return vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:null;
+}
+function seasonHasOccurred(members, season) {
+    return members.some(function(s){ return s[season]&&s[season].hasWritingSample; });
+}
+function avgGrowth(members, sA, sB, catIdx) {
+    var eligible=members.filter(function(s){
+        return s[sA]&&s[sA].hasWritingSample&&!s[sA].noWork&&s[sB]&&s[sB].hasWritingSample&&!s[sB].noWork;
+    });
+    if (!eligible.length) return null;
+    var diffs;
+    if (catIdx===-1) {
+        diffs=eligible.map(function(s){return growthDiff(s[sA].avg,s[sB].avg);}).filter(function(v){return v!=null;});
+    } else {
+        diffs=eligible.map(function(s){
+            var a=s[sA].scores[catIdx]||0, b=s[sB].scores[catIdx]||0;
+            return Math.round((Math.round(b*10)/10-Math.round(a*10)/10)*10)/10;
+        });
+    }
+    if (!diffs.length) return null;
+    return Math.round(diffs.reduce(function(a,b){return a+b;},0)/diffs.length*10)/10;
+}
+function uniqueSorted(arr) { return arr.filter(function(x,i,a){return x&&a.indexOf(x)===i;}).sort(); }
+function scoreChip(v) {
+    if (v==null) return '<span style="color:#ccc">—</span>';
+    var c=scoreColor(v);
+    return '<span class="wd-chip" style="background:'+c+'33;border:1px solid '+c+'66">'+Number(v).toFixed(1)+'</span>';
+}
+function diffBadge(a, b, timeframe, precomputed) {
+    var d=precomputed?b:growthDiff(a,b);
+    if (d==null) return '<span style="color:#ccc">—</span>';
+    var gc=growthColors(d, timeframe||'half');
+    var sign=d>0?'+':'';
+    return '<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+d.toFixed(1)+'</span>';
+}
+function seasonPill(season) {
+    var lbl=season.charAt(0).toUpperCase()+season.slice(1);
+    var icon={fall:'🍂',winter:'❄️',spring:'🌱'}[season]||'';
+    return '<span class="wd-pill wd-pill-'+season+'">'+icon+' '+lbl+'</span>';
+}
+function barHTML(v) {
+    return '<div class="wd-bar-wrap"><div class="wd-bar-fill" style="width:'+((v||0)/6*100)+'%;background:'+scoreColor(v)+'"></div></div>';
+}
+function sortRows(rows, col, dir, getter) {
+    return rows.slice().sort(function(a,b){
+        var av=getter(a,col), bv=getter(b,col);
+        var nullV=dir==='asc'?Infinity:-Infinity;
+        var an=av!=null?av:nullV, bn=bv!=null?bv:nullV;
+        if (typeof an==='string') return dir==='asc'?an.localeCompare(bn):bn.localeCompare(an);
+        return dir==='asc'?an-bn:bn-an;
+    });
+}
+function makeSortTh(label, key, stateKey, center) {
+    var s=sortState[stateKey], active=s.col===key;
+    var arrow=active&&s.dir==='asc'?'▲':'▼';
+    var cls=(active?'sort-active':'')+(center?' center':'');
+    return '<th class="'+cls.trim()+'" data-sort="'+key+'" data-state="'+stateKey+'">'+label+' <span style="opacity:'+(active?'1':'.3')+';font-size:.63rem">'+arrow+'</span></th>';
+}
+function attachSortListeners(tableId, stateKey, renderFn) {
+    var tbl=document.getElementById(tableId);
+    if (!tbl) return;
+    tbl.querySelectorAll('th[data-sort]').forEach(function(th){
+        th.addEventListener('click', function(){
+            var key=th.dataset.sort, s=sortState[stateKey];
+            if (s.col===key) s.dir=s.dir==='asc'?'desc':'asc';
+            else { s.col=key; s.dir='desc'; }
+            renderFn();
+        });
+    });
+}
+
+// ── Render: Class Overview ──
+function renderClassOverview() {
+    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
+    var filtered=teacherFilterOverview?APP.students.filter(function(s){return s.teacher===teacherFilterOverview;}):APP.students;
+    var hasFall=seasonHasOccurred(filtered,'fall'), hasWinter=seasonHasOccurred(filtered,'winter'), hasSpring=seasonHasOccurred(filtered,'spring');
+    var catData=CATEGORIES.map(function(label,ci){return{label:label,ci:ci,
+        fw:hasFall&&hasWinter?avgGrowth(filtered,'fall','winter',ci):null,
+        ws:hasWinter&&hasSpring?avgGrowth(filtered,'winter','spring',ci):null,
+        fs:hasFall&&hasSpring?avgGrowth(filtered,'fall','spring',ci):null};});
+    var overallFW=hasFall&&hasWinter?avgGrowth(filtered,'fall','winter',-1):null;
+    var overallWS=hasWinter&&hasSpring?avgGrowth(filtered,'winter','spring',-1):null;
+    var overallFS=hasFall&&hasSpring?avgGrowth(filtered,'fall','spring',-1):null;
+    var sortedCat=sortRows(catData,sortState.cat.col,sortState.cat.dir,function(r,c){return{label:r.label,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
+    var rosterData=filtered.map(function(s){return Object.assign({},s,{
+        fallAvg:s.fall?s.fall.avg:null,
+        winterAvg:s.winter&&s.winter.noWork?null:(s.winter?s.winter.avg:null),
+        springAvg:s.spring?s.spring.avg:null,
+        fw:s.winter&&s.winter.noWork?null:growthDiff(s.fall?s.fall.avg:null,s.winter?s.winter.avg:null),
+        ws:(s.winter&&s.winter.noWork)||!s.spring?null:growthDiff(s.winter?s.winter.avg:null,s.spring?s.spring.avg:null),
+        fs:!s.spring?null:growthDiff(s.fall?s.fall.avg:null,s.spring?s.spring.avg:null)});});
+    var sortedRoster=sortRows(rosterData,sortState.roster.col,sortState.roster.dir,function(r,c){return{name:r.name,al:r.al,teacher:r.teacher,goal:r.goal,fallAvg:r.fallAvg,winterAvg:r.winterAvg,springAvg:r.springAvg,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
+    function kpiGrowth(val,tf){var gc=growthColors(val,tf);return '<div class="wd-kpi-card" style="background:'+gc.bg+'"><div class="wd-kpi-label" style="color:'+gc.text+'">Avg F→W Growth</div><div class="wd-kpi-value" style="color:'+gc.text+'">'+(val!=null?gc.symbol+' '+(val>0?'+':'')+val.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of per-student diffs</div></div>';}
+    var gcFW=growthColors(overallFW,'half'),gcWS=growthColors(overallWS,'half'),gcFS=growthColors(overallFS,'full');
+    var html='<div class="wd-filter-bar">'
+        +'<span style="font-weight:800;font-size:.95rem">'+(teacherFilterOverview?teacherFilterOverview+"'s Students":"All Students")
+        +' <span style="font-size:.72rem;font-weight:400;color:#94a3b8">'+filtered.length+' students</span></span>'
+        +'<label>Writing Teacher</label>'
+        +'<select id="wd-sel-teacher-ov"><option value="">All Teachers</option>'
+        +teachers.map(function(t){return'<option value="'+t+'"'+(t===teacherFilterOverview?' selected':'')+'>'+t+'</option>';}).join('')
+        +'</select></div>'
+        +'<div class="wd-kpi-grid">'
+        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+filtered.length+'</div><div class="wd-kpi-sub">in view</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">Avg F→W Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">Avg W→S Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">Avg F→S Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'</div>'
+        +'<div class="wd-card"><div class="wd-section-title">Avg Growth by Category — click header to sort</div><div class="wd-tbl-wrap"><table id="wd-tbl-cat"><thead><tr>'
+        +makeSortTh('Category','label','cat')+makeSortTh('F→W','fw','cat',true)+makeSortTh('W→S','ws','cat',true)+makeSortTh('F→S','fs','cat',true)
+        +'</tr></thead><tbody>'
+        +'<tr style="background:#f8f6f2"><td><strong>⭐ Overall Avg</strong></td>'
+        +'<td class="center">'+diffBadge(0,overallFW,'half',true)+'</td>'
+        +'<td class="center">'+diffBadge(0,overallWS,'half',true)+'</td>'
+        +'<td class="center">'+diffBadge(0,overallFS,'full',true)+'</td></tr>'
+        +sortedCat.map(function(row,i){return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
+            +'<td>'+row.label+'</td>'
+            +'<td class="center">'+diffBadge(0,row.fw,'half',true)+'</td>'
+            +'<td class="center">'+diffBadge(0,row.ws,'half',true)+'</td>'
+            +'<td class="center">'+diffBadge(0,row.fs,'full',true)+'</td></tr>';}).join('')
+        +'</tbody></table></div></div>'
+        +'<div class="wd-card">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">'
+        +'<div class="wd-section-title" style="margin-bottom:0">All Students Snapshot</div>'
+        +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase">Growth</span>'
+        +'<div style="display:flex;border:1px solid #d1d1d6;border-radius:8px;overflow:hidden">'
+        +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setRosterGrowth(\''+p[0]+'\')" style="padding:3px 10px;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;background:'+(rosterGrowthCol===p[0]?'#1d1d1f':'transparent')+';color:'+(rosterGrowthCol===p[0]?'#fff':'#64748b')+'">'+p[1]+'</button>';}).join('')
+        +'</div></div></div>'
+        +'<div class="wd-tbl-wrap"><table id="wd-tbl-roster"><thead><tr>'
+        +makeSortTh('Student','name','roster')+makeSortTh('AL','al','roster')+makeSortTh('Teacher','teacher','roster')
+        +makeSortTh('Goal','goal','roster',true)+makeSortTh('Fall','fallAvg','roster',true)
+        +makeSortTh('Winter','winterAvg','roster',true)+makeSortTh('Spring','springAvg','roster',true)
+        +makeSortTh(rosterGrowthCol==='fw'?'F→W':rosterGrowthCol==='ws'?'W→S':'F→S',rosterGrowthCol==='fw'?'fw':rosterGrowthCol==='ws'?'ws':'fs','roster',true)
+        +'</tr></thead><tbody>'
+        +sortedRoster.map(function(s,i){
+            var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
+            var gc=rosterGrowthCol==='fw'&&s.winter&&s.winter.noWork?'—':diffBadge(0,gv,tf,true);
+            return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
+                +'<td><strong>'+s.name+'</strong></td>'
+                +'<td style="font-size:.76rem;color:#64748b">'+( s.al||'—')+'</td>'
+                +'<td style="font-size:.76rem;color:#64748b">'+(s.teacher||'<em style="color:#cbd5e1">unassigned</em>')+'</td>'
+                +'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>'
+                +'<td class="center">'+scoreChip(s.fallAvg)+'</td>'
+                +'<td class="center">'+(s.winter&&s.winter.noWork?'<span style="font-size:.7rem;color:#f87171;font-weight:700">NO WORK</span>':scoreChip(s.winterAvg))+'</td>'
+                +'<td class="center">'+scoreChip(s.springAvg)+'</td>'
+                +'<td class="center">'+gc+'</td></tr>';
+        }).join('')
+        +'</tbody></table></div></div>';
+    var el=document.getElementById('wd-view-class');
+    el.innerHTML=html;
+    var sel=document.getElementById('wd-sel-teacher-ov');
+    if (sel) sel.addEventListener('change',function(e){teacherFilterOverview=e.target.value;renderClassOverview();});
+    attachSortListeners('wd-tbl-cat','cat',renderClassOverview);
+    attachSortListeners('wd-tbl-roster','roster',renderClassOverview);
+}
+
+// ── Render: Individual Student ──
+function renderStudentView() {
+    var s=APP.students.find(function(x){return x.name===selectedStudent;})||APP.students[0];
+    var el=document.getElementById('wd-view-student');
+    var seasonScores=SEASONS.map(function(season){
+        var d=s[season],v=d?d.avg:null,lbl=season.charAt(0).toUpperCase()+season.slice(1);
+        return'<div style="text-align:center"><div style="font-size:.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.1em">'+lbl+'</div>'
+            +'<div style="font-size:1.4rem;font-weight:800;color:'+(v==null?'#4a5568':v>0?'#f8f6f2':'#f87171')+'">'+(d&&d.noWork?'—':fmtScore(v,1))+'</div>'
+            +(v!=null&&v>0?'<div style="font-size:.66rem;color:#94a3b8">'+gradeBand(v)+'</div>':'')+'</div>';
+    }).join('');
+    var gp={fw:{sA:'fall',sB:'winter',tf:'half',label:'Fall → Winter'},ws:{sA:'winter',sB:'spring',tf:'half',label:'Winter → Spring'},fs:{sA:'fall',sB:'spring',tf:'full',label:'Fall → Spring'}}[studentGrowthCol];
+    var dA=s[gp.sA],dB=s[gp.sB],pairOk=dA&&!dA.noWork&&dB&&!dB.noWork;
+    var growthChips=!pairOk?'':CATEGORIES.map(function(cat,ci){
+        var a=dA.scores[ci]||0,b=dB.scores[ci]||0;
+        var d=Math.round((Math.round(b*10)/10-Math.round(a*10)/10)*10)/10;
+        var gc=growthColors(d,gp.tf),sign=d>0?'+':'';
+        return'<div class="wd-growth-chip"><div class="gc-label">'+cat+'</div>'
+            +'<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+(d!==0?d.toFixed(1):'0.0')+'</span></div>';
+    }).join('');
+    var seasonCards=SEASONS.map(function(season){
+        var d=s[season],border=season==='fall'?'#fde68a':season==='winter'?'#bfdbfe':'#bbf7d0';
+        var body='';
+        if (!d) { body='<div style="color:#cbd5e1;font-size:.8rem;padding:8px 0;text-align:center">Not yet</div>'; }
+        else if (d.noWork) { body='<div style="color:#f87171;font-weight:700;font-size:.8rem;padding:8px 0">Did not produce work</div>'; }
+        else {
+            if (d.instructional) body+='<div style="color:#f59e0b;font-size:.72rem;margin-bottom:6px">⚠ Instructional score</div>';
+            body+='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><tbody>'
+                +CATEGORIES.map(function(cat,ci){return'<tr><td style="padding:4px 0;color:#64748b;border-bottom:1px solid #f1f5f9">'+cat+'</td><td style="text-align:right;border-bottom:1px solid #f1f5f9">'+scoreChip(d.scores[ci])+'</td></tr>';}).join('')
+                +(d.hw!=null?'<tr><td style="padding:4px 0;color:#94a3b8;font-size:.72rem">Handwriting (1–3)</td><td style="text-align:right;font-weight:600">'+d.hw+'</td></tr>':'')
+                +'</tbody></table>';
+        }
+        var avgDisp=d&&!d.noWork&&d.avg!=null&&d.avg>0?'<span style="font-size:1.1rem;font-weight:800">'+d.avg.toFixed(1)+' <span style="font-size:.72rem;color:#64748b;font-weight:500">'+gradeBand(d.avg)+'</span></span>':'<span style="color:#ccc;font-size:.82rem">No data</span>';
+        return'<div class="wd-season-card" style="border:2px solid '+border+'">'
+            +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+seasonPill(season)+avgDisp+'</div>'
+            +body+'</div>';
+    }).join('');
+    var growthToggle='<div style="display:flex;border:1px solid rgba(255,255,255,.2);border-radius:8px;overflow:hidden">'
+        +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'rgba(255,255,255,.2)':'transparent')+';color:'+(studentGrowthCol===p[0]?'#f8f6f2':'#64748b')+'">'+p[1]+'</button>';}).join('')+'</div>';
+    el.innerHTML='<div class="wd-filter-bar"><label>Student</label>'
+        +'<select id="wd-sel-student">'
+        +APP.students.slice().sort(function(a,b){
+            var ai=parseInt((a.al||'').replace(/\D/g,''))||999,bi=parseInt((b.al||'').replace(/\D/g,''))||999;
+            return ai!==bi?ai-bi:(a.name||'').localeCompare(b.name||'');
+        }).map(function(st){return'<option value="'+st.name+'"'+(st.name===selectedStudent?' selected':'')+'>'+st.name+' — '+st.al+(st.teacher?' · '+st.teacher:'')+'</option>';}).join('')
+        +'</select></div>'
+        +'<div class="wd-student-header">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
+        +'<div><h2>'+s.name+'</h2>'
+        +'<div style="color:#94a3b8;font-size:.8rem;margin-top:3px">'+(s.al?'Homeroom: <strong style="color:#FF8200">'+s.al+'</strong>  ':'')+' '+(s.teacher?'Writing Teacher: <strong style="color:#FF8200">'+s.teacher+'</strong>  ':'')+' EOY Goal: <strong style="color:#FF8200">'+(s.goal||'—')+'</strong> · '+gradeBand(s.goal)+' grade</div>'
+        +(s.note?'<div style="margin-top:4px;font-size:.73rem;color:#fbbf24;background:rgba(251,191,36,.15);padding:2px 9px;border-radius:5px;display:inline-block">⚠ '+s.note+'</div>':'')
+        +'</div><div style="display:flex;gap:12px">'+seasonScores+'</div></div>'
+        +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #2d3748">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
+        +'<div style="font-size:.66rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em">'+gp.label+' Growth by Category</div>'
+        +growthToggle+'</div>'
+        +(growthChips?'<div style="display:flex;gap:6px;flex-wrap:wrap">'+growthChips+'</div>':'<div style="color:#64748b;font-size:.78rem;padding:3px 0">No data for this season pair yet.</div>')
+        +'</div></div>'
+        +'<div class="wd-season-cards">'+seasonCards+'</div>';
+    var sel=document.getElementById('wd-sel-student');
+    if (sel) sel.addEventListener('change',function(e){selectedStudent=e.target.value;renderStudentView();});
+}
+
+// ── Render: Writing Groups ──
+function renderGroupsView() {
+    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
+    var unassigned=APP.students.filter(function(s){return !s.teacher;});
+    var groups=teachers.map(function(t){return{teacher:t,members:APP.students.filter(function(s){return s.teacher===t;})};});
+    if (unassigned.length) groups.push({teacher:null,members:unassigned});
+    var html='<div style="background:#1d1d1f;color:#fff;border-radius:10px;padding:12px 18px;margin-bottom:16px;font-size:.78rem">'
+        +'<div style="color:#94a3b8;margin-bottom:6px">Groups are derived from the <strong style="color:#FF8200">Writing Teacher</strong> column.</div>'
+        +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
+        +teachers.map(function(t){return'<span style="background:rgba(255,255,255,.1);padding:2px 9px;border-radius:10px;font-size:.76rem;font-weight:600">'+t+' · '+APP.students.filter(function(s){return s.teacher===t;}).length+' students</span>';}).join('')
+        +(unassigned.length?'<span style="background:rgba(248,113,113,.2);color:#fca5a5;padding:2px 9px;border-radius:10px;font-size:.76rem;font-weight:600">⚠ '+unassigned.length+' unassigned</span>':'')
+        +'</div></div>'
+        +groups.map(function(group){
+            var fv=grpAvg(group.members,'fall',-1),wv=grpAvg(group.members,'winter',-1),d=growthDiff(fv,wv);
+            var gc=growthColors(d,'half'),als=uniqueSorted(group.members.map(function(m){return m.al;}));
+            var catRows=CATEGORIES.map(function(cat,ci){
+                var cfv=grpAvg(group.members,'fall',ci),cwv=grpAvg(group.members,'winter',ci);
+                return'<tr style="background:'+(ci%2?'#fafafa':'#fff')+'">'
+                    +'<td>'+cat+'</td><td class="center">'+scoreChip(cfv)+'</td><td class="center">'+scoreChip(cwv)+'</td><td class="center">'+diffBadge(cfv,cwv,'half')+'</td></tr>';
+            }).join('');
+            return'<div class="wd-group-card">'
+                +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">'
+                +'<div><div style="font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8">Writing Group</div>'
+                +'<h3 style="font-size:1rem;font-weight:800;color:'+(group.teacher?'#1d1d1f':'#94a3b8')+';margin:3px 0 0">'+(group.teacher||'<em>Unassigned</em>')+'</h3>'
+                +'<div style="font-size:.73rem;color:#94a3b8;margin-top:2px">'+group.members.length+' student'+( group.members.length!==1?'s':'')+' · '+group.members.map(function(m){return m.name;}).join(', ')+'</div>'
+                +'<div style="font-size:.73rem;color:#94a3b8">ALs: '+(als.join(', ')||'—')+'</div></div>'
+                +'<div style="display:flex;gap:12px;align-items:center">'
+                +(fv!=null?'<div style="text-align:center">'+seasonPill('fall')+'<div style="font-size:1.2rem;font-weight:800">'+fmtScore(fv)+'</div><div style="font-size:.66rem;color:#94a3b8">'+gradeBand(fv)+'</div></div>':'')
+                +(wv!=null?'<div style="text-align:center">'+seasonPill('winter')+'<div style="font-size:1.2rem;font-weight:800">'+fmtScore(wv)+'</div><div style="font-size:.66rem;color:#94a3b8">'+gradeBand(wv)+'</div></div>':'')
+                +(d!=null?'<div style="text-align:center"><div style="font-size:.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">F→W</div><div style="padding:3px 10px;border-radius:10px;font-size:1rem;font-weight:800;background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+(d>0?'+':'')+d.toFixed(2)+'</div></div>':'')
+                +'</div></div>'
+                +'<table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr>'
+                +'<th style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Category</th>'
+                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">'+seasonPill('fall')+'</th>'
+                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">'+seasonPill('winter')+'</th>'
+                +'<th class="center" style="padding:6px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">F→W Growth</th>'
+                +'</tr></thead><tbody>'+catRows+'</tbody></table></div>';
+        }).join('');
+    document.getElementById('wd-view-groups').innerHTML=html;
+}
+
+// ── Render: Category Deep Dive ──
+function renderCategoryView() {
+    var teachers=uniqueSorted(APP.students.map(function(s){return s.teacher;}));
+    var filtered=teacherFilterCat?APP.students.filter(function(s){return s.teacher===teacherFilterCat;}):APP.students;
+    var rows=filtered.map(function(s){return{name:s.name,al:s.al||'—',teacher:s.teacher||'—',
+        fallScore:s.fall?s.fall.scores[catDiveIdx]:null,
+        winterScore:s.winter&&s.winter.noWork?null:(s.winter?s.winter.scores[catDiveIdx]:null),
+        growth:s.winter&&s.winter.noWork?null:growthDiff(s.fall?s.fall.scores[catDiveIdx]:null,s.winter?s.winter.scores[catDiveIdx]:null),
+        noWork:s.winter&&s.winter.noWork||false};});
+    var sorted=sortRows(rows,sortState.catDive.col,sortState.catDive.dir,function(r,c){return{name:r.name,al:r.al,teacher:r.teacher,fallScore:r.fallScore,winterScore:r.winterScore,growth:r.growth}[c];});
+    var clsFall=safeAvg(rows.map(function(r){return r.fallScore;})),clsWin=safeAvg(rows.map(function(r){return r.winterScore;})),clsGrow=growthDiff(clsFall,clsWin);
+    var gc=growthColors(clsGrow,'half');
+    var html='<div class="wd-filter-bar">'
+        +'<label>Category</label><select id="wd-sel-cat">'+CATEGORIES.map(function(c,i){return'<option value="'+i+'"'+(i===catDiveIdx?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'
+        +'<label>Teacher</label><select id="wd-sel-tcat"><option value="">All Teachers</option>'+teachers.map(function(t){return'<option value="'+t+'"'+(t===teacherFilterCat?' selected':'')+'>'+t+'</option>';}).join('')+'</select>'
+        +'</div>'
+        +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
+        +'<div class="wd-cat-kpi"><div class="ck-label">Fall Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
+        +'<div class="wd-cat-kpi"><div class="ck-label">Winter Avg</div><div class="ck-value">'+fmtScore(clsWin)+'</div></div>'
+        +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">F→W Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'')
+        +'<div class="wd-cat-kpi"><div class="ck-label">Students</div><div class="ck-value">'+rows.length+'</div></div>'
+        +'</div>'
+        +'<div class="wd-card"><div class="wd-section-title">'+CATEGORIES[catDiveIdx]+' — '+(teacherFilterCat||'All Teachers')+' · click header to sort</div>'
+        +'<div class="wd-tbl-wrap"><table id="wd-tbl-catdive"><thead><tr>'
+        +makeSortTh('Student','name','catDive')+makeSortTh('AL','al','catDive')+makeSortTh('Teacher','teacher','catDive')
+        +makeSortTh('Fall','fallScore','catDive',true)+'<th>Fall bar</th>'
+        +makeSortTh('Winter','winterScore','catDive',true)+'<th>Winter bar</th>'
+        +makeSortTh('F→W','growth','catDive',true)
+        +'</tr></thead><tbody>'
+        +sorted.map(function(r,i){return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
+            +'<td><strong>'+r.name+'</strong></td>'
+            +'<td style="font-size:.76rem;color:#64748b">'+r.al+'</td>'
+            +'<td style="font-size:.76rem;color:#64748b">'+r.teacher+'</td>'
+            +'<td class="center">'+scoreChip(r.fallScore)+'</td>'
+            +'<td style="min-width:90px">'+barHTML(r.fallScore)+'</td>'
+            +'<td class="center">'+(r.noWork?'<span style="font-size:.7rem;color:#f87171;font-weight:700">NO WORK</span>':scoreChip(r.winterScore))+'</td>'
+            +'<td style="min-width:90px">'+barHTML(r.winterScore)+'</td>'
+            +'<td class="center">'+diffBadge(r.fallScore,r.winterScore,'half')+'</td></tr>';}).join('')
+        +'</tbody></table></div></div>';
+    var el=document.getElementById('wd-view-category');
+    el.innerHTML=html;
+    var sc=document.getElementById('wd-sel-cat');
+    if (sc) sc.addEventListener('change',function(e){catDiveIdx=+e.target.value;renderCategoryView();});
+    var st=document.getElementById('wd-sel-tcat');
+    if (st) st.addEventListener('change',function(e){teacherFilterCat=e.target.value;renderCategoryView();});
+    attachSortListeners('wd-tbl-catdive','catDive',renderCategoryView);
+}
+
+// ── Navigation ──
+function switchView(view) {
+    currentView=view;
+    document.querySelectorAll('.wd-nav-btn').forEach(function(b){b.classList.toggle('active',b.dataset.view===view);});
+    ['class','student','groups','category'].forEach(function(v){
+        var el=document.getElementById('wd-view-'+v);
+        if (el) el.style.display=view===v?'block':'none';
+    });
+    renderCurrentView();
+}
+function renderCurrentView() {
+    if (!APP.students.length) return;
+    if (currentView==='class')    renderClassOverview();
+    if (currentView==='student')  renderStudentView();
+    if (currentView==='groups')   renderGroupsView();
+    if (currentView==='category') renderCategoryView();
+}
+
+// ── Data loading ──
+function loadData() {
+    if (initialized) { renderCurrentView(); return; }
+    if (DATA_URL) {
+        fetch(DATA_URL).then(function(r){return r.json();}).then(function(data){
+            APP.students=data.students||[];
+            APP.lastUpdated=data.lastUpdated||'';
+            if (APP.lastUpdated) {
+                var lu=document.getElementById('wd-last-updated');
+                if (lu) lu.textContent='Updated: '+new Date(APP.lastUpdated).toLocaleString();
+            }
+            onReady();
+        }).catch(function(e){
+            var el=document.getElementById('wd-loading');
+            if (el) el.innerHTML='<div style="color:#f87171;font-size:.85rem">Error loading data: '+e.message+'</div>';
+        });
+    } else {
+        // Use demo data
+        APP.students=DEMO_STUDENTS;
+        onReady(true);
+    }
+}
+function onReady(isDemo) {
+    initialized=true;
+    selectedStudent=APP.students[0]?APP.students[0].name:'';
+    document.getElementById('wd-loading').style.display='none';
+    var main=document.getElementById('wd-main');
+    if (main) main.style.display='block';
+    if (isDemo) {
+        var banner=document.createElement('div');
+        banner.style.cssText='background:#fff7f0;border:1px solid #ffcf99;border-radius:8px;padding:7px 14px;margin-bottom:14px;font-size:.75rem;color:#3a3a3c;';
+        banner.innerHTML='⚠ Showing <strong>demo data</strong>. Set <code>WD.DATA_URL</code> to your Google Apps Script endpoint to load real data.';
+        main.insertBefore(banner,main.firstChild);
+    }
+    renderCurrentView();
+}
+
+// ── Public API ──
+function init() { loadData(); }
+function setRosterGrowth(col) { rosterGrowthCol=col; renderClassOverview(); }
+function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
+function setDataUrl(url) { DATA_URL=url; initialized=false; }
+
+return { init:init, switchView:switchView, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth, setDataUrl:setDataUrl };
+})();
 
 </script>
 
