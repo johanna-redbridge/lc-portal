@@ -1082,6 +1082,7 @@
         <div class="data-subtab-nav">
             <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
             <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
+            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Comp. BM</button>
             <button class="data-subtab-btn" data-subtab="map-math" onclick="switchDataSubtab('map-math')">MAP Math</button>
             <button class="data-subtab-btn" data-subtab="map-ela" onclick="switchDataSubtab('map-ela')">MAP ELA</button>
         </div>
@@ -1132,6 +1133,14 @@
                 <span style="font-size:0.71rem;color:#86868b;">Progress bar: BOY level → +1.0 target &nbsp;|&nbsp; dot = current level</span>
             </div>
             <div id="fp-content"></div>
+        </div>
+
+        <!-- Computation Benchmark sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
+            <div id="comp-filters" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
+            </div>
+            <div id="comp-content"></div>
         </div>
 
         <!-- MAP Math sub-tab -->
@@ -6506,6 +6515,7 @@ function switchDataSubtab(name) {
     });
     if (name === 'core')     renderCore();
     if (name === 'fp')       renderFP();
+    if (name === 'comp')     renderComp();
     if (name === 'map-math') renderMapMath();
     if (name === 'map-ela')  renderMapEla();
 }
@@ -7295,6 +7305,165 @@ function renderMapEla() {
     if (mapData) { renderMapElaTable(); return; }
     el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
     loadMapData(renderMapElaTable);
+}
+
+/* =========================================================
+   Computation Benchmark
+   ========================================================= */
+var COMP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=1059724266&single=true&output=csv';
+var compData       = null;
+var compGroupFilter = 'all';
+
+function parseCompCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 3) return null;
+
+    // Row 0: student names (col E = index 4+)
+    // Row 1: student groups (col E = index 4+)
+    // Row 2+: question data
+    var nameRow  = rows[0];
+    var groupRow = rows[1];
+
+    var students = [];
+    for (var j = 4; j < nameRow.length; j++) {
+        var n = (nameRow[j] || '').trim();
+        if (!n) continue;
+        students.push({ name: n, group: (groupRow[j] || '').trim(), col: j });
+    }
+
+    var questions = [];
+    for (var i = 2; i < rows.length; i++) {
+        var row = rows[i];
+        var gle = (row[0] || '').trim();
+        var q   = (row[1] || '').trim();
+        var std = (row[2] || '').trim();
+        if (!q && !std && !gle) continue;
+
+        // Column D: percentage — may be "75%", "0.75", or "75"
+        var pctRaw = (row[3] || '').trim().replace('%', '');
+        var pct = 0;
+        if (pctRaw !== '') {
+            var p = parseFloat(pctRaw);
+            if (!isNaN(p)) pct = p > 1 ? p : p * 100;
+        }
+
+        var mastery = {};
+        students.forEach(function(s) { mastery[s.name] = !!(row[s.col] || '').trim(); });
+
+        questions.push({ gle: gle, q: q, std: std, pct: pct, mastery: mastery });
+    }
+
+    return { students: students, questions: questions };
+}
+
+function setCompGroup(group) {
+    compGroupFilter = group;
+    document.querySelectorAll('.comp-group-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.group === group);
+    });
+    renderCompTable();
+}
+
+function renderCompFilters() {
+    var el = document.getElementById('comp-filters');
+    if (!el || !compData) return;
+
+    var groups = ['all'];
+    compData.students.forEach(function(s) {
+        if (s.group && groups.indexOf(s.group) < 0) groups.push(s.group);
+    });
+
+    var html = '<div class="toggle-group">';
+    groups.forEach(function(g) {
+        var lbl = g === 'all' ? 'All' : g;
+        var active = g === compGroupFilter ? ' active' : '';
+        html += '<button class="toggle-btn comp-group-btn' + active + '" data-group="' + g.replace(/"/g,'&quot;') + '" onclick="setCompGroup(\'' + g.replace(/'/g,"\\'") + '\')">' + lbl.replace(/</g,'&lt;') + '</button>';
+    });
+    html += '</div>';
+    html += '<button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>';
+    el.innerHTML = html;
+}
+
+function renderCompTable() {
+    var el = document.getElementById('comp-content');
+    if (!el || !compData) return;
+
+    var students = compGroupFilter === 'all'
+        ? compData.students
+        : compData.students.filter(function(s) { return s.group === compGroupFilter; });
+
+    if (!students.length) {
+        el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>';
+        return;
+    }
+
+    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+        + '<table class="core-table" style="width:auto;min-width:100%;">'
+        + '<thead><tr>'
+        + '<th style="min-width:48px;text-align:center;">GLE</th>'
+        + '<th style="min-width:36px;text-align:center;">Q</th>'
+        + '<th style="text-align:left;min-width:220px;white-space:normal;">Common Core Standard</th>'
+        + '<th style="min-width:90px;">% Mastered</th>';
+
+    students.forEach(function(s) {
+        html += '<th style="font-size:0.63rem;white-space:nowrap;max-width:68px;overflow:hidden;text-overflow:ellipsis;text-align:center;" title="' + s.name.replace(/"/g,'&quot;') + '">'
+            + s.name.replace(/</g,'&lt;') + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    var lastGle = null;
+    compData.questions.forEach(function(qrow) {
+        if (qrow.gle && qrow.gle !== lastGle) {
+            lastGle = qrow.gle;
+            html += '<tr><td colspan="' + (4 + students.length) + '" style="background:#f5f5f7;font-weight:600;font-size:0.72rem;padding:5px 10px;color:#1d1d1f;border-top:2px solid #e8e8ed;">Grade Level ' + qrow.gle.replace(/</g,'&lt;') + '</td></tr>';
+        }
+
+        html += '<tr>'
+            + '<td style="text-align:center;font-size:0.75rem;">' + qrow.gle.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;font-size:0.75rem;">' + qrow.q.replace(/</g,'&lt;') + '</td>'
+            + '<td style="font-size:0.72rem;white-space:normal;">' + qrow.std.replace(/</g,'&lt;') + '</td>';
+
+        // % mastered bar
+        var barColor = pctColor(qrow.pct);
+        var barW = Math.min(Math.max(qrow.pct, 0), 100);
+        html += '<td style="padding:3px 6px;">'
+            + '<div style="width:58px;height:7px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
+            + (barW > 0 ? '<div style="width:' + barW + '%;height:100%;background:' + barColor + ';"></div>' : '')
+            + '</div>'
+            + '<span style="font-size:0.63rem;color:#1d1d1f;">' + Math.round(qrow.pct) + '%</span>'
+            + '</td>';
+
+        students.forEach(function(s) {
+            if (qrow.mastery[s.name]) {
+                html += '<td style="text-align:center;background:#186a3b;color:#fff;font-size:0.85rem;">✓</td>';
+            } else {
+                html += '<td style="text-align:center;color:#c7c7cc;font-size:0.7rem;">&ndash;</td>';
+            }
+        });
+
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+}
+
+function renderComp() {
+    var filtersEl = document.getElementById('comp-filters');
+    var contentEl = document.getElementById('comp-content');
+    if (!contentEl) return;
+    if (compData) { renderCompFilters(); renderCompTable(); return; }
+    if (filtersEl) filtersEl.innerHTML = '';
+    contentEl.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
+    fetch(COMP_CSV_URL).then(function(r) { return r.text(); }).then(function(text) {
+        compData = parseCompCsv(text);
+        renderCompFilters();
+        renderCompTable();
+    }).catch(function(e) {
+        console.error('Comp BM fetch error', e);
+        var el2 = document.getElementById('comp-content');
+        if (el2) el2.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load data.</p>';
+    });
 }
 
 </script>
