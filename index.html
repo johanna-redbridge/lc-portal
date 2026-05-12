@@ -1081,6 +1081,7 @@
     <div class="view-container" style="padding:0;">
         <div class="data-subtab-nav">
             <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
+            <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
         </div>
         <div class="data-subtab-panel" id="data-subtab-core">
             <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
@@ -1104,6 +1105,21 @@
                 </div>
             </div>
             <div id="core-content"></div>
+        </div>
+
+        <!-- F&P sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-fp" style="display:none;">
+            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
+                    <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
+                    <button class="toggle-btn fp-al-btn" data-al="2" onclick="setFpAL('2')">AL2</button>
+                    <button class="toggle-btn fp-al-btn" data-al="3" onclick="setFpAL('3')">AL3</button>
+                    <button class="toggle-btn fp-al-btn" data-al="4" onclick="setFpAL('4')">AL4</button>
+                </div>
+                <span style="margin-left:auto;font-size:0.71rem;color:#86868b;">Progress bar: BOY level → +1.0 target &nbsp;|&nbsp; dot = current level</span>
+            </div>
+            <div id="fp-content"></div>
         </div>
     </div>
 </div>
@@ -6450,6 +6466,7 @@ function switchDataSubtab(name) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
     if (name === 'core') renderCore();
+    if (name === 'fp')   renderFP();
 }
 
 // ───────── CORE ASSESSMENT ─────────
@@ -6667,6 +6684,249 @@ function renderCore() {
     });
     html += '</tbody></table></div>';
     el.innerHTML = html;
+}
+
+/* =========================================================
+   F&P Assessment
+   ========================================================= */
+var FP_CSV_URLS = {
+    students: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=791339882&single=true&output=csv',
+    scoring:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1704150323&single=true&output=csv'
+};
+
+// Fallback ordered level list (used only if reference sheet not loaded)
+var FP_LEVELS_FALLBACK = [
+    'pre0','pre1','pre2','pre3',
+    'A','B','C','D','E','F','G','H','I','J','K','L','M',
+    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+    'AA','BB','CC','DD','EE','FF','GG','HH','II','JJ','KK','LL','MM',
+    'NN','OO','PP','QQ','RR','SS','TT','UU','VV','WW','XX','YY','ZZ'
+];
+// fpLevelScoreMap: level (lowercase) → numeric score; populated from reference sheet
+var fpLevelScoreMap = {};
+FP_LEVELS_FALLBACK.forEach(function(lv, i) { fpLevelScoreMap[lv.toLowerCase()] = i * 0.1; });
+
+function fpScore(level) {
+    if (!level) return null;
+    var s = level.trim().toLowerCase().replace(/^pre-/, 'pre').replace(/^pre /, 'pre');
+    return fpLevelScoreMap.hasOwnProperty(s) ? fpLevelScoreMap[s] : null;
+}
+
+function fpDisplayLevel(level) {
+    if (!level) return '';
+    var s = level.trim();
+    if (/^pre/i.test(s)) return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    return s.toUpperCase();
+}
+
+// Returns the level label whose score is at or above boyScore + 1.0
+function fpTargetLevel(boyLevel) {
+    var boyS = fpScore(boyLevel);
+    if (boyS === null) return null;
+    var targetS = boyS + 1.0;
+    var sorted = Object.keys(fpLevelScoreMap).sort(function(a,b){ return fpLevelScoreMap[a] - fpLevelScoreMap[b]; });
+    for (var i = 0; i < sorted.length; i++) {
+        if (fpLevelScoreMap[sorted[i]] >= targetS - 0.0001) return sorted[i].toUpperCase();
+    }
+    return sorted[sorted.length - 1].toUpperCase();
+}
+
+// parseCSVFull: handles multi-line quoted fields correctly
+function parseCSVFull(text) {
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuote = false;
+    var i = 0;
+    while (i < text.length) {
+        var ch = text[i];
+        if (inQuote) {
+            if (ch === '"') {
+                if (i + 1 < text.length && text[i+1] === '"') {
+                    field += '"'; i += 2;
+                } else {
+                    inQuote = false; i++;
+                }
+            } else {
+                field += ch; i++;
+            }
+        } else {
+            if (ch === '"') {
+                inQuote = true; i++;
+            } else if (ch === ',') {
+                row.push(field); field = ''; i++;
+            } else if (ch === '\r' && i+1 < text.length && text[i+1] === '\n') {
+                row.push(field); rows.push(row); row = []; field = ''; i += 2;
+            } else if (ch === '\n' || ch === '\r') {
+                row.push(field); rows.push(row); row = []; field = ''; i++;
+            } else {
+                field += ch; i++;
+            }
+        }
+    }
+    if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+    return rows;
+}
+
+// Parse scoring reference sheet: col F (idx 5) = level, col G (idx 6) = numeric score
+function parseFpScoringCsv(text) {
+    var rows = parseCSVFull(text);
+    var map = {};
+    rows.forEach(function(row) {
+        var lv = (row[5] || '').trim().toLowerCase();
+        var sc = parseFloat((row[6] || '').trim());
+        if (lv && !isNaN(sc)) map[lv] = sc;
+    });
+    return map;
+}
+
+// Parse student data sheet — fixed columns per user specification:
+// A(0):name, B(1):AL, C(2):GLE, D(3):reading group, E(4):BOY, F(5):BOY notes,
+// G(6):MOY, H(7):MOY notes, I(8):EOY, J(9):EOY notes
+function parseFpStudentCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 2) return [];
+    var students = [];
+    for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        var name = (row[0] || '').trim();
+        if (!name) continue;
+        var alRaw = (row[1] || '').trim();
+        var alNum = alRaw.replace(/[^0-9]/g, '');
+        students.push({
+            name:  name,
+            al:    alNum || '1',
+            gle:   (row[2] || '').trim(),
+            group: (row[3] || '').trim(),
+            boy:   (row[4] || '').trim(),
+            noteB: (row[5] || '').trim(),
+            moy:   (row[6] || '').trim(),
+            noteM: (row[7] || '').trim(),
+            eoy:   (row[8] || '').trim(),
+            noteE: (row[9] || '').trim()
+        });
+    }
+    return students;
+}
+
+var fpStudents = null;
+var fpScoringLoaded = false;
+var fpALFilter = 'all';
+var fpExpanded = {};
+
+function loadFpData(cb) {
+    var done = 0;
+    var total = (!fpStudents ? 1 : 0) + (!fpScoringLoaded ? 1 : 0);
+    if (total === 0) { cb(); return; }
+
+    function onDone() { done++; if (done === total) cb(); }
+
+    if (!fpStudents) {
+        fetch(FP_CSV_URLS.students).then(function(r){ return r.text(); }).then(function(text) {
+            fpStudents = parseFpStudentCsv(text);
+            onDone();
+        }).catch(function(e) {
+            console.error('F&P students fetch error', e);
+            fpStudents = [];
+            onDone();
+        });
+    }
+    if (!fpScoringLoaded) {
+        fetch(FP_CSV_URLS.scoring).then(function(r){ return r.text(); }).then(function(text) {
+            var map = parseFpScoringCsv(text);
+            if (Object.keys(map).length > 0) fpLevelScoreMap = map;
+            fpScoringLoaded = true;
+            onDone();
+        }).catch(function(e) {
+            console.error('F&P scoring fetch error', e);
+            fpScoringLoaded = true;
+            onDone();
+        });
+    }
+}
+
+function setFpAL(al) {
+    fpALFilter = al;
+    document.querySelectorAll('.fp-al-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.al === al);
+    });
+    renderFPTable();
+}
+
+function toggleFpRow(idx) {
+    fpExpanded[idx] = !fpExpanded[idx];
+    renderFPTable();
+}
+
+function fpProgressBar(student) {
+    var boyLv = student.boy;
+    var curLv = student.eoy || student.moy || student.boy;
+    var boyS = fpScore(boyLv);
+    var curS = fpScore(curLv);
+    if (boyS === null) return '<span style="color:#aeaeb2;font-size:0.7rem;">No BOY data</span>';
+    var pct = Math.max(0, Math.min(100, Math.round((curS - boyS) / 1.0 * 100)));
+    var barColor = pct >= 100 ? '#34c759' : pct >= 70 ? '#FF8200' : pct >= 40 ? '#ffcc00' : '#ff3b30';
+    var targetLv = fpTargetLevel(boyLv) || '';
+    return '<div style="display:flex;align-items:center;gap:6px;min-width:160px;">'
+        + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + barColor + ';border-radius:4px;transition:width 0.3s;"></div>'
+        + '</div>'
+        + '<span style="font-size:0.7rem;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
+        + '<span style="font-size:0.68rem;color:#aeaeb2;white-space:nowrap;">target&nbsp;' + fpDisplayLevel(targetLv) + '</span>'
+        + '</div>';
+}
+
+function renderFPTable() {
+    var el = document.getElementById('fp-content');
+    if (!el) return;
+    var all = (fpStudents || []).slice();
+    if (fpALFilter !== 'all') all = all.filter(function(s){ return s.al === fpALFilter; });
+    if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+        + '<table class="core-table" style="width:100%;">'
+        + '<thead><tr>'
+        + '<th class="core-name-col">Student</th>'
+        + '<th>AL</th>'
+        + '<th>BOY</th>'
+        + '<th>MOY</th>'
+        + '<th>EOY</th>'
+        + '<th style="min-width:220px;">Progress toward +1.0 growth</th>'
+        + '<th></th>'
+        + '</tr></thead><tbody>';
+
+    all.forEach(function(s, idx) {
+        var hasNotes = (s.noteB || s.noteM || s.noteE);
+        var expanded = fpExpanded[idx];
+        html += '<tr>'
+            + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;">AL' + (s.al||'') + '</td>'
+            + '<td style="text-align:center;font-weight:600;">' + fpDisplayLevel(s.boy) + '</td>'
+            + '<td style="text-align:center;">' + fpDisplayLevel(s.moy) + '</td>'
+            + '<td style="text-align:center;">' + fpDisplayLevel(s.eoy) + '</td>'
+            + '<td>' + fpProgressBar(s) + '</td>'
+            + '<td style="text-align:center;">'
+            + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
+                + (expanded ? '&#9650;' : '&#9660;') + '&nbsp;notes</button>' : '')
+            + '</td>'
+            + '</tr>';
+        if (expanded && hasNotes) {
+            html += '<tr><td colspan="7" style="background:#f5f5f7;padding:0.5rem 1rem 0.5rem 2rem;font-size:0.75rem;color:#3a3a3c;white-space:pre-wrap;">';
+            if (s.noteB) html += '<strong>BOY:</strong> ' + s.noteB.replace(/</g,'&lt;') + '<br>';
+            if (s.noteM) html += '<strong>MOY:</strong> ' + s.noteM.replace(/</g,'&lt;') + '<br>';
+            if (s.noteE) html += '<strong>EOY:</strong> ' + s.noteE.replace(/</g,'&lt;');
+            html += '</td></tr>';
+        }
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+}
+
+function renderFP() {
+    var el = document.getElementById('fp-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading F&amp;P data…</p>';
+    loadFpData(function() { renderFPTable(); });
 }
 
 </script>
