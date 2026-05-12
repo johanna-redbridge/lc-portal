@@ -6871,8 +6871,10 @@ function fpProgressBar(student) {
     var boyS = fpScore(boyLv);
     var curS = fpScore(curLv);
     if (boyS === null) return '<span style="color:#aeaeb2;font-size:0.7rem;">No BOY data</span>';
-    var pct = Math.max(0, Math.min(100, Math.round((curS - boyS) / 1.0 * 100)));
-    var barColor = pct >= 66 ? '#34c759' : pct >= 50 ? '#a8d5a2' : pct >= 32 ? '#ffcc00' : pct >= 20 ? '#FF8200' : '#ff3b30';
+    var curLvNorm = (curLv || '').trim().toLowerCase();
+    var atMax = (curLvNorm === 'z' || curLvNorm === 'zz');
+    var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round((curS - boyS) / 1.0 * 100)));
+    var barColor = atMax ? '#34c759' : pct >= 66 ? '#34c759' : pct >= 50 ? '#a8d5a2' : pct >= 32 ? '#ffcc00' : pct >= 20 ? '#FF8200' : '#ff3b30';
     var targetLv = fpTargetLevel(boyLv) || '';
     return '<div style="display:flex;align-items:center;gap:6px;min-width:160px;">'
         + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
