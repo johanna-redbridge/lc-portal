@@ -1147,6 +1147,7 @@
             <button class="data-subtab-btn active" data-subtab="reading" onclick="switchDataSubtab('reading')">Reading Dashboard</button>
             <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
+            <button class="data-subtab-btn" data-subtab="xref" onclick="switchDataSubtab('xref')">Cross Reference</button>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -1250,6 +1251,39 @@
                 </div>
                 <div id="map-math-content"></div>
             </div>
+        </div>
+
+        <!-- ── Cross Reference sub-tab ── -->
+        <div class="data-subtab-panel" id="data-subtab-xref" style="display:none;">
+            <!-- filter bar -->
+            <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn xref-view-btn active" data-view="student" onclick="xrefSetView('student')">Student View</button>
+                    <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
+                    <button class="toggle-btn xref-view-btn" data-view="standards" onclick="xrefSetView('standards')">By Standard</button>
+                </div>
+                <select id="xref-student-sel" onchange="xrefSetStudent(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;max-width:180px;">
+                    <option value="">— Select Student —</option>
+                </select>
+                <select id="xref-area-sel" onchange="xrefSetArea(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;">
+                    <option value="all">All Content Areas</option>
+                    <option value="Computation">Computation</option>
+                    <option value="Reading">Reading</option>
+                    <option value="Writing">Writing</option>
+                    <option value="CTWS">CTWS</option>
+                </select>
+                <select id="xref-grade-sel" onchange="xrefSetGrade(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;">
+                    <option value="all">All Grades</option>
+                    <option value="K">Kindergarten</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6">Grade 6+</option>
+                </select>
+            </div>
+            <div id="xref-content" style="padding:0;"></div>
         </div>
 
         <!-- Writing Dashboard sub-tab -->
@@ -6729,6 +6763,415 @@ function switchDataSubtab(name) {
     if (name === 'reading') renderReadingSubtab();
     if (name === 'comp')    renderMathSubtab();
     if (name === 'writing') WD.init();
+    if (name === 'xref')    renderXref();
+}
+
+// ───────── CROSS REFERENCE ─────────
+
+var XREF_CCSC_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAoTvp49u0EMHiy4gToLi3XCRTOWS7TLt8FHGqD2WZWYGWPyKG-Ra0sGvOiDTKEXEks1-hQwRfAsAB/pub?gid=0&single=true&output=csv';
+var XREF_LC_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhFWSOucxgvjzupSJqYTg8sJ3bRuyjT00rti6sSGIb_htQfLqjocLAIML0JBY9Mje8M_sHzoAKlO2i/pub?gid=995760857&single=true&output=csv';
+
+var xrefCCSCRows  = null;  // [{code,text,credit,link,area,type,stage}]
+var xrefStudents  = null;  // {name->{al,gle,earned,credits:{normName->status}}}
+var xrefStudList  = [];
+var xrefView      = 'student';
+var xrefStudent   = '';
+var xrefAreaFilt  = 'all';
+var xrefGradeFilt = 'all';
+
+function xrefNorm(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim(); }
+
+function xrefGradeNum(code){
+    if(!code) return -1;
+    var m = code.match(/^(\d+)\./);
+    if(m) return parseInt(m[1]);
+    if(code.startsWith('K.') || code.startsWith('RF.K') || code.startsWith('L.K') || code.startsWith('W.K') || code.startsWith('SL.K')) return 0;
+    m = code.match(/\.(K)\./);
+    if(m) return 0;
+    m = code.match(/^[A-Z]+\.(\d+)\./);
+    if(m) return parseInt(m[1]);
+    return -1;
+}
+
+function xrefGleNum(gle){
+    if(!gle) return -1;
+    var s = (gle+'').trim().toLowerCase();
+    if(s==='k') return 0;
+    var n = parseInt(s);
+    return isNaN(n) ? -1 : n;
+}
+
+function xrefParseCCSC(text){
+    var rows = parseCSVFull(text);
+    var out = [];
+    for(var i=1;i<rows.length;i++){
+        var r = rows[i];
+        if(!r[0]) continue;
+        out.push({code:r[0]||'', text:r[1]||'', credit:r[2]||'', link:r[3]||'', area:r[4]||'', type:r[5]||'', stage:r[6]||''});
+    }
+    return out;
+}
+
+function xrefParseLC(text){
+    var rows = parseCSVFull(text);
+    if(!rows.length) return {byName:{}, names:[]};
+    var hdrs = rows[0];
+    var byName = {}, names = [];
+    for(var i=1;i<rows.length;i++){
+        var r = rows[i];
+        if(!r[0]) continue;
+        var name = r[0].trim();
+        var credits = {};
+        for(var j=5;j<hdrs.length;j++){
+            var cn = hdrs[j].trim();
+            if(!cn) continue;
+            credits[xrefNorm(cn)] = (r[j]||'').trim().toLowerCase();
+        }
+        byName[name] = {al:r[1]||'', gle:r[2]||'', earned:r[3]||'', att:r[4]||'', credits:credits, rawName:name};
+        names.push(name);
+    }
+    names.sort();
+    return {byName:byName, names:names};
+}
+
+function xrefLoadData(cb){
+    var pending = 2;
+    function done(){ if(--pending===0) cb(); }
+    if(xrefCCSCRows){ done(); } else {
+        fetch(XREF_CCSC_URL).then(function(r){return r.text();}).then(function(t){
+            xrefCCSCRows = xrefParseCCSC(t); done();
+        }).catch(function(){ xrefCCSCRows=[]; done(); });
+    }
+    if(xrefStudents){ done(); } else {
+        fetch(XREF_LC_URL).then(function(r){return r.text();}).then(function(t){
+            var p = xrefParseLC(t);
+            xrefStudents = p.byName;
+            xrefStudList = p.names;
+            done();
+        }).catch(function(){ xrefStudents={}; xrefStudList=[]; done(); });
+    }
+}
+
+function xrefSetView(v){
+    xrefView = v;
+    document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
+    var sel = document.getElementById('xref-student-sel');
+    if(sel) sel.style.display = (v==='student') ? '' : 'none';
+    renderXrefContent();
+}
+function xrefSetStudent(v){ xrefStudent=v; renderXrefContent(); }
+function xrefSetArea(v){ xrefAreaFilt=v; renderXrefContent(); }
+function xrefSetGrade(v){ xrefGradeFilt=v; renderXrefContent(); }
+
+function renderXref(){
+    var el = document.getElementById('xref-content');
+    if(!el) return;
+    el.innerHTML = '<div style="padding:2rem;text-align:center;color:#86868b;"><div class="wd-spinner"></div><br>Loading cross-reference data…</div>';
+    xrefLoadData(function(){
+        // populate student dropdown once
+        var sel = document.getElementById('xref-student-sel');
+        if(sel && sel.options.length<=1){
+            xrefStudList.forEach(function(n){
+                var o = document.createElement('option');
+                o.value = n; o.textContent = n;
+                sel.appendChild(o);
+            });
+            if(!xrefStudent && xrefStudList.length) xrefStudent = xrefStudList[0];
+            if(sel) sel.value = xrefStudent;
+        }
+        renderXrefContent();
+    });
+}
+
+function renderXrefContent(){
+    var el = document.getElementById('xref-content');
+    if(!el || !xrefCCSCRows) return;
+    if(xrefView==='student')   el.innerHTML = xrefStudentHTML();
+    else if(xrefView==='class') el.innerHTML = xrefClassHTML();
+    else                        el.innerHTML = xrefStandardsHTML();
+}
+
+/* ── helpers ── */
+function xrefFilter(rows){
+    return rows.filter(function(r){
+        if(xrefAreaFilt!=='all' && r.area!==xrefAreaFilt) return false;
+        if(xrefGradeFilt!=='all'){
+            var g = xrefGradeNum(r.code);
+            if(xrefGradeFilt==='6') return g>=6;
+            return g === parseInt(xrefGradeFilt==='K'?'0':xrefGradeFilt);
+        }
+        return true;
+    });
+}
+
+function xrefCreditStatus(student, creditName){
+    if(!student) return '';
+    var sdata = xrefStudents[student];
+    if(!sdata) return '';
+    var norm = xrefNorm(creditName);
+    // exact match first
+    if(sdata.credits[norm]!==undefined) return sdata.credits[norm];
+    // fuzzy: find best match
+    var best = '';
+    Object.keys(sdata.credits).forEach(function(k){
+        if(k.indexOf(norm)!==-1 || norm.indexOf(k)!==-1) best = sdata.credits[k];
+    });
+    return best;
+}
+
+function xrefStatusBadge(status){
+    if(status==='e') return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#d1fae5;color:#065f46;">✓ Earned</span>';
+    if(status==='a') return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">~ In Progress</span>';
+    return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#f3f4f6;color:#9ca3af;">Not Started</span>';
+}
+
+function xrefCompareLabel(codeGrade, gleNum){
+    if(codeGrade<0||gleNum<0) return '';
+    if(codeGrade < gleNum)  return '<span style="font-size:0.7rem;color:#6366f1;" title="Below GLE — foundational">▼ Foundational</span>';
+    if(codeGrade === gleNum) return '<span style="font-size:0.7rem;color:#0284c7;" title="At GLE — grade-level work">● Grade Level</span>';
+    if(codeGrade === gleNum+1) return '<span style="font-size:0.7rem;color:#f59e0b;" title="One year above GLE">↑ Enrichment</span>';
+    return '<span style="font-size:0.7rem;color:#10b981;" title="Well above GLE — advanced">↑↑ Advanced</span>';
+}
+
+/* ── VIEW 1: Student ── */
+function xrefStudentHTML(){
+    if(!xrefStudent) return '<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>';
+    var sdata = xrefStudents[xrefStudent];
+    if(!sdata) return '<div style="padding:2rem;color:#86868b;">No data found for this student.</div>';
+    var gleNum = xrefGleNum(sdata.gle);
+    var rows = xrefFilter(xrefCCSCRows);
+
+    // Build credit→standards map, then compute per-row status
+    var earned=0, inProgress=0, notStarted=0, gapAtLevel=0;
+    var tableRows = rows.map(function(r){
+        var st = xrefCreditStatus(xrefStudent, r.credit);
+        var cg = xrefGradeNum(r.code);
+        if(st==='e') earned++;
+        else if(st==='a') inProgress++;
+        else {
+            notStarted++;
+            if(cg>=0 && gleNum>=0 && cg<=gleNum) gapAtLevel++;
+        }
+        return {r:r, st:st, cg:cg};
+    });
+
+    var pct = rows.length ? Math.round(earned/rows.length*100) : 0;
+
+    // Summary cards
+    var html = '<div style="padding:1rem 1.25rem 0;">';
+    // Student header
+    html += '<div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
+    html += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent+'</div>';
+    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
+    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">Total Credits Earned: '+sdata.earned+'</span>';
+    html += '</div>';
+
+    // Summary stat cards
+    html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
+    var cards = [
+        {label:'Standards Earned',val:earned,color:'#d1fae5',tc:'#065f46'},
+        {label:'In Progress',val:inProgress,color:'#fef3c7',tc:'#92400e'},
+        {label:'Not Started',val:notStarted,color:'#f3f4f6',tc:'#6b7280'},
+        {label:'Grade-Level Gaps',val:gapAtLevel,color:'#fee2e2',tc:'#991b1b'}
+    ];
+    cards.forEach(function(c){
+        html += '<div style="flex:1;min-width:110px;background:'+c.color+';border-radius:10px;padding:0.6rem 0.9rem;">';
+        html += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.val+'</div>';
+        html += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;">'+c.label+'</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // Progress bar
+    html += '<div style="background:#e5e7eb;border-radius:999px;height:8px;margin-bottom:0.5rem;overflow:hidden;">';
+    html += '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#34d399,#059669);transition:width 0.4s;"></div></div>';
+    html += '<div style="font-size:0.75rem;color:#6b7280;margin-bottom:1rem;">'+pct+'% of filtered standards addressed through earned credits</div>';
+
+    // Benchmark comparison banner
+    if(gleNum>=0){
+        var aboveGLE = tableRows.filter(function(x){ return x.st==='e'&&x.cg>gleNum; }).length;
+        var atGLE    = tableRows.filter(function(x){ return x.st==='e'&&x.cg===gleNum; }).length;
+        var belowGLE = tableRows.filter(function(x){ return x.st==='e'&&x.cg<gleNum&&x.cg>=0; }).length;
+        html += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:#1e40af;">';
+        html += '<strong>Benchmark Comparison</strong> (GLE: '+(sdata.gle||'?')+') &nbsp;·&nbsp; ';
+        html += belowGLE+' foundational &nbsp;·&nbsp; ';
+        html += atGLE+' at grade level &nbsp;·&nbsp; ';
+        html += aboveGLE+' above grade level';
+        if(gapAtLevel>0) html += ' &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:600;">'+gapAtLevel+' grade-level gaps</span>';
+        html += '</div>';
+    }
+    html += '</div>'; // end padding wrapper
+
+    // Table
+    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    ['Standard','Description','Credit','Content Area','Stage','Status','Level Match'].forEach(function(h){
+        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    // Group by domain prefix for color coding
+    var domainColors = {'K.CC':'#fef3c7','K.OA':'#fce7f3','K.G':'#e0f2fe','K.MD':'#dcfce7','K.NBT':'#ede9fe',
+        'RF':'#e0f2fe','RL':'#d1fae5','RI':'#dcfce7','W':'#fef9c3','L':'#fce7f3','SL':'#f3f4f6'};
+    function domColor(code){ var pre=code.split('.').slice(0,2).join('.'); return domainColors[pre]||domainColors[code.split('.')[0]]||''; }
+
+    tableRows.forEach(function(item, idx){
+        var r=item.r, st=item.st, cg=item.cg;
+        var rowBg = idx%2===0?'#ffffff':'#f9fafb';
+        if(st==='e') rowBg='#f0fdf4';
+        else if(st==='a') rowBg='#fffbeb';
+        html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
+        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+r.code+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#374151;max-width:280px;">'+r.text+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;">';
+        if(r.link && r.link!=='(no URL)'){
+            html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-weight:600;text-decoration:none;">'+r.credit+'</a>';
+        } else {
+            html += '<span style="color:#374151;">'+r.credit+'</span>';
+        }
+        html += '</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;">'+r.area+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;font-size:0.75rem;">'+r.stage+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;white-space:nowrap;">'+xrefStatusBadge(st)+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;white-space:nowrap;">'+xrefCompareLabel(cg, gleNum)+'</td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+}
+
+/* ── VIEW 2: Class Coverage ── */
+function xrefClassHTML(){
+    if(!xrefStudents||!xrefCCSCRows) return '<div style="padding:2rem;color:#86868b;">Loading…</div>';
+    var rows = xrefFilter(xrefCCSCRows);
+
+    // Unique credits in filtered set
+    var creditMap = {}; // creditName -> {area, stage, link, earnedCount, inProgCount, total}
+    rows.forEach(function(r){
+        if(!creditMap[r.credit]) creditMap[r.credit]={area:r.area,stage:r.stage,link:r.link,e:0,a:0};
+    });
+    var total = xrefStudList.length;
+    xrefStudList.forEach(function(name){
+        var sd = xrefStudents[name];
+        if(!sd) return;
+        Object.keys(creditMap).forEach(function(cn){
+            var st = xrefCreditStatus(name, cn);
+            if(st==='e') creditMap[cn].e++;
+            else if(st==='a') creditMap[cn].a++;
+        });
+    });
+
+    var creditNames = Object.keys(creditMap).sort(function(a,b){
+        // sort by % earned desc
+        return (creditMap[b].e/total) - (creditMap[a].e/total);
+    });
+
+    var html = '<div style="padding:1rem 1.25rem 0;">';
+    html += '<div style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;">Showing '+creditNames.length+' credits · '+total+' students total. Sorted by % earned.</div>';
+    html += '</div>';
+    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    ['Credit','Content Area','Stage','Earned','In Progress','Not Started','Coverage'].forEach(function(h){
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+    });
+    html += '</tr></thead><tbody>';
+    creditNames.forEach(function(cn, idx){
+        var c = creditMap[cn];
+        var notS = total - c.e - c.a;
+        var pct = total ? Math.round(c.e/total*100) : 0;
+        var rowBg = idx%2===0?'#ffffff':'#f9fafb';
+        var barColor = pct>=75?'#34d399':pct>=40?'#fb923c':'#f87171';
+        html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
+        html += '<td style="padding:0.55rem 0.75rem;">';
+        if(c.link&&c.link!=='(no URL)') html += '<a href="'+c.link+'" target="_blank" style="color:#FF8200;font-weight:600;text-decoration:none;">'+cn+'</a>';
+        else html += '<span style="font-weight:600;color:#1d1d1f;">'+cn+'</span>';
+        html += '</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;">'+c.area+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;font-size:0.75rem;white-space:nowrap;">'+c.stage+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#065f46;">'+c.e+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#92400e;">'+c.a+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;">'+notS+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;min-width:120px;">';
+        html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
+        html += '<div style="flex:1;background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden;">';
+        html += '<div style="width:'+pct+'%;height:100%;background:'+barColor+';"></div></div>';
+        html += '<span style="font-size:0.72rem;color:#374151;min-width:32px;">'+pct+'%</span>';
+        html += '</div></td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+}
+
+/* ── VIEW 3: By Standard ── */
+function xrefStandardsHTML(){
+    if(!xrefCCSCRows) return '<div style="padding:2rem;color:#86868b;">Loading…</div>';
+    var rows = xrefFilter(xrefCCSCRows);
+    var total = xrefStudList.length;
+
+    // Group rows by standard code
+    var stdMap = {};
+    rows.forEach(function(r){
+        if(!stdMap[r.code]) stdMap[r.code]={text:r.text,credits:[],area:r.area};
+        stdMap[r.code].credits.push(r);
+    });
+
+    // Count how many students earned at least one credit for each standard
+    var stdCodes = Object.keys(stdMap).sort();
+    stdCodes.forEach(function(code){
+        var earned=0, inProg=0;
+        xrefStudList.forEach(function(name){
+            var sd = xrefStudents ? xrefStudents[name] : null;
+            if(!sd) return;
+            stdMap[code].credits.forEach(function(r){
+                var st = xrefCreditStatus(name, r.credit);
+                if(st==='e') earned++;
+                else if(st==='a') inProg++;
+            });
+        });
+        stdMap[code].earnedStudents = Math.min(earned, total);
+        stdMap[code].inProgStudents = Math.min(inProg, total - earned);
+    });
+
+    var html = '<div style="padding:1rem 1.25rem 0;">';
+    html += '<div style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;">'+stdCodes.length+' standards · '+total+' students. Shows how many students have earned a credit covering each standard.</div>';
+    html += '</div>';
+    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    ['Standard Code','Standard Text','Credits Addressing It','Students Earned','Class Coverage'].forEach(function(h){
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;">'+h+'</th>';
+    });
+    html += '</tr></thead><tbody>';
+    stdCodes.forEach(function(code, idx){
+        var s = stdMap[code];
+        var pct = total ? Math.round(s.earnedStudents/total*100) : 0;
+        var barColor = pct>=75?'#34d399':pct>=40?'#fb923c':'#f87171';
+        var rowBg = idx%2===0?'#ffffff':'#f9fafb';
+        html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
+        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+code+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#374151;max-width:260px;">'+s.text+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;color:#374151;">';
+        s.credits.forEach(function(r, ci){
+            if(ci>0) html += '<br>';
+            if(r.link&&r.link!=='(no URL)') html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;text-decoration:none;">'+r.credit+'</a>';
+            else html += r.credit;
+        });
+        html += '</td>';
+        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#065f46;">'+s.earnedStudents+' / '+total+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;min-width:120px;">';
+        html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
+        html += '<div style="flex:1;background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden;">';
+        html += '<div style="width:'+pct+'%;height:100%;background:'+barColor+';"></div></div>';
+        html += '<span style="font-size:0.72rem;color:#374151;min-width:32px;">'+pct+'%</span>';
+        html += '</div></td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
 }
 
 // ───────── CORE ASSESSMENT ─────────
