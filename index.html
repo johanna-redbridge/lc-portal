@@ -1082,7 +1082,8 @@
         <div class="data-subtab-nav">
             <button class="data-subtab-btn active" data-subtab="core" onclick="switchDataSubtab('core')">CORE</button>
             <button class="data-subtab-btn" data-subtab="fp" onclick="switchDataSubtab('fp')">F&amp;P</button>
-            <button class="data-subtab-btn" data-subtab="map" onclick="switchDataSubtab('map')">MAP</button>
+            <button class="data-subtab-btn" data-subtab="map-math" onclick="switchDataSubtab('map-math')">MAP Math</button>
+            <button class="data-subtab-btn" data-subtab="map-ela" onclick="switchDataSubtab('map-ela')">MAP ELA</button>
         </div>
         <div class="data-subtab-panel" id="data-subtab-core">
             <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
@@ -1131,18 +1132,32 @@
             <div id="fp-content"></div>
         </div>
 
-        <!-- MAP sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-map" style="display:none;">
+        <!-- MAP Math sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-map-math" style="display:none;">
             <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                 <div class="toggle-group">
-                    <button class="toggle-btn map-al-btn active" data-al="all" onclick="setMapAL('all')">All</button>
-                    <button class="toggle-btn map-al-btn" data-al="1" onclick="setMapAL('1')">AL1</button>
-                    <button class="toggle-btn map-al-btn" data-al="2" onclick="setMapAL('2')">AL2</button>
-                    <button class="toggle-btn map-al-btn" data-al="3" onclick="setMapAL('3')">AL3</button>
-                    <button class="toggle-btn map-al-btn" data-al="4" onclick="setMapAL('4')">AL4</button>
+                    <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
+                    <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
+                    <button class="toggle-btn map-math-al-btn" data-al="2" onclick="setMapMathAL('2')">AL2</button>
+                    <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
+                    <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
                 </div>
             </div>
-            <div id="map-content"></div>
+            <div id="map-math-content"></div>
+        </div>
+
+        <!-- MAP ELA sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-map-ela" style="display:none;">
+            <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="toggle-group">
+                    <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
+                    <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
+                    <button class="toggle-btn map-ela-al-btn" data-al="2" onclick="setMapElaAL('2')">AL2</button>
+                    <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
+                    <button class="toggle-btn map-ela-al-btn" data-al="4" onclick="setMapElaAL('4')">AL4</button>
+                </div>
+            </div>
+            <div id="map-ela-content"></div>
         </div>
     </div>
 </div>
@@ -6488,9 +6503,10 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
-    if (name === 'core') renderCore();
-    if (name === 'fp')   renderFP();
-    if (name === 'map')  renderMAP();
+    if (name === 'core')     renderCore();
+    if (name === 'fp')       renderFP();
+    if (name === 'map-math') renderMapMath();
+    if (name === 'map-ela')  renderMapEla();
 }
 
 // ───────── CORE ASSESSMENT ─────────
@@ -7016,7 +7032,8 @@ function renderFP() {
    ========================================================= */
 var MAP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrWKRzTAYJ5HsfjDjvvT3s5hZEvH4WwGAlPFKyQCD5QqOIDCsz1N5eTI_j4Vo_57wjxuY_zZyCMHB/pub?gid=326344071&single=true&output=csv';
 var mapData = null;
-var mapALFilter = 'all';
+var mapMathALFilter = 'all';
+var mapElaALFilter  = 'all';
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -7069,12 +7086,20 @@ function parseMapCsv(text) {
     return { mathPeriods: mathPeriods, elaPeriods: elaPeriods, students: students };
 }
 
-function setMapAL(al) {
-    mapALFilter = al;
-    document.querySelectorAll('.map-al-btn').forEach(function(btn) {
+function setMapMathAL(al) {
+    mapMathALFilter = al;
+    document.querySelectorAll('.map-math-al-btn').forEach(function(btn) {
         btn.classList.toggle('active', btn.dataset.al === al);
     });
-    renderMapTable();
+    renderMapMathTable();
+}
+
+function setMapElaAL(al) {
+    mapElaALFilter = al;
+    document.querySelectorAll('.map-ela-al-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.al === al);
+    });
+    renderMapElaTable();
 }
 
 function mapDataCell(val, tint) {
@@ -7082,99 +7107,126 @@ function mapDataCell(val, tint) {
     return '<td style="text-align:center;background:' + tint + ';">' + val.replace(/</g,'&lt;') + '</td>';
 }
 
-function renderMapTable() {
-    var el = document.getElementById('map-content');
+function renderMapMathTable() {
+    var el = document.getElementById('map-math-content');
     if (!el || !mapData) return;
 
     var all = mapData.students.slice();
-    if (mapALFilter !== 'all') all = all.filter(function(s) { return s.al === mapALFilter; });
+    if (mapMathALFilter !== 'all') all = all.filter(function(s) { return s.al === mapMathALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
     var mp = mapData.mathPeriods;
-    var ep = mapData.elaPeriods;
+    var tint = '#f0f7f2';
+    var border = '#c8e6d0';
 
-    // Only show periods that have at least one student with data
-    var mathActive = [], elaActive = [];
+    var active = [];
     for (var j = 0; j < MAP_MATH_COUNT; j++) {
-        if (all.some(function(s) { return s.mathScores[j] !== ''; })) mathActive.push(j);
+        if (all.some(function(s) { return s.mathScores[j] !== ''; })) active.push(j);
     }
-    for (var j = 0; j < MAP_ELA_COUNT; j++) {
-        if (all.some(function(s) { return s.elaScores[j] !== ''; }))  elaActive.push(j);
-    }
-
-    var mathTint = '#f0f7f2';
-    var elaTint  = '#f0f4fb';
 
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
-        + '<table class="core-table" style="width:100%;">'
-        + '<thead>'
-        // Row 1: section headers
-        + '<tr>'
-        + '<th class="core-name-col" rowspan="3">Student</th>'
-        + '<th rowspan="3">GLE</th>'
-        + '<th rowspan="3">AL</th>';
-
-    if (mathActive.length) html += '<th colspan="' + (mathActive.length * 2) + '" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;">Math</th>';
-    if (elaActive.length)  html += '<th colspan="' + (elaActive.length  * 2) + '" style="text-align:center;background:' + elaTint  + ';border-bottom:1px solid #c5d5f0;">ELA</th>';
-    html += '</tr>';
-
-    // Row 2: period labels
-    html += '<tr>';
-    mathActive.forEach(function(j) {
+        + '<table class="core-table" style="width:100%;"><thead>'
+        + '<tr><th class="core-name-col" rowspan="3">Student</th>'
+        + '<th rowspan="3">GLE</th><th rowspan="3">AL</th>';
+    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';">Math</th>';
+    html += '</tr><tr>';
+    active.forEach(function(j) {
         var lbl = mp[j] || ('Period ' + (j + 1));
-        html += '<th colspan="2" style="text-align:center;background:' + mathTint + ';border-bottom:1px solid #c8e6d0;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+        html += '<th colspan="2" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
     });
-    elaActive.forEach(function(j) {
-        var lbl = ep[j] || ('Period ' + (j + 1));
-        html += '<th colspan="2" style="text-align:center;background:' + elaTint + ';border-bottom:1px solid #c5d5f0;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
-    });
-    html += '</tr>';
-
-    // Row 3: Score / %ile sub-headers
-    html += '<tr>';
-    mathActive.forEach(function() {
-        html += '<th style="background:' + mathTint + ';font-size:0.63rem;font-weight:500;">Score</th>'
-              + '<th style="background:' + mathTint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
-    });
-    elaActive.forEach(function() {
-        html += '<th style="background:' + elaTint + ';font-size:0.63rem;font-weight:500;">Score</th>'
-              + '<th style="background:' + elaTint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+    html += '</tr><tr>';
+    active.forEach(function() {
+        html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
     });
     html += '</tr></thead><tbody>';
-
     all.forEach(function(s) {
-        html += '<tr>'
-            + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+        html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;">' + s.gle + '</td>'
             + '<td style="text-align:center;">' + s.al + '</td>';
-        mathActive.forEach(function(j) {
-            html += mapDataCell(s.mathScores[j], mathTint);
-            html += mapDataCell(s.mathPcts[j],   mathTint);
-        });
-        elaActive.forEach(function(j) {
-            html += mapDataCell(s.elaScores[j], elaTint);
-            html += mapDataCell(s.elaPcts[j],   elaTint);
+        active.forEach(function(j) {
+            html += mapDataCell(s.mathScores[j], tint);
+            html += mapDataCell(s.mathPcts[j],   tint);
         });
         html += '</tr>';
     });
-
     html += '</tbody></table></div>';
     el.innerHTML = html;
 }
 
-function renderMAP() {
-    var el = document.getElementById('map-content');
-    if (!el) return;
-    if (mapData) { renderMapTable(); return; }
-    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
+function renderMapElaTable() {
+    var el = document.getElementById('map-ela-content');
+    if (!el || !mapData) return;
+
+    var all = mapData.students.slice();
+    if (mapElaALFilter !== 'all') all = all.filter(function(s) { return s.al === mapElaALFilter; });
+    if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var ep = mapData.elaPeriods;
+    var tint = '#f0f4fb';
+    var border = '#c5d5f0';
+
+    var active = [];
+    for (var j = 0; j < MAP_ELA_COUNT; j++) {
+        if (all.some(function(s) { return s.elaScores[j] !== ''; })) active.push(j);
+    }
+
+    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+        + '<table class="core-table" style="width:100%;"><thead>'
+        + '<tr><th class="core-name-col" rowspan="3">Student</th>'
+        + '<th rowspan="3">GLE</th><th rowspan="3">AL</th>';
+    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';">ELA</th>';
+    html += '</tr><tr>';
+    active.forEach(function(j) {
+        var lbl = ep[j] || ('Period ' + (j + 1));
+        html += '<th colspan="2" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+    });
+    html += '</tr><tr>';
+    active.forEach(function() {
+        html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+    });
+    html += '</tr></thead><tbody>';
+    all.forEach(function(s) {
+        html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;">' + s.gle + '</td>'
+            + '<td style="text-align:center;">' + s.al + '</td>';
+        active.forEach(function(j) {
+            html += mapDataCell(s.elaScores[j], tint);
+            html += mapDataCell(s.elaPcts[j],   tint);
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+}
+
+function loadMapData(onDone) {
+    if (mapData) { onDone(); return; }
     fetch(MAP_CSV_URL).then(function(r) { return r.text(); }).then(function(text) {
         mapData = parseMapCsv(text);
-        renderMapTable();
+        onDone();
     }).catch(function(e) {
         console.error('MAP fetch error', e);
-        var el2 = document.getElementById('map-content');
-        if (el2) el2.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load MAP data.</p>';
+        mapData = { mathPeriods: [], elaPeriods: [], students: [] };
+        onDone();
     });
+}
+
+function renderMapMath() {
+    var el = document.getElementById('map-math-content');
+    if (!el) return;
+    if (mapData) { renderMapMathTable(); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
+    loadMapData(renderMapMathTable);
+}
+
+function renderMapEla() {
+    var el = document.getElementById('map-ela-content');
+    if (!el) return;
+    if (mapData) { renderMapElaTable(); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
+    loadMapData(renderMapElaTable);
 }
 
 </script>
