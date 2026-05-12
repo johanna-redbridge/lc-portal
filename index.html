@@ -7110,9 +7110,9 @@ function setMapElaAL(al) {
     renderMapElaTable();
 }
 
-function mapDataCell(val, tint) {
-    if (!val) return '<td style="text-align:center;color:#aeaeb2;background:' + tint + ';">-</td>';
-    return '<td style="text-align:center;background:' + tint + ';">' + val.replace(/</g,'&lt;') + '</td>';
+function mapDataCell(val) {
+    if (!val) return '<td style="text-align:center;color:#aeaeb2;">-</td>';
+    return '<td style="text-align:center;">' + val.replace(/</g,'&lt;') + '</td>';
 }
 
 // Returns [{boyIdx, eoyIdx, year}] pairs where BOY and EOY share the same year in period labels
@@ -7135,15 +7135,15 @@ function mapGrowthPairs(periods) {
     return pairs;
 }
 
-function mapGrowthCell(boyScore, eoyScore, eoyPct, tint) {
+function mapGrowthCell(boyScore, eoyScore, eoyPct) {
     if (!boyScore || !eoyScore) {
-        return '<td style="text-align:center;color:#aeaeb2;background:' + tint + ';">-</td>';
+        return '<td style="text-align:center;color:#aeaeb2;">-</td>';
     }
     var gain = parseFloat(eoyScore) - parseFloat(boyScore);
     var pctVal = Math.min(Math.max(parseFloat(eoyPct) || 0, 0), 100);
     var barColor = pctColor(pctVal);
     var gainStr = (gain >= 0 ? '+' : '') + Math.round(gain) + ' pts';
-    return '<td style="padding:3px 8px;min-width:90px;background:' + tint + ';">'
+    return '<td style="padding:3px 8px;min-width:90px;">'
         + '<div style="width:60px;height:7px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
         + '<div style="width:' + pctVal + '%;height:100%;background:' + barColor + ';"></div></div>'
         + '<span style="font-size:0.67rem;color:#1d1d1f;">' + gainStr + '</span>'
@@ -7159,10 +7159,6 @@ function renderMapMathTable() {
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
     var mp = mapData.mathPeriods;
-    var tint = '#f0f7f2';
-    var border = '#c8e6d0';
-    var gTint = '#fdf8f0';
-    var gBorder = '#e8c87a';
 
     var active = [];
     for (var j = 0; j < MAP_MATH_COUNT; j++) {
@@ -7176,24 +7172,24 @@ function renderMapMathTable() {
         + '<table class="core-table" style="width:100%;"><thead>'
         + '<tr><th class="core-name-col" rowspan="3">Student</th>'
         + '<th rowspan="3">GLE</th><th rowspan="3">AL</th>';
-    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';">Math</th>';
-    if (pairs.length)  html += '<th colspan="' + pairs.length + '" style="text-align:center;background:' + gTint + ';border-bottom:1px solid ' + gBorder + ';">Growth</th>';
+    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;">Math</th>';
+    if (pairs.length)  html += '<th colspan="' + pairs.length + '" style="text-align:center;">Growth</th>';
     html += '</tr><tr>';
     active.forEach(function(j) {
         var lbl = mp[j] || ('Period ' + (j + 1));
-        html += '<th colspan="2" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+        html += '<th colspan="2" style="text-align:center;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
     });
     pairs.forEach(function(p) {
         var lbl = 'BOY→EOY' + (p.year ? ' ' + p.year : '');
-        html += '<th style="text-align:center;background:' + gTint + ';border-bottom:1px solid ' + gBorder + ';font-size:0.68rem;white-space:nowrap;">' + lbl + '</th>';
+        html += '<th style="text-align:center;font-size:0.68rem;white-space:nowrap;">' + lbl + '</th>';
     });
     html += '</tr><tr>';
     active.forEach(function() {
-        html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">Score</th>'
-              + '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+        html += '<th style="font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="font-size:0.63rem;font-weight:500;">%ile</th>';
     });
     pairs.forEach(function() {
-        html += '<th style="background:' + gTint + ';font-size:0.63rem;font-weight:500;">EOY %ile &amp; gain</th>';
+        html += '<th style="font-size:0.63rem;font-weight:500;">EOY %ile &amp; gain</th>';
     });
     html += '</tr></thead><tbody>';
     all.forEach(function(s) {
@@ -7201,11 +7197,11 @@ function renderMapMathTable() {
             + '<td style="text-align:center;">' + s.gle + '</td>'
             + '<td style="text-align:center;">' + s.al + '</td>';
         active.forEach(function(j) {
-            html += mapDataCell(s.mathScores[j], tint);
-            html += mapDataCell(s.mathPcts[j],   tint);
+            html += mapDataCell(s.mathScores[j]);
+            html += mapDataCell(s.mathPcts[j]);
         });
         pairs.forEach(function(p) {
-            html += mapGrowthCell(s.mathScores[p.boyIdx], s.mathScores[p.eoyIdx], s.mathPcts[p.eoyIdx], gTint);
+            html += mapGrowthCell(s.mathScores[p.boyIdx], s.mathScores[p.eoyIdx], s.mathPcts[p.eoyIdx]);
         });
         html += '</tr>';
     });
@@ -7222,10 +7218,6 @@ function renderMapElaTable() {
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
     var ep = mapData.elaPeriods;
-    var tint = '#f0f4fb';
-    var border = '#c5d5f0';
-    var gTint = '#fdf8f0';
-    var gBorder = '#e8c87a';
 
     var active = [];
     for (var j = 0; j < MAP_ELA_COUNT; j++) {
@@ -7239,24 +7231,24 @@ function renderMapElaTable() {
         + '<table class="core-table" style="width:100%;"><thead>'
         + '<tr><th class="core-name-col" rowspan="3">Student</th>'
         + '<th rowspan="3">GLE</th><th rowspan="3">AL</th>';
-    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';">ELA</th>';
-    if (pairs.length)  html += '<th colspan="' + pairs.length + '" style="text-align:center;background:' + gTint + ';border-bottom:1px solid ' + gBorder + ';">Growth</th>';
+    if (active.length) html += '<th colspan="' + (active.length * 2) + '" style="text-align:center;">ELA</th>';
+    if (pairs.length)  html += '<th colspan="' + pairs.length + '" style="text-align:center;">Growth</th>';
     html += '</tr><tr>';
     active.forEach(function(j) {
         var lbl = ep[j] || ('Period ' + (j + 1));
-        html += '<th colspan="2" style="text-align:center;background:' + tint + ';border-bottom:1px solid ' + border + ';font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
+        html += '<th colspan="2" style="text-align:center;font-size:0.68rem;white-space:nowrap;">' + lbl.replace(/</g,'&lt;') + '</th>';
     });
     pairs.forEach(function(p) {
         var lbl = 'BOY→EOY' + (p.year ? ' ' + p.year : '');
-        html += '<th style="text-align:center;background:' + gTint + ';border-bottom:1px solid ' + gBorder + ';font-size:0.68rem;white-space:nowrap;">' + lbl + '</th>';
+        html += '<th style="text-align:center;font-size:0.68rem;white-space:nowrap;">' + lbl + '</th>';
     });
     html += '</tr><tr>';
     active.forEach(function() {
-        html += '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">Score</th>'
-              + '<th style="background:' + tint + ';font-size:0.63rem;font-weight:500;">%ile</th>';
+        html += '<th style="font-size:0.63rem;font-weight:500;">Score</th>'
+              + '<th style="font-size:0.63rem;font-weight:500;">%ile</th>';
     });
     pairs.forEach(function() {
-        html += '<th style="background:' + gTint + ';font-size:0.63rem;font-weight:500;">EOY %ile &amp; gain</th>';
+        html += '<th style="font-size:0.63rem;font-weight:500;">EOY %ile &amp; gain</th>';
     });
     html += '</tr></thead><tbody>';
     all.forEach(function(s) {
@@ -7264,11 +7256,11 @@ function renderMapElaTable() {
             + '<td style="text-align:center;">' + s.gle + '</td>'
             + '<td style="text-align:center;">' + s.al + '</td>';
         active.forEach(function(j) {
-            html += mapDataCell(s.elaScores[j], tint);
-            html += mapDataCell(s.elaPcts[j],   tint);
+            html += mapDataCell(s.elaScores[j]);
+            html += mapDataCell(s.elaPcts[j]);
         });
         pairs.forEach(function(p) {
-            html += mapGrowthCell(s.elaScores[p.boyIdx], s.elaScores[p.eoyIdx], s.elaPcts[p.eoyIdx], gTint);
+            html += mapGrowthCell(s.elaScores[p.boyIdx], s.elaScores[p.eoyIdx], s.elaPcts[p.eoyIdx]);
         });
         html += '</tr>';
     });
