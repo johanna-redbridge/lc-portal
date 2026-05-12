@@ -7074,13 +7074,21 @@ function fpGLEBar(student) {
     var curLvNorm = (curLv || '').trim().toLowerCase();
     var atMax = (curLvNorm === 'z' || curLvNorm === 'zz');
     var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round(curS / gleS * 100)));
-    var barColor = atMax ? '#186a3b' : pctColor(pct);
-    return '<div style="display:flex;align-items:center;gap:6px;">'
-        + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + Math.min(pct,100) + '%;background:' + barColor + ';border-radius:4px;transition:width 0.3s;"></div>'
-        + '</div>'
-        + '<span style="font-size:0.7rem;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
-        + '<span style="font-size:0.68rem;color:#aeaeb2;white-space:nowrap;">→&nbsp;' + fpDisplayLevel(gleLv) + '</span>'
+    var color = atMax ? '#186a3b' : pctColor(pct);
+    var sz = 52, r = 19, cx = sz / 2, cy = sz / 2;
+    var circ = 2 * Math.PI * r;
+    var dash = (pct / 100) * circ;
+    var gap  = circ - dash;
+    return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;">'
+        + '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '">'
+        + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e8e8ed" stroke-width="6"/>'
+        + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="6"'
+        + ' stroke-dasharray="' + dash.toFixed(1) + ' ' + gap.toFixed(1) + '"'
+        + ' stroke-linecap="round" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>'
+        + '<text x="' + cx + '" y="' + (cy + 1) + '" text-anchor="middle" dominant-baseline="middle"'
+        + ' font-size="10" font-family="-apple-system,sans-serif" font-weight="700" fill="#1d1d1f">' + pct + '%</text>'
+        + '</svg>'
+        + '<span style="font-size:0.6rem;color:#aeaeb2;white-space:nowrap;">target&nbsp;' + fpDisplayLevel(gleLv) + '</span>'
         + '</div>';
 }
 
@@ -7100,7 +7108,7 @@ function renderFPTable() {
         + '<th>MOY</th>'
         + '<th>EOY</th>'
         + '<th style="min-width:200px;">+1.0 Growth Progress</th>'
-        + '<th style="min-width:200px;">GLE Progress</th>'
+        + '<th style="text-align:center;">GLE Progress</th>'
         + '<th></th>'
         + '</tr></thead><tbody>';
 
@@ -7120,7 +7128,7 @@ function renderFPTable() {
             + lvCell(s.moy)
             + lvCell(s.eoy)
             + '<td>' + fpProgressBar(s) + '</td>'
-            + '<td>' + fpGLEBar(s) + '</td>'
+            + '<td style="text-align:center;">' + fpGLEBar(s) + '</td>'
             + '<td style="text-align:center;">'
             + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
                 + (expanded ? '&#9650;' : '&#9660;') + '&nbsp;notes</button>' : '')
