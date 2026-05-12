@@ -6858,6 +6858,13 @@ function toggleFpRow(idx) {
     renderFPTable();
 }
 
+function fpLevelCell(level) {
+    if (!level) return '<span style="color:#c7c7cc;">&ndash;</span>';
+    var sc = fpScore(level);
+    var scoreStr = sc !== null ? '<br><span style="font-size:0.65rem;color:#aeaeb2;">' + sc.toFixed(1) + '</span>' : '';
+    return fpDisplayLevel(level) + scoreStr;
+}
+
 function fpProgressBar(student) {
     var boyLv = student.boy;
     var curLv = student.eoy || student.moy || student.boy;
@@ -6901,9 +6908,9 @@ function renderFPTable() {
         html += '<tr>'
             + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;">AL' + (s.al||'') + '</td>'
-            + '<td style="text-align:center;font-weight:600;">' + fpDisplayLevel(s.boy) + '</td>'
-            + '<td style="text-align:center;">' + fpDisplayLevel(s.moy) + '</td>'
-            + '<td style="text-align:center;">' + fpDisplayLevel(s.eoy) + '</td>'
+            + '<td style="text-align:center;font-weight:600;">' + fpLevelCell(s.boy) + '</td>'
+            + '<td style="text-align:center;">' + fpLevelCell(s.moy) + '</td>'
+            + '<td style="text-align:center;">' + fpLevelCell(s.eoy) + '</td>'
             + '<td>' + fpProgressBar(s) + '</td>'
             + '<td style="text-align:center;">'
             + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
