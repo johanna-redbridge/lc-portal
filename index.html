@@ -1097,16 +1097,20 @@
                     <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
                     <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                 </div>
-                <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#0a3d20;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>mastered</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#1a5c38;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#27ae60;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥90%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#6fcf97;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥70%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#f7e463;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥50%</span>
+                <div style="margin-left:auto;display:flex;gap:0.5rem;align-items:center;font-size:0.71rem;color:#86868b;flex-wrap:wrap;">
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#0a3d20;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>✓</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#145a32;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>100%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#1e8449;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥90%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#27ae60;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥80%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#52be80;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥70%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#a9dfbf;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥60%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#f9e642;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥50%</span>
                     <span><span style="display:inline-block;width:11px;height:11px;background:#f0b429;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥40%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#f6851f;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥30%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#e05c1a;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥20%</span>
-                    <span><span style="display:inline-block;width:11px;height:11px;background:#d93025;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;20%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#f39c12;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥30%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#e67e22;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥25%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#e74c3c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥20%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#c0392b;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>≥10%</span>
+                    <span><span style="display:inline-block;width:11px;height:11px;background:#7b241c;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>&lt;10%</span>
                 </div>
             </div>
             <div id="core-content"></div>
@@ -6578,21 +6582,29 @@ function coreIsMastered(student, catIdx, period) {
     return false;
 }
 
+// Shared color scale for all Data-tab progress indicators
+function pctColor(pct) {
+    if (pct >= 100) return '#145a32';  // dark green
+    if (pct >= 90)  return '#1e8449';  // relatively dark green
+    if (pct >= 80)  return '#27ae60';  // green
+    if (pct >= 70)  return '#52be80';  // light green
+    if (pct >= 60)  return '#a9dfbf';  // lightest green
+    if (pct >= 50)  return '#f9e642';  // yellow
+    if (pct >= 40)  return '#f0b429';  // dark yellow
+    if (pct >= 30)  return '#f39c12';  // light orange
+    if (pct >= 25)  return '#e67e22';  // dark orange
+    if (pct >= 20)  return '#e74c3c';  // light red
+    if (pct >= 10)  return '#c0392b';  // dark red
+    return '#7b241c';                   // <10% — very dark red
+}
+
 function coreCellBg(score, max) {
-    var pct = max > 0 ? score / max : 0;
-    if (pct >= 1.0) return '#1a5c38';  // 100% — dark green
-    if (pct >= 0.9) return '#27ae60';  // ≥90% — green
-    if (pct >= 0.7) return '#6fcf97';  // ≥70% — light green
-    if (pct >= 0.5) return '#f7e463';  // ≥50% — yellow
-    if (pct >= 0.4) return '#f0b429';  // ≥40% — dark yellow
-    if (pct >= 0.3) return '#f6851f';  // ≥30% — light orange
-    if (pct >= 0.2) return '#e05c1a';  // ≥20% — dark orange
-    return '#d93025';                   // <20%  — red
+    return pctColor(max > 0 ? Math.round(score / max * 100) : 0);
 }
 
 function coreCellTextColor(bg) {
-    var dark = ['#1a5c38','#27ae60','#e05c1a','#d93025','#0a3d20'];
-    return dark.indexOf(bg) >= 0 ? '#ffffff' : '#1d1d1f';
+    var white = ['#0a3d20','#145a32','#1e8449','#27ae60','#e74c3c','#c0392b','#7b241c'];
+    return white.indexOf(bg) >= 0 ? '#ffffff' : '#1d1d1f';
 }
 
 function setCoreAL(key) {
@@ -6896,7 +6908,7 @@ function fpProgressBar(student) {
     var curLvNorm = (curLv || '').trim().toLowerCase();
     var atMax = (curLvNorm === 'z' || curLvNorm === 'zz');
     var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round((curS - boyS) / 1.0 * 100)));
-    var barColor = (atMax || pct >= 100) ? '#0a3d20' : pct >= 75 ? '#1a5c38' : pct >= 50 ? '#6fcf97' : pct >= 40 ? '#ffcc00' : pct >= 25 ? '#FF8200' : '#ff3b30';
+    var barColor = atMax ? '#0a3d20' : pctColor(pct);
     var targetLv = fpTargetLevel(boyLv) || '';
     return '<div style="display:flex;align-items:center;gap:6px;">'
         + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
@@ -6928,7 +6940,7 @@ function fpGLEBar(student) {
     var curLvNorm = (curLv || '').trim().toLowerCase();
     var atMax = (curLvNorm === 'z' || curLvNorm === 'zz');
     var pct = atMax ? 100 : Math.max(0, Math.min(100, Math.round(curS / gleS * 100)));
-    var barColor = (atMax || pct >= 100) ? '#0a3d20' : pct >= 75 ? '#1a5c38' : pct >= 50 ? '#6fcf97' : pct >= 40 ? '#ffcc00' : pct >= 25 ? '#FF8200' : '#ff3b30';
+    var barColor = atMax ? '#0a3d20' : pctColor(pct);
     return '<div style="display:flex;align-items:center;gap:6px;">'
         + '<div style="flex:1;height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
         + '<div style="height:100%;width:' + Math.min(pct,100) + '%;background:' + barColor + ';border-radius:4px;transition:width 0.3s;"></div>'
