@@ -7159,13 +7159,27 @@ function xrefCompDetailHTML(){
         stdCredits[r.code].push(r);
     });
 
+    // Build short-code → full-code map from XREF_ALL_CCSS
+    // CSV uses 3-part codes like "K.CC.1"; XREF_ALL_CCSS uses 4-part "K.CC.A.1"
+    var shortToFull = {};
+    XREF_ALL_CCSS.forEach(function(s){
+        var pts = s[0].split('.');
+        if(pts.length === 4){
+            // "K.CC.A.1" → short key "K.CC.1"
+            shortToFull[pts[0]+'.'+pts[1]+'.'+pts[3]] = s[0];
+        }
+    });
+
     // Build: standard code → benchmark questions
     var stdBenchQs = {};
     if(compData){
         compData.questions.forEach(function(q){
             if(!q.std) return;
-            if(!stdBenchQs[q.std]) stdBenchQs[q.std]=[];
-            stdBenchQs[q.std].push(q);
+            // Strip sub-standard letter suffix: "K.CC.4A" → "K.CC.4"
+            var norm = q.std.replace(/([0-9]+)[A-Za-z]$/, '$1');
+            var fullCode = shortToFull[norm] || shortToFull[q.std] || q.std;
+            if(!stdBenchQs[fullCode]) stdBenchQs[fullCode]=[];
+            stdBenchQs[fullCode].push(q);
         });
     }
 
