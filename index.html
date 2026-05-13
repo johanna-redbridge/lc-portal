@@ -7141,14 +7141,25 @@ function xrefCompDetailHTML(){
     var sdata = xrefStudents[xrefStudent];
     if(!sdata) return '<div style="padding:2rem;color:#86868b;">No data found for this student.</div>';
 
-    // Find this student's name in benchmark data (names may differ slightly)
+    // Find this student's name in benchmark data
+    // LC sheet uses full names ("Clark Lane"); benchmark CSV uses first names only ("Clark")
     var benchName = xrefStudent;
     var benchNameFound = false;
     if(compData){
         var normXref = xrefNorm(xrefStudent);
+        // 1. Exact match
         benchNameFound = compData.students.some(function(s){ return s.name===xrefStudent; });
+        // 2. Normalized full-name match
         if(!benchNameFound){
             compData.students.forEach(function(s){ if(xrefNorm(s.name)===normXref){ benchName=s.name; benchNameFound=true; } });
+        }
+        // 3. First-name-only match (benchmark CSV uses first names only)
+        if(!benchNameFound){
+            var firstName = xrefStudent.split(/\s+/)[0];
+            var firstNorm = firstName.toLowerCase();
+            compData.students.forEach(function(s){
+                if(!benchNameFound && s.name.trim().toLowerCase()===firstNorm){ benchName=s.name; benchNameFound=true; }
+            });
         }
     }
 
