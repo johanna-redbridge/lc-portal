@@ -1261,6 +1261,7 @@
                     <button class="toggle-btn xref-view-btn active" data-view="student" onclick="xrefSetView('student')">Student View</button>
                     <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
                     <button class="toggle-btn xref-view-btn" data-view="standards" onclick="xrefSetView('standards')">By Standard</button>
+                    <button class="toggle-btn xref-view-btn" data-view="comp-detail" onclick="xrefSetView('comp-detail')">Computation</button>
                 </div>
                 <select id="xref-student-sel" onchange="xrefSetStudent(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;max-width:180px;">
                     <option value="">— Select Student —</option>
@@ -6768,11 +6769,13 @@ function switchDataSubtab(name) {
 
 // ───────── CROSS REFERENCE ─────────
 
-var XREF_CCSC_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAoTvp49u0EMHiy4gToLi3XCRTOWS7TLt8FHGqD2WZWYGWPyKG-Ra0sGvOiDTKEXEks1-hQwRfAsAB/pub?gid=0&single=true&output=csv';
-var XREF_LC_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhFWSOucxgvjzupSJqYTg8sJ3bRuyjT00rti6sSGIb_htQfLqjocLAIML0JBY9Mje8M_sHzoAKlO2i/pub?gid=995760857&single=true&output=csv';
+var XREF_CCSC_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAoTvp49u0EMHiy4gToLi3XCRTOWS7TLt8FHGqD2WZWYGWPyKG-Ra0sGvOiDTKEXEks1-hQwRfAsAB/pub?gid=0&single=true&output=csv';
+var XREF_LC_URL        = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhFWSOucxgvjzupSJqYTg8sJ3bRuyjT00rti6sSGIb_htQfLqjocLAIML0JBY9Mje8M_sHzoAKlO2i/pub?gid=995760857&single=true&output=csv';
+var XREF_COMP_STDS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJu44dkOHDeEZ_0mCnUvrsXw6REn-QtMdNlPXTLtvOSRlb3m2ZucvTPYBydIyg2iX228rBlexlvXzO/pub?gid=574178934&single=true&output=csv';
 
 var xrefCCSCRows  = null;  // [{code,text,credit,link,area,type,stage}]
 var xrefStudents  = null;  // {name->{al,gle,earned,credits:{normName->status}}}
+var xrefCompStds  = null;  // [{grade,domain,id,desc}]
 var xrefStudList  = [];
 var xrefView      = 'student';
 var xrefStudent   = '';
@@ -6972,11 +6975,50 @@ function xrefLoadData(cb){
     }
 }
 
+function xrefParseCompStds(text){
+    var rows = parseCSVFull(text);
+    var out = [];
+    for(var i=1;i<rows.length;i++){
+        var r=rows[i];
+        if(!r[2]) continue;
+        out.push({grade:(r[0]||'').trim(), domain:(r[1]||'').trim(), id:(r[2]||'').trim(), desc:(r[3]||'').trim()});
+    }
+    return out;
+}
+
+function xrefLoadCompDetail(cb){
+    var pending = 0;
+    function done(){ if(--pending===0) cb(); }
+
+    if(!xrefCCSCRows || !xrefStudents){ pending++; xrefLoadData(done); }
+
+    if(!xrefCompStds){
+        pending++;
+        fetch(XREF_COMP_STDS_URL).then(function(r){return r.text();}).then(function(t){
+            xrefCompStds = xrefParseCompStds(t); done();
+        }).catch(function(){ xrefCompStds=[]; done(); });
+    }
+
+    if(!compData){
+        pending++;
+        fetch(COMP_CSV_URL).then(function(r){return r.text();}).then(function(t){
+            compData = parseCompCsv(t); done();
+        }).catch(function(){ done(); });
+    }
+
+    if(pending===0) cb();
+}
+
 function xrefSetView(v){
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
-    var sel = document.getElementById('xref-student-sel');
-    if(sel) sel.style.display = (v==='student') ? '' : 'none';
+    var isStudentLike = (v==='student'||v==='comp-detail');
+    var sel      = document.getElementById('xref-student-sel');
+    var areaSel  = document.getElementById('xref-area-sel');
+    var gradeSel = document.getElementById('xref-grade-sel');
+    if(sel)      sel.style.display     = isStudentLike ? '' : 'none';
+    if(areaSel)  areaSel.style.display  = (v==='comp-detail') ? 'none' : '';
+    if(gradeSel) gradeSel.style.display = (v==='comp-detail') ? 'none' : '';
     renderXrefContent();
 }
 function xrefSetStudent(v){ xrefStudent=v; renderXrefContent(); }
@@ -7005,8 +7047,10 @@ function renderXref(){
 
 function renderXrefContent(){
     var el = document.getElementById('xref-content');
-    if(!el || !xrefCCSCRows) return;
-    if(xrefView==='student')   el.innerHTML = xrefStudentHTML();
+    if(!el) return;
+    if(xrefView==='comp-detail'){ xrefRenderCompDetail(); return; }
+    if(!xrefCCSCRows) return;
+    if(xrefView==='student')    el.innerHTML = xrefStudentHTML();
     else if(xrefView==='class') el.innerHTML = xrefClassHTML();
     else                        el.innerHTML = xrefStandardsHTML();
 }
@@ -7051,6 +7095,197 @@ function xrefCompareLabel(codeGrade, gleNum){
     if(codeGrade === gleNum) return '<span style="font-size:0.7rem;color:#0284c7;" title="At GLE — grade-level work">● Grade Level</span>';
     if(codeGrade === gleNum+1) return '<span style="font-size:0.7rem;color:#f59e0b;" title="One year above GLE">↑ Enrichment</span>';
     return '<span style="font-size:0.7rem;color:#10b981;" title="Well above GLE — advanced">↑↑ Advanced</span>';
+}
+
+/* ── VIEW 4: Computation Detail ── */
+function xrefRenderCompDetail(){
+    var el = document.getElementById('xref-content');
+    if(!el) return;
+    el.innerHTML = '<div style="padding:2rem;text-align:center;color:#86868b;"><div class="wd-spinner"></div><br>Loading computation data…</div>';
+    xrefLoadCompDetail(function(){
+        // Populate student dropdown if not yet done
+        var sel = document.getElementById('xref-student-sel');
+        if(sel && sel.options.length<=1 && xrefStudList.length){
+            xrefStudList.forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+            if(!xrefStudent) xrefStudent = xrefStudList[0];
+            sel.value = xrefStudent;
+        }
+        el.innerHTML = xrefCompDetailHTML();
+    });
+}
+
+function xrefCompDetailHTML(){
+    if(!xrefCompStds||!xrefCCSCRows||!xrefStudents)
+        return '<div style="padding:2rem;color:#86868b;">Data unavailable.</div>';
+    if(!xrefStudent)
+        return '<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>';
+
+    var sdata = xrefStudents[xrefStudent];
+    if(!sdata) return '<div style="padding:2rem;color:#86868b;">No data found for this student.</div>';
+
+    // Find this student's name in benchmark data (names may differ slightly)
+    var benchName = xrefStudent;
+    if(compData){
+        var normXref = xrefNorm(xrefStudent);
+        var found = compData.students.some(function(s){ return s.name===xrefStudent; });
+        if(!found){
+            compData.students.forEach(function(s){ if(xrefNorm(s.name)===normXref) benchName=s.name; });
+        }
+    }
+
+    // Build: standard code → credit rows
+    var stdCredits = {};
+    xrefCCSCRows.forEach(function(r){
+        if(!r.credit) return;
+        if(!stdCredits[r.code]) stdCredits[r.code]=[];
+        stdCredits[r.code].push(r);
+    });
+
+    // Build: standard code → benchmark questions
+    var stdBenchQs = {};
+    if(compData){
+        compData.questions.forEach(function(q){
+            if(!q.std) return;
+            if(!stdBenchQs[q.std]) stdBenchQs[q.std]=[];
+            stdBenchQs[q.std].push(q);
+        });
+    }
+
+    // Group standards by grade
+    var gradeGroups = {}, gradeOrder = [];
+    xrefCompStds.forEach(function(std){
+        var g = std.grade||'Other';
+        if(!gradeGroups[g]){ gradeGroups[g]=[]; gradeOrder.push(g); }
+        gradeGroups[g].push(std);
+    });
+    gradeOrder.sort(function(a,b){
+        var va=a==='K'?0:parseInt(a)||99, vb=b==='K'?0:parseInt(b)||99; return va-vb;
+    });
+
+    // Summary counters
+    var totEarned=0, totBench=0, totBoth=0, totNone=0;
+    xrefCompStds.forEach(function(std){
+        var credits = stdCredits[std.id]||[];
+        var best=''; credits.forEach(function(r){ var st=xrefCreditStatus(xrefStudent,r.credit); if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a'; });
+        var bqs = stdBenchQs[std.id]||[];
+        var benchMastered=false; bqs.forEach(function(q){ if(q.mastery[benchName]) benchMastered=true; });
+        if(best==='e') totEarned++;
+        if(benchMastered) totBench++;
+        if(best==='e'&&benchMastered) totBoth++;
+        if(best!=='e'&&!benchMastered) totNone++;
+    });
+
+    var gleNum = xrefGleNum(sdata.gle);
+    var html = '<div style="padding:1rem 1.25rem 0.5rem;">';
+    html += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
+    html += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
+    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
+    html += '</div>';
+
+    // Summary cards
+    var summCards = [
+        {l:'Credits Earned',v:totEarned,bg:'#d1fae5',tc:'#065f46'},
+        {l:'Benchmark Mastered',v:totBench,bg:'#dbeafe',tc:'#1e40af'},
+        {l:'Both Confirmed',v:totBoth,bg:'#ede9fe',tc:'#5b21b6'},
+        {l:'Neither Yet',v:totNone,bg:'#fee2e2',tc:'#991b1b'}
+    ];
+    html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
+    summCards.forEach(function(c){
+        html += '<div style="flex:1;min-width:110px;background:'+c.bg+';border-radius:10px;padding:0.6rem 0.9rem;">';
+        html += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</div>';
+        html += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;">'+c.l+'</div></div>';
+    });
+    html += '</div></div>';
+
+    // Per-grade tables
+    html += '<div style="padding:0 1.25rem 1.5rem;">';
+    gradeOrder.forEach(function(g){
+        var stds = gradeGroups[g];
+        // Grade-level summary
+        var gEarned=0, gBench=0;
+        stds.forEach(function(std){
+            var credits=stdCredits[std.id]||[], best='';
+            credits.forEach(function(r){ var st=xrefCreditStatus(xrefStudent,r.credit); if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a'; });
+            if(best==='e') gEarned++;
+            var bqs=stdBenchQs[std.id]||[]; var bm=false;
+            bqs.forEach(function(q){ if(q.mastery[benchName]) bm=true; });
+            if(bm) gBench++;
+        });
+        var gLabel = g==='K'?'Kindergarten':'Grade '+g;
+        html += '<div style="margin-bottom:0.25rem;margin-top:1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">';
+        html += '<div style="font-size:0.9rem;font-weight:700;color:#1d1d1f;">'+gLabel+'</div>';
+        html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
+        html += '<span style="padding:1px 8px;border-radius:8px;font-size:0.72rem;font-weight:600;background:#d1fae5;color:#065f46;">'+gEarned+' earned</span>';
+        html += '<span style="padding:1px 8px;border-radius:8px;font-size:0.72rem;font-weight:600;background:#dbeafe;color:#1e40af;">'+gBench+' benchmark ✓</span>';
+        html += '</div>';
+
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
+        html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+        ['Code','Domain','Description','Linked Credit','Credit Status','Benchmark'].forEach(function(h){
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+        });
+        html += '</tr></thead><tbody>';
+
+        stds.forEach(function(std, idx){
+            var credits = stdCredits[std.id]||[];
+            var best='', bestLink='', bestCredit='';
+            credits.forEach(function(r){
+                var st=xrefCreditStatus(xrefStudent,r.credit);
+                if(st==='e'){ best='e'; bestLink=r.link; bestCredit=r.credit; }
+                else if(st==='a'&&best!=='e'){ best='a'; bestLink=r.link; bestCredit=r.credit; }
+                else if(!best&&r.credit){ bestCredit=r.credit; bestLink=r.link; }
+            });
+
+            var bqs = stdBenchQs[std.id]||[];
+            var benchMastered=false, hasBench=bqs.length>0;
+            bqs.forEach(function(q){ if(q.mastery[benchName]) benchMastered=true; });
+
+            // Row color
+            var rowBg;
+            if(best==='e'&&benchMastered)       rowBg='#f0fdf4';  // green — both confirmed
+            else if(best==='e')                  rowBg='#dcfce7';  // light green — credit earned
+            else if(benchMastered)               rowBg='#eff6ff';  // blue — benchmark only
+            else if(best==='a')                  rowBg='#fffbeb';  // amber — in progress
+            else                                 rowBg=idx%2===0?'#ffffff':'#f9fafb';
+
+            html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0;">';
+            html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#6b7280;font-size:0.73rem;max-width:120px;">'+std.domain.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#374151;max-width:220px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;max-width:140px;">';
+            if(credits.length){
+                // Show all linked credits (first earned/in-progress one most prominent)
+                credits.slice(0,3).forEach(function(r,ci){
+                    if(ci>0) html += '<br>';
+                    if(r.link&&r.link!=='(no URL)')
+                        html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-size:0.73rem;text-decoration:none;">'+r.credit.replace(/</g,'&lt;')+'</a>';
+                    else
+                        html += '<span style="font-size:0.73rem;color:#374151;">'+r.credit.replace(/</g,'&lt;')+'</span>';
+                });
+                if(credits.length>3) html += '<br><span style="font-size:0.7rem;color:#9ca3af;">+' + (credits.length-3) + ' more</span>';
+            } else {
+                html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
+            }
+            html += '</td>';
+            // Credit status badge
+            html += '<td style="padding:0.45rem 0.6rem;white-space:nowrap;">';
+            if(best==='e')       html += '<span style="color:#065f46;font-weight:700;font-size:0.82rem;">✓ Earned</span>';
+            else if(best==='a')  html += '<span style="color:#92400e;font-size:0.78rem;">~ In Progress</span>';
+            else if(credits.length) html += '<span style="color:#9ca3af;font-size:0.75rem;">Not Started</span>';
+            else                 html += '<span style="color:#d1d5db;font-size:0.75rem;">No credit</span>';
+            html += '</td>';
+            // Benchmark badge
+            html += '<td style="padding:0.45rem 0.6rem;text-align:center;white-space:nowrap;">';
+            if(benchMastered)       html += '<span style="color:#15803d;font-size:1rem;font-weight:700;">✓</span>';
+            else if(hasBench)       html += '<span style="color:#ef4444;font-size:0.9rem;">✗</span>';
+            else                    html += '<span style="color:#d1d5db;font-size:0.75rem;">—</span>';
+            html += '</td></tr>';
+        });
+        html += '</tbody></table>';
+    });
+    html += '</div>';
+    return html;
 }
 
 /* ── VIEW 1: Student ── */
