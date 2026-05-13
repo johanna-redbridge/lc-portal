@@ -7235,64 +7235,92 @@ function xrefCompDetailHTML(){
 
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
         html += '<thead><tr style="background:#1d1d1f;">';
-        ['Code','Domain','Description','Linked Credit','Credit Status','Benchmark'].forEach(function(h){
-            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
+        [['A','CCSC Code'],['B','Description'],['C','Learning Credit'],['D','Credit Status'],['E','Benchmark Q#'],['F','Benchmark Status']].forEach(function(h){
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'
+                + '<span style="opacity:0.5;font-size:0.65rem;margin-right:3px;">'+h[0]+'</span>'+h[1]+'</th>';
         });
         html += '</tr></thead><tbody>';
 
         stds.forEach(function(std, idx){
             var credits = stdCredits[std.id]||[];
-            var best='', bestLink='', bestCredit='';
+            var best='';
             credits.forEach(function(r){
                 var st=xrefCreditStatus(xrefStudent,r.credit);
-                if(st==='e'){ best='e'; bestLink=r.link; bestCredit=r.credit; }
-                else if(st==='a'&&best!=='e'){ best='a'; bestLink=r.link; bestCredit=r.credit; }
-                else if(!best&&r.credit){ bestCredit=r.credit; bestLink=r.link; }
+                if(st==='e') best='e';
+                else if(st==='a'&&best!=='e') best='a';
             });
 
             var bqs = stdBenchQs[std.id]||[];
-            var benchMastered=false, hasBench=bqs.length>0;
-            bqs.forEach(function(q){ if(q.mastery[benchName]) benchMastered=true; });
+            var masteredCount=0;
+            bqs.forEach(function(q){ if(q.mastery[benchName]) masteredCount++; });
+            var hasBench = bqs.length>0;
+            var anyMastered = masteredCount>0;
 
             // Row color
             var rowBg;
-            if(best==='e'&&benchMastered)       rowBg='#f0fdf4';  // green — both confirmed
-            else if(best==='e')                  rowBg='#dcfce7';  // light green — credit earned
-            else if(benchMastered)               rowBg='#eff6ff';  // blue — benchmark only
-            else if(best==='a')                  rowBg='#fffbeb';  // amber — in progress
-            else                                 rowBg=idx%2===0?'#ffffff':'#f9fafb';
+            if(best==='e'&&anyMastered)  rowBg='#f0fdf4';
+            else if(best==='e')          rowBg='#dcfce7';
+            else if(anyMastered)         rowBg='#eff6ff';
+            else if(best==='a')          rowBg='#fffbeb';
+            else                         rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
             html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0;">';
+
+            // A: CCSC Code
             html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
-            html += '<td style="padding:0.45rem 0.6rem;color:#6b7280;font-size:0.73rem;max-width:120px;">'+std.domain.replace(/</g,'&lt;')+'</td>';
-            html += '<td style="padding:0.45rem 0.6rem;color:#374151;max-width:220px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
-            html += '<td style="padding:0.45rem 0.6rem;max-width:140px;">';
+
+            // B: Description
+            html += '<td style="padding:0.45rem 0.6rem;color:#374151;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+
+            // C: Learning Credit(s)
+            html += '<td style="padding:0.45rem 0.6rem;max-width:160px;">';
             if(credits.length){
-                // Show all linked credits (first earned/in-progress one most prominent)
-                credits.slice(0,3).forEach(function(r,ci){
+                credits.forEach(function(r,ci){
                     if(ci>0) html += '<br>';
                     if(r.link&&r.link!=='(no URL)')
-                        html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-size:0.73rem;text-decoration:none;">'+r.credit.replace(/</g,'&lt;')+'</a>';
+                        html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-size:0.75rem;text-decoration:none;font-weight:500;">'+r.credit.replace(/</g,'&lt;')+'</a>';
                     else
-                        html += '<span style="font-size:0.73rem;color:#374151;">'+r.credit.replace(/</g,'&lt;')+'</span>';
+                        html += '<span style="font-size:0.75rem;color:#374151;">'+r.credit.replace(/</g,'&lt;')+'</span>';
                 });
-                if(credits.length>3) html += '<br><span style="font-size:0.7rem;color:#9ca3af;">+' + (credits.length-3) + ' more</span>';
             } else {
                 html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
             }
             html += '</td>';
-            // Credit status badge
+
+            // D: Credit Status
             html += '<td style="padding:0.45rem 0.6rem;white-space:nowrap;">';
-            if(best==='e')       html += '<span style="color:#065f46;font-weight:700;font-size:0.82rem;">✓ Earned</span>';
-            else if(best==='a')  html += '<span style="color:#92400e;font-size:0.78rem;">~ In Progress</span>';
-            else if(credits.length) html += '<span style="color:#9ca3af;font-size:0.75rem;">Not Started</span>';
-            else                 html += '<span style="color:#d1d5db;font-size:0.75rem;">No credit</span>';
+            if(best==='e')          html += '<span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#d1fae5;color:#065f46;font-weight:700;font-size:0.75rem;">Earned</span>';
+            else if(best==='a')     html += '<span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:0.75rem;">Attempted</span>';
+            else if(credits.length) html += '<span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#f3f4f6;color:#9ca3af;font-size:0.75rem;">Not Yet</span>';
+            else                    html += '<span style="color:#d1d5db;font-size:0.73rem;">No credit</span>';
             html += '</td>';
-            // Benchmark badge
+
+            // E: Benchmark Question Numbers
+            html += '<td style="padding:0.45rem 0.6rem;white-space:nowrap;font-size:0.75rem;">';
+            if(hasBench){
+                bqs.forEach(function(q,qi){
+                    if(qi>0) html += ' ';
+                    var qMastered = q.mastery[benchName];
+                    var qColor = qMastered ? '#15803d' : '#6b7280';
+                    html += '<span style="display:inline-block;padding:1px 5px;border-radius:4px;border:1px solid '+(qMastered?'#86efac':'#d1d5db')+';color:'+qColor+';font-size:0.7rem;">Q'+q.q+'</span>';
+                });
+            } else {
+                html += '<span style="color:#d1d5db;">—</span>';
+            }
+            html += '</td>';
+
+            // F: Benchmark Status
             html += '<td style="padding:0.45rem 0.6rem;text-align:center;white-space:nowrap;">';
-            if(benchMastered)       html += '<span style="color:#15803d;font-size:1rem;font-weight:700;">✓</span>';
-            else if(hasBench)       html += '<span style="color:#ef4444;font-size:0.9rem;">✗</span>';
-            else                    html += '<span style="color:#d1d5db;font-size:0.75rem;">—</span>';
+            if(!hasBench){
+                html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
+            } else if(masteredCount===bqs.length){
+                html += '<span style="color:#15803d;font-size:1rem;font-weight:700;">✓</span>';
+                if(bqs.length>1) html += '<span style="font-size:0.65rem;color:#15803d;"> '+masteredCount+'/'+bqs.length+'</span>';
+            } else if(masteredCount===0){
+                html += '<span style="color:#ef4444;font-size:0.85rem;font-weight:600;">✗</span>';
+            } else {
+                html += '<span style="font-weight:600;color:#d97706;font-size:0.82rem;">'+masteredCount+'/'+bqs.length+'</span>';
+            }
             html += '</td></tr>';
         });
         html += '</tbody></table>';
