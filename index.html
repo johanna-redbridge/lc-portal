@@ -6942,16 +6942,19 @@ function xrefParseCCSC(text){
 
 function xrefParseLC(text){
     var rows = parseCSVFull(text);
-    if(!rows.length) return {byName:{}, names:[]};
-    var hdrs = rows[0];
+    if(rows.length < 2) return {byName:{}, names:[]};
+    // Row 0: domain labels (col F+) — ignored
+    // Row 1: credit names (col F+) — used as column headers
+    // Row 2+: student rows (A=name, B=AL, C=GLE, D=Earned, E=Att, F+=status)
+    var hdrs = rows[1];
     var byName = {}, names = [];
-    for(var i=1;i<rows.length;i++){
+    for(var i=2;i<rows.length;i++){
         var r = rows[i];
         if(!r[0]) continue;
         var name = r[0].trim();
         var credits = {};
         for(var j=5;j<hdrs.length;j++){
-            var cn = hdrs[j].trim();
+            var cn = (hdrs[j]||'').trim();
             if(!cn) continue;
             credits[xrefNorm(cn)] = (r[j]||'').trim().toLowerCase();
         }
