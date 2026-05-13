@@ -8336,11 +8336,16 @@ function renderCompTable() {
         html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.7rem;border-bottom:1px solid #e8e8ed;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
     });
     html += '</tr>';
-    // Row 2: Q numbers with standard as tooltip
+    // Row 2: Q numbers with CCSS standard code below
     html += '<tr>';
     gleGroups.forEach(function(grp) {
         grp.items.forEach(function(item) {
-            html += '<th style="text-align:center;font-size:0.63rem;white-space:nowrap;" title="' + item.q.std.replace(/"/g,'&quot;') + '">Q' + (item.q.q || (item.idx + 1)) + '</th>';
+            var stdCode = item.q.std
+                ? '<div style="font-size:0.54rem;color:#6e6e73;margin-top:2px;white-space:nowrap;">' + item.q.std.replace(/</g,'&lt;') + '</div>'
+                : '';
+            html += '<th style="text-align:center;font-size:0.63rem;vertical-align:top;padding:4px 3px;">'
+                + '<div>Q' + (item.q.q || (item.idx + 1)) + '</div>'
+                + stdCode + '</th>';
         });
     });
     html += '</tr></thead><tbody>';
@@ -8361,6 +8366,23 @@ function renderCompTable() {
     });
 
     html += '</tbody></table></div>';
+
+    // Standards covered legend
+    var stdsSeen = {}, stdsOrdered = [];
+    questions.forEach(function(q) {
+        if (q.std && !stdsSeen[q.std]) { stdsSeen[q.std] = true; stdsOrdered.push(q.std); }
+    });
+    if (stdsOrdered.length) {
+        html += '<div style="padding:0 1.25rem 1.25rem;">'
+            + '<div style="font-size:0.72rem;font-weight:600;color:#1d1d1f;margin-bottom:0.45rem;">Standards Covered</div>'
+            + '<div style="display:flex;flex-wrap:wrap;gap:0.35rem;">';
+        stdsOrdered.forEach(function(std) {
+            html += '<span style="background:#e8f0fe;color:#1a73e8;border-radius:6px;padding:2px 8px;font-size:0.68rem;font-family:ui-monospace,monospace;font-weight:500;">'
+                + std.replace(/</g,'&lt;') + '</span>';
+        });
+        html += '</div></div>';
+    }
+
     el.innerHTML = html;
 }
 
