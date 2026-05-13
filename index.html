@@ -6991,18 +6991,19 @@ function xrefParseCompStds(text){
     return out;
 }
 
+function xrefBuildCompStds(){
+    return XREF_ALL_CCSS
+        .filter(function(s){ var pre=s[0].split('.')[0]; return pre==='K'||!isNaN(parseInt(pre)); })
+        .map(function(s){ var pts=s[0].split('.'); return {grade:pts[0],domain:pts[1]||'',id:s[0],desc:s[1]}; });
+}
+
 function xrefLoadCompDetail(cb){
     var pending = 0;
     function done(){ if(--pending===0) cb(); }
 
-    if(!xrefCCSCRows || !xrefStudents){ pending++; xrefLoadData(done); }
+    if(!xrefCompStds){ xrefCompStds = xrefBuildCompStds(); }
 
-    if(!xrefCompStds){
-        pending++;
-        fetch(XREF_COMP_STDS_URL).then(function(r){return r.text();}).then(function(t){
-            xrefCompStds = xrefParseCompStds(t); done();
-        }).catch(function(){ xrefCompStds=[]; done(); });
-    }
+    if(!xrefCCSCRows || !xrefStudents){ pending++; xrefLoadData(done); }
 
     if(!compData){
         pending++;
@@ -7123,7 +7124,11 @@ function xrefRenderCompDetail(){
             if(!xrefStudent) xrefStudent = xrefStudList[0];
             sel.value = xrefStudent;
         }
-        el.innerHTML = xrefCompDetailHTML();
+        try {
+            el.innerHTML = xrefCompDetailHTML();
+        } catch(e) {
+            el.innerHTML = '<div style="padding:2rem;color:#ef4444;">Error rendering Computation view: '+e.message+'</div>';
+        }
     });
 }
 
