@@ -1256,7 +1256,7 @@
         <!-- ── Cross Reference sub-tab ── -->
         <div class="data-subtab-panel" id="data-subtab-xref" style="display:none;">
             <!-- filter bar -->
-            <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+            <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;row-gap:0.45rem;">
                 <div class="toggle-group">
                     <button class="toggle-btn xref-view-btn active" data-view="student" onclick="xrefSetView('student')">Student View</button>
                     <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
@@ -1266,23 +1266,28 @@
                 <select id="xref-student-sel" onchange="xrefSetStudent(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;max-width:180px;">
                     <option value="">— Select Student —</option>
                 </select>
-                <select id="xref-area-sel" onchange="xrefSetArea(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;">
-                    <option value="all">All Content Areas</option>
-                    <option value="Computation">Computation</option>
-                    <option value="Reading">Reading</option>
-                    <option value="Writing">Writing</option>
-                    <option value="CTWS">CTWS</option>
-                </select>
-                <select id="xref-grade-sel" onchange="xrefSetGrade(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;">
-                    <option value="all">All Grades</option>
-                    <option value="K">Kindergarten</option>
-                    <option value="1">Grade 1</option>
-                    <option value="2">Grade 2</option>
-                    <option value="3">Grade 3</option>
-                    <option value="4">Grade 4</option>
-                    <option value="5">Grade 5</option>
-                    <option value="6">Grade 6+</option>
-                </select>
+                <div id="xref-area-toggle" style="display:none;align-items:center;gap:0.4rem;">
+                    <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Subject</span>
+                    <div class="toggle-group">
+                        <button class="toggle-btn xref-area-btn active" data-area="all" onclick="xrefSetArea('all')">All</button>
+                        <button class="toggle-btn xref-area-btn" data-area="Computation" onclick="xrefSetArea('Computation')">Math</button>
+                        <button class="toggle-btn xref-area-btn" data-area="Reading" onclick="xrefSetArea('Reading')">Reading</button>
+                        <button class="toggle-btn xref-area-btn" data-area="Writing" onclick="xrefSetArea('Writing')">Writing</button>
+                    </div>
+                </div>
+                <div id="xref-grade-toggle" style="display:none;align-items:center;gap:0.4rem;">
+                    <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Grade</span>
+                    <div class="toggle-group">
+                        <button class="toggle-btn xref-grade-btn active" data-grade="all" onclick="xrefSetGrade('all')">All</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="K" onclick="xrefSetGrade('K')">K</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="1" onclick="xrefSetGrade('1')">1</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="2" onclick="xrefSetGrade('2')">2</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="3" onclick="xrefSetGrade('3')">3</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="4" onclick="xrefSetGrade('4')">4</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="5" onclick="xrefSetGrade('5')">5</button>
+                        <button class="toggle-btn xref-grade-btn" data-grade="6" onclick="xrefSetGrade('6')">6+</button>
+                    </div>
+                </div>
             </div>
             <div id="xref-content" style="padding:0;"></div>
         </div>
@@ -7013,17 +7018,25 @@ function xrefSetView(v){
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
     var isStudentLike = (v==='student'||v==='comp-detail');
-    var sel      = document.getElementById('xref-student-sel');
-    var areaSel  = document.getElementById('xref-area-sel');
-    var gradeSel = document.getElementById('xref-grade-sel');
-    if(sel)      sel.style.display     = isStudentLike ? '' : 'none';
-    if(areaSel)  areaSel.style.display  = (v==='comp-detail') ? 'none' : '';
-    if(gradeSel) gradeSel.style.display = (v==='comp-detail') ? 'none' : '';
+    var sel       = document.getElementById('xref-student-sel');
+    var areaTog   = document.getElementById('xref-area-toggle');
+    var gradeTog  = document.getElementById('xref-grade-toggle');
+    if(sel)      sel.style.display      = isStudentLike ? '' : 'none';
+    if(areaTog)  areaTog.style.display  = (v==='standards') ? 'flex' : 'none';
+    if(gradeTog) gradeTog.style.display = (v==='standards') ? 'flex' : 'none';
     renderXrefContent();
 }
 function xrefSetStudent(v){ xrefStudent=v; renderXrefContent(); }
-function xrefSetArea(v){ xrefAreaFilt=v; renderXrefContent(); }
-function xrefSetGrade(v){ xrefGradeFilt=v; renderXrefContent(); }
+function xrefSetArea(v){
+    xrefAreaFilt=v;
+    document.querySelectorAll('.xref-area-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.area===v); });
+    renderXrefContent();
+}
+function xrefSetGrade(v){
+    xrefGradeFilt=v;
+    document.querySelectorAll('.xref-grade-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.grade===v); });
+    renderXrefContent();
+}
 
 function renderXref(){
     var el = document.getElementById('xref-content');
@@ -7221,9 +7234,9 @@ function xrefCompDetailHTML(){
         html += '</div>';
 
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
-        html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+        html += '<thead><tr style="background:#1d1d1f;">';
         ['Code','Domain','Description','Linked Credit','Credit Status','Benchmark'].forEach(function(h){
-            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
         });
         html += '</tr></thead><tbody>';
 
@@ -7522,9 +7535,9 @@ function xrefStandardsHTML(){
     html += '</div>';
     html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    html += '<thead><tr style="background:#1d1d1f;">';
     ['Standard Code','Standard Text','Credits Addressing It','Students Earned','Class Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#ffffff;font-weight:600;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
     stdCodes.forEach(function(code, idx){
