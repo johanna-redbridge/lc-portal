@@ -1250,6 +1250,7 @@
             <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
                 <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Benchmark</button>
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
+                <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1274,6 +1275,11 @@
                     </div>
                 </div>
                 <div id="map-math-content"></div>
+            </div>
+            <!-- Fact Fluency -->
+            <div id="math-panel-fact-fluency" style="display:none;">
+                <div id="fact-fluency-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;"></div>
+                <div id="fact-fluency-content"></div>
             </div>
         </div>
 
@@ -6783,7 +6789,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['benchmark', 'map-math'].forEach(function(n) {
+    ['benchmark', 'map-math', 'fact-fluency'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -6791,8 +6797,9 @@ function switchMathSubtab(sub) {
 }
 
 function renderMathSubtab() {
-    if (mathSubtab === 'benchmark') renderComp();
-    if (mathSubtab === 'map-math')  renderMapMath();
+    if (mathSubtab === 'benchmark')    renderComp();
+    if (mathSubtab === 'map-math')     renderMapMath();
+    if (mathSubtab === 'fact-fluency') renderFactFluency();
 }
 
 function switchDataSubtab(name) {
@@ -9203,6 +9210,151 @@ function renderMapMath() {
     if (mapData) { renderMapMathTable(); return; }
     el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading MAP data…</p>';
     loadMapData(renderMapMathTable);
+}
+
+/* =========================================================
+   Fact Fluency
+   ========================================================= */
+var FACT_FLUENCY_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=866100423&single=true&output=csv';
+var factFluencyData = null;
+var ffGroupFilter   = 'all';
+var ffAlFilter      = 'all';
+
+function parseFactFluencyCsv(text) {
+    var rows = parseCSVFull(text);
+    // Row 1 (index 0): label cells — collect non-empty values for display
+    var labelParts = [];
+    if (rows[0]) rows[0].forEach(function(c) { if ((c||'').trim()) labelParts.push(c.trim()); });
+    var label = labelParts.join('  ·  ');
+    // Row 3+ (index 2+): student data
+    var students = [];
+    for (var i = 2; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[0]||'').trim();
+        if (!name) continue;
+        students.push({
+            name:  name,
+            al:    (r[1]||'').trim(),
+            gle:   (r[2]||'').trim(),
+            group: (r[3]||'').trim()
+        });
+    }
+    return { label: label, students: students };
+}
+
+function loadFactFluencyData(cb) {
+    if (factFluencyData) { cb(); return; }
+    fetch(FACT_FLUENCY_URL).then(function(r) { return r.text(); }).then(function(text) {
+        factFluencyData = parseFactFluencyCsv(text);
+        cb();
+    }).catch(function() {
+        factFluencyData = { label: '', students: [] };
+        cb();
+    });
+}
+
+function renderFactFluencyTable() {
+    var toolbar = document.getElementById('fact-fluency-toolbar');
+    var content = document.getElementById('fact-fluency-content');
+    if (!content || !factFluencyData) return;
+
+    var students = factFluencyData.students;
+
+    // Build filter options
+    var groups = [], als = [];
+    students.forEach(function(s) {
+        if (s.group && groups.indexOf(s.group) < 0) groups.push(s.group);
+        if (s.al    && als.indexOf(s.al)       < 0) als.push(s.al);
+    });
+    groups.sort(); als.sort();
+
+    // Toolbar
+    if (toolbar) {
+        var th = '';
+        if (factFluencyData.label) {
+            th += '<span style="font-size:0.8rem;font-weight:600;color:#1d1d1f;margin-right:0.5rem;">' + factFluencyData.label.replace(/</g,'&lt;') + '</span>';
+        }
+        // AL filter
+        if (als.length > 1) {
+            th += '<div class="toggle-group">';
+            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" data-al="all" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">All</button>';
+            als.forEach(function(a) {
+                th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter===a?' active':'') + '" data-al="' + a + '" onclick="ffAlFilter=\'' + a.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">' + a.replace(/</g,'&lt;') + '</button>';
+            });
+            th += '</div>';
+        }
+        // Group filter
+        if (groups.length > 1) {
+            th += '<div class="toggle-group" style="margin-left:0.5rem;">';
+            th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter==='all'?' active':'') + '" data-grp="all" onclick="ffGroupFilter=\'all\';renderFactFluencyTable()">All Groups</button>';
+            groups.forEach(function(g) {
+                th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter===g?' active':'') + '" data-grp="' + g.replace(/"/g,'&quot;') + '" onclick="ffGroupFilter=\'' + g.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">' + g.replace(/</g,'&lt;') + '</button>';
+            });
+            th += '</div>';
+        }
+        toolbar.innerHTML = th;
+    }
+
+    // Filter
+    var filtered = students.filter(function(s) {
+        if (ffAlFilter    !== 'all' && s.al    !== ffAlFilter)    return false;
+        if (ffGroupFilter !== 'all' && s.group !== ffGroupFilter) return false;
+        return true;
+    });
+
+    if (!filtered.length) {
+        content.innerHTML = '<p style="padding:1.5rem;color:#aeaeb2;font-size:0.85rem;">No students match the selected filters.</p>';
+        return;
+    }
+
+    // Group rows by group value
+    var groupOrder = [];
+    var byGroup = {};
+    filtered.forEach(function(s) {
+        var g = s.group || '—';
+        if (!byGroup[g]) { byGroup[g] = []; groupOrder.push(g); }
+        byGroup[g].push(s);
+    });
+
+    var html = '<div style="padding:1rem 1.25rem;">';
+    groupOrder.forEach(function(g) {
+        var rows = byGroup[g];
+        html += '<div style="margin-bottom:1.25rem;">';
+        if (ffGroupFilter === 'all') {
+            html += '<div style="font-size:0.72rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.4rem;">Group: ' + g.replace(/</g,'&lt;') + '</div>';
+        }
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+        html += '<thead><tr style="background:#f5f5f7;">';
+        html += '<th style="padding:0.45rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">Student</th>';
+        html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">AL</th>';
+        html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">GLE</th>';
+        if (ffGroupFilter === 'all') {
+            html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">Group</th>';
+        }
+        html += '</tr></thead><tbody>';
+        rows.forEach(function(s, idx) {
+            var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+            html += '<tr style="background:' + rowBg + ';">';
+            html += '<td style="padding:0.45rem 0.75rem;color:#1d1d1f;font-weight:500;">' + s.name.replace(/</g,'&lt;') + '</td>';
+            html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.al||'—').replace(/</g,'&lt;') + '</td>';
+            html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.gle||'—').replace(/</g,'&lt;') + '</td>';
+            if (ffGroupFilter === 'all') {
+                html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.group||'—').replace(/</g,'&lt;') + '</td>';
+            }
+            html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+    });
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+function renderFactFluency() {
+    var content = document.getElementById('fact-fluency-content');
+    if (!content) return;
+    if (factFluencyData) { renderFactFluencyTable(); return; }
+    content.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
+    loadFactFluencyData(renderFactFluencyTable);
 }
 
 function renderMapEla() {
