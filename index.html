@@ -7869,18 +7869,13 @@ function coreDonutSvg(total) {
         + '</svg>';
 }
 
-function coreGrowthBarHtml(fromTotal, toTotal, label) {
+function coreBoyMoyHtml(fromTotal, toTotal) {
     if (fromTotal === null || toTotal === null)
-        return '<div style="font-size:0.55rem;color:#aeaeb2;text-align:center;">'+label+'<br><span style="color:#d1d1d6;">—</span></div>';
+        return '<span style="color:#d1d1d6;font-size:0.7rem;">—</span>';
     var delta = toTotal - fromTotal;
-    var barPct = Math.abs(delta) / CORE_TOTAL_MAX * 100;
-    var color = delta > 5 ? '#8cd47e' : delta > 0 ? '#c4eabb' : delta === 0 ? '#d1d1d6' : '#ff6961';
     var sign = delta > 0 ? '+' : '';
-    return '<div style="font-size:0.55rem;color:#aeaeb2;margin-bottom:2px;text-align:center;">'+label+'</div>'
-        + '<div style="width:52px;height:7px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin:0 auto;">'
-        + '<div style="width:'+barPct.toFixed(1)+'%;height:100%;background:'+color+';border-radius:3px;"></div>'
-        + '</div>'
-        + '<div style="text-align:center;font-size:0.6rem;color:#374151;margin-top:2px;font-weight:600;">'+sign+delta+'</div>';
+    var color = delta > 0 ? '#2d6e30' : delta < 0 ? '#c0392b' : '#86868b';
+    return '<span style="font-size:0.78rem;font-weight:600;color:'+color+';">'+sign+delta+'</span>';
 }
 
 function renderCore() {
@@ -7929,13 +7924,13 @@ function renderCore() {
         }
         html += '</td>';
 
-        // BOY→MOY growth bar
+        // BOY→MOY: plain number only
         html += '<td style="padding:3px 5px;vertical-align:middle;text-align:center;">'
-            + coreGrowthBarHtml(fallT, winterT, 'BOY→MOY') + '</td>';
+            + coreBoyMoyHtml(fallT, winterT) + '</td>';
 
-        // MOY→EOY growth bar
+        // MOY→EOY: no data yet
         html += '<td style="padding:3px 5px;vertical-align:middle;text-align:center;">'
-            + coreGrowthBarHtml(winterT, springT, 'MOY→EOY') + '</td>';
+            + '<span style="font-size:0.68rem;color:#aeaeb2;">no data</span>' + '</td>';
 
         if (isAll) {
             html += '<td style="padding:2px 4px;vertical-align:middle;white-space:nowrap;">'
