@@ -7203,8 +7203,16 @@ function xrefCompDetailHTML(){
     var benchNameFound = false;
     if(compData){
         var normXref = xrefNorm(xrefStudent);
+        // 0. Alias/nickname override map
+        if(BENCH_NAME_ALIASES[xrefStudent]){
+            var alias = BENCH_NAME_ALIASES[xrefStudent].toLowerCase();
+            compData.students.forEach(function(s){
+                if(!benchNameFound && s.name.trim().toLowerCase()===alias){ benchName=s.name; benchNameFound=true; }
+            });
+        }
         // 1. Exact match
-        benchNameFound = compData.students.some(function(s){ return s.name===xrefStudent; });
+        if(!benchNameFound)
+            benchNameFound = compData.students.some(function(s){ return s.name===xrefStudent; });
         // 2. Normalized full-name match
         if(!benchNameFound){
             compData.students.forEach(function(s){ if(xrefNorm(s.name)===normXref){ benchName=s.name; benchNameFound=true; } });
@@ -8815,6 +8823,12 @@ function renderMapEla() {
    Computation Benchmark
    ========================================================= */
 var COMP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=1059724266&single=true&output=csv';
+
+// Maps LC sheet full name → benchmark CSV first name, for nicknames/aliases
+var BENCH_NAME_ALIASES = {
+    'Abigail Martinez': 'Abby'
+};
+
 var compData       = null;
 var compGroupFilter = 'all';
 
