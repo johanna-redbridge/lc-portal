@@ -6787,7 +6787,7 @@ var xrefStudent   = '';
 var xrefAreaFilt  = 'all';
 var xrefGradeFilt = 'all';
 
-function xrefNorm(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim(); }
+function xrefNorm(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\bto\b/g,' ').replace(/\s+/g,' ').trim(); }
 
 function xrefGradeNum(code){
     if(!code) return -1;
