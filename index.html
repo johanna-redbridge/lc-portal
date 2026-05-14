@@ -907,6 +907,7 @@
         .subpanel-toolbar { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
         #xref-filter-bar { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
         #xref-comp-header { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
+        #xref-read-header { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
         #comp-filters { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
 
         /* ── Writing Dashboard scoped styles ── */
@@ -1284,6 +1285,7 @@
                     <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
                     <button class="toggle-btn xref-view-btn" data-view="standards" onclick="xrefSetView('standards')">By Standard</button>
                     <button class="toggle-btn xref-view-btn" data-view="comp-detail" onclick="xrefSetView('comp-detail')">Computation</button>
+                    <button class="toggle-btn xref-view-btn" data-view="read-detail" onclick="xrefSetView('read-detail')">Reading</button>
                 </div>
                 <select id="xref-student-sel" onchange="xrefSetStudent(this.value)" style="padding:0.3rem 0.6rem;border:1px solid #d2d2d7;border-radius:7px;font-size:0.82rem;background:#fff;cursor:pointer;max-width:180px;">
                     <option value="">— Select Student —</option>
@@ -1316,6 +1318,7 @@
                 </div>
             </div>
             <div id="xref-comp-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
+            <div id="xref-read-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
             <div id="xref-content" style="padding:0;"></div>
         </div>
 
@@ -6840,6 +6843,7 @@ var XREF_COMP_STDS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJu44
 var xrefCCSCRows  = null;  // [{code,text,credit,link,area,type,stage}]
 var xrefStudents  = null;  // {name->{al,gle,earned,credits:{normName->status}}}
 var xrefCompStds  = null;  // [{grade,domain,id,desc}]
+var xrefReadStds  = null;  // [{gradeNum,grade,domain,id,desc}]
 var xrefStudList  = [];
 var xrefView      = 'student';
 var xrefStudent   = '';
@@ -7077,14 +7081,251 @@ function xrefLoadCompDetail(cb){
     if(pending===0) cb();
 }
 
+function xrefBuildReadStds(){
+    if(!xrefCCSCRows) return [];
+    var seen = {};
+    var result = [];
+    xrefCCSCRows.forEach(function(r){
+        if(r.area !== 'Reading' && r.area !== 'Writing') return;
+        if(seen[r.code]) return;
+        seen[r.code] = true;
+        var gn = xrefGradeNum(r.code);
+        var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
+        var dom = (r.code||'').split('.')[0];
+        result.push({gradeNum:gn, grade:g, domain:dom, id:r.code, desc:r.text||''});
+    });
+    result.sort(function(a,b){
+        if(a.gradeNum !== b.gradeNum) return a.gradeNum - b.gradeNum;
+        if(a.domain < b.domain) return -1; if(a.domain > b.domain) return 1;
+        if(a.id < b.id) return -1; if(a.id > b.id) return 1;
+        return 0;
+    });
+    return result;
+}
+
+function xrefLoadReadDetail(cb){
+    var pending = 0;
+    function done(){ if(--pending===0) cb(); }
+    if(!xrefCCSCRows || !xrefStudents){
+        pending++;
+        xrefLoadData(function(){ xrefReadStds = xrefBuildReadStds(); done(); });
+    } else if(!xrefReadStds){
+        xrefReadStds = xrefBuildReadStds();
+    }
+    if(!lexiaStdsData){
+        pending++;
+        fetch(LEXIA_STDS_URL).then(function(r){return r.text();}).then(function(t){
+            lexiaStdsData = parseStandardsCsv(t); done();
+        }).catch(function(){ lexiaStdsData = {grades:[],standards:[],students:[]}; done(); });
+    }
+    if(pending===0) cb();
+}
+
+function xrefRenderReadDetail(){
+    var el = document.getElementById('xref-content');
+    if(!el) return;
+    el.innerHTML = '<div style="padding:2rem;text-align:center;color:#86868b;"><div class="wd-spinner"></div><br>Loading reading data…</div>';
+    xrefLoadReadDetail(function(){
+        var sel = document.getElementById('xref-student-sel');
+        if(sel && sel.options.length<=1 && xrefStudList.length){
+            xrefStudList.forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+            if(!xrefStudent) xrefStudent = xrefStudList[0];
+            sel.value = xrefStudent;
+        }
+        try {
+            var parts = xrefReadDetailHTML();
+            var hdr = document.getElementById('xref-read-header');
+            if(hdr){ hdr.innerHTML = parts.header; hdr.style.display = parts.header ? '' : 'none'; }
+            el.innerHTML = parts.body;
+        } catch(e) {
+            el.innerHTML = '<div style="padding:2rem;color:#ef4444;">Error rendering Reading view: '+e.message+'</div>';
+        }
+    });
+}
+
+function xrefReadDetailHTML(){
+    if(!xrefReadStds||!xrefCCSCRows||!xrefStudents)
+        return {header:'', body:'<div style="padding:2rem;color:#86868b;">Data unavailable.</div>'};
+    if(!xrefStudent)
+        return {header:'', body:'<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>'};
+
+    var sdata = xrefStudents[xrefStudent];
+    if(!sdata) return {header:'', body:'<div style="padding:2rem;color:#86868b;">No data found for this student.</div>'};
+
+    // Find student in Lexia Standards data
+    var lexiaStudent = null;
+    if(lexiaStdsData && lexiaStdsData.students.length){
+        var normXref = xrefNorm(xrefStudent);
+        if(BENCH_NAME_ALIASES[xrefStudent]){
+            var alias = BENCH_NAME_ALIASES[xrefStudent].toLowerCase();
+            lexiaStdsData.students.forEach(function(s){
+                if(!lexiaStudent && s.name.trim().toLowerCase()===alias) lexiaStudent = s;
+            });
+        }
+        if(!lexiaStudent)
+            lexiaStudent = lexiaStdsData.students.find(function(s){ return s.name===xrefStudent; })||null;
+        if(!lexiaStudent)
+            lexiaStudent = lexiaStdsData.students.find(function(s){ return xrefNorm(s.name)===normXref; })||null;
+        if(!lexiaStudent){
+            var firstName = xrefStudent.split(/\s+/)[0].toLowerCase();
+            lexiaStudent = lexiaStdsData.students.find(function(s){ return s.name.trim().toLowerCase().split(/\s+/)[0]===firstName; })||null;
+        }
+    }
+
+    // Build standard code → credit rows (reading/writing only)
+    var stdCredits = {};
+    xrefCCSCRows.forEach(function(r){
+        if(r.area !== 'Reading' && r.area !== 'Writing') return;
+        if(!r.credit) return;
+        if(!stdCredits[r.code]) stdCredits[r.code]=[];
+        stdCredits[r.code].push(r);
+    });
+
+    // Build Lexia score lookup: stripped code → pct
+    var lexiaScores = {};
+    if(lexiaStudent){
+        Object.keys(lexiaStudent.scores).forEach(function(k){
+            var stripped = k.replace(/^CA-CCSS\./i, '');
+            lexiaScores[stripped] = lexiaStudent.scores[k];
+        });
+    }
+
+    // Group by grade (already sorted from build step)
+    var gradeGroups = {}, gradeOrder = [];
+    xrefReadStds.forEach(function(std){
+        var g = std.grade||'Other';
+        if(!gradeGroups[g]){ gradeGroups[g]=[]; gradeOrder.push(g); }
+        gradeGroups[g].push(std);
+    });
+
+    var gleNum = xrefGleNum(sdata.gle);
+
+    // Summary counters
+    var totEarned=0, totLexia=0, totBoth=0, totAtGle=0, totLexiaAtGle=0;
+    xrefReadStds.forEach(function(std){
+        var gradeN = std.gradeNum;
+        var atGle = gleNum >= 0 && gradeN >= 0 && gradeN <= gleNum;
+        var credits = stdCredits[std.id]||[];
+        var best='';
+        credits.forEach(function(r){ var st=xrefCreditStatus(xrefStudent,r.credit); if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a'; });
+        var lexPct = lexiaScores.hasOwnProperty(std.id) ? lexiaScores[std.id] : null;
+        var lexMastered = lexPct === 100;
+        if(atGle && credits.length>0) totAtGle++;
+        if(atGle && lexPct !== null) totLexiaAtGle++;
+        if(best==='e') totEarned++;
+        if(lexMastered) totLexia++;
+        if(best==='e'&&lexMastered) totBoth++;
+    });
+
+    var headerHtml = '<div style="padding:1rem 1.25rem 0.5rem;">';
+    headerHtml += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
+    headerHtml += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
+    if(!lexiaStudent) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">No Lexia data matched</span>';
+    headerHtml += '</div>';
+    var summCards = [
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#c4eabb',tc:'#1d1d1f'},
+        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#8cd47e',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#6db86d',tc:'#1d1d1f'}
+    ];
+    headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
+    summCards.forEach(function(c){
+        headerHtml += '<div style="flex:1;min-width:120px;background:'+c.bg+';border-radius:10px;padding:0.6rem 0.9rem;">';
+        if(c.tot !== undefined){
+            headerHtml += '<div style="display:flex;align-items:baseline;gap:4px;">'
+                + '<span style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</span>'
+                + '<span style="font-size:0.82rem;font-weight:600;color:'+c.tc+';opacity:0.65;">/ '+c.tot+'</span>'
+                + '</div>';
+        } else {
+            headerHtml += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</div>';
+        }
+        headerHtml += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;margin-top:2px;">'+c.l+'</div></div>';
+    });
+    headerHtml += '</div></div>';
+
+    var html = '<div style="padding:0 1.25rem 1.5rem;">';
+    gradeOrder.forEach(function(g){
+        var stds = gradeGroups[g];
+        var gLabel = g==='K'?'Kindergarten':'Grade '+g;
+        html += '<div style="margin-bottom:0.25rem;margin-top:1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">';
+        html += '<div style="font-size:0.9rem;font-weight:700;color:#1d1d1f;">'+gLabel+'</div>';
+        html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
+        html += '</div>';
+
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
+        html += '<thead><tr style="background:#1d1d1f;">';
+        ['CCSC Code','Description','Learning Credit','Credit Status','Lexia %'].forEach(function(h){
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
+        });
+        html += '</tr></thead><tbody>';
+
+        stds.forEach(function(std, idx){
+            var credits = stdCredits[std.id]||[];
+            var best='';
+            credits.forEach(function(r){
+                var st=xrefCreditStatus(xrefStudent,r.credit);
+                if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a';
+            });
+            var lexPct = lexiaScores.hasOwnProperty(std.id) ? lexiaScores[std.id] : null;
+            var lexMastered = lexPct === 100;
+
+            var rowBg;
+            if(best==='e'&&lexMastered)   rowBg='#6db86d';
+            else if(best==='e')           rowBg='#c4eabb';
+            else if(lexMastered)          rowBg='#8cd47e';
+            else if(best==='a')           rowBg='#fffbeb';
+            else                          rowBg=idx%2===0?'#ffffff':'#f9fafb';
+
+            html += '<tr style="background:'+rowBg+';color:#1d1d1f;border-bottom:1px solid #f0f0f0;">';
+            html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;max-width:160px;">';
+            if(credits.length){
+                credits.forEach(function(r,ci){
+                    if(ci>0) html += '<br>';
+                    if(r.link&&r.link!=='(no URL)')
+                        html += '<a href="'+r.link+'" target="_blank" style="color:#1d1d1f;font-size:0.75rem;text-decoration:none;font-weight:600;">'+r.credit.replace(/</g,'&lt;')+'</a>';
+                    else
+                        html += '<span style="font-size:0.75rem;color:#1d1d1f;font-weight:600;">'+r.credit.replace(/</g,'&lt;')+'</span>';
+                });
+            } else { html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>'; }
+            html += '</td>';
+            html += '<td style="padding:0.45rem 0.6rem;text-align:center;white-space:nowrap;">';
+            if(best==='e')          html += '<span class="earned-icon earned-yes">✓</span>';
+            else if(best==='a')     html += '<span class="earned-icon attempted-icon">~</span>';
+            else if(credits.length) html += '<span class="earned-icon earned-no">–</span>';
+            else                    html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
+            html += '</td>';
+            html += '<td style="padding:0.45rem 0.6rem;text-align:center;white-space:nowrap;">';
+            if(lexPct === null){
+                html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
+            } else if(lexMastered){
+                html += '<span class="earned-icon earned-yes">✓</span>';
+            } else {
+                var pctColor = lexPct >= 80 ? '#16a34a' : lexPct >= 50 ? '#d97706' : '#dc2626';
+                html += '<span style="font-size:0.8rem;font-weight:600;color:'+pctColor+';">'+Math.round(lexPct)+'%</span>';
+            }
+            html += '</td></tr>';
+        });
+        html += '</tbody></table>';
+    });
+    html += '</div>';
+    return {header: headerHtml, body: html};
+}
+
 function xrefSetView(v){
     if(xrefView === 'comp-detail' && v !== 'comp-detail'){
         var hdr = document.getElementById('xref-comp-header');
         if(hdr){ hdr.style.display='none'; hdr.innerHTML=''; }
     }
+    if(xrefView === 'read-detail' && v !== 'read-detail'){
+        var hdr = document.getElementById('xref-read-header');
+        if(hdr){ hdr.style.display='none'; hdr.innerHTML=''; }
+    }
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
-    var isStudentLike = (v==='student'||v==='comp-detail');
+    var isStudentLike = (v==='student'||v==='comp-detail'||v==='read-detail');
     var sel       = document.getElementById('xref-student-sel');
     var areaTog   = document.getElementById('xref-area-toggle');
     var gradeTog  = document.getElementById('xref-grade-toggle');
@@ -7129,6 +7370,7 @@ function renderXrefContent(){
     var el = document.getElementById('xref-content');
     if(!el) return;
     if(xrefView==='comp-detail'){ xrefRenderCompDetail(); return; }
+    if(xrefView==='read-detail'){ xrefRenderReadDetail(); return; }
     if(!xrefCCSCRows) return;
     if(xrefView==='student')    el.innerHTML = xrefStudentHTML();
     else if(xrefView==='class') el.innerHTML = xrefClassHTML();
