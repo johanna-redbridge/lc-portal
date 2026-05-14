@@ -9452,7 +9452,7 @@ function parseCompCsv(text) {
     var students = [];
     for (var j = 4; j < nameRow.length; j++) {
         var n = (nameRow[j] || '').trim();
-        if (!n || /^GLE\s+(#|%)/i.test(n)) continue;
+        if (!n || /^GLE\b/i.test(n)) continue;
         students.push({ name: n, group: (groupRow[j] || '').trim(), col: j });
     }
 
