@@ -7287,7 +7287,7 @@ function xrefCompDetailHTML(){
     });
 
     // Summary counters
-    var totEarned=0, totBench=0, totBoth=0, totNone=0;
+    var totEarned=0, totBench=0, totBoth=0;
     xrefCompStds.forEach(function(std){
         var credits = stdCredits[std.id]||[];
         var best=''; credits.forEach(function(r){ var st=xrefCreditStatus(xrefStudent,r.credit); if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a'; });
@@ -7296,10 +7296,17 @@ function xrefCompDetailHTML(){
         if(best==='e') totEarned++;
         if(benchMastered) totBench++;
         if(best==='e'&&benchMastered) totBoth++;
-        if(best!=='e'&&!benchMastered) totNone++;
     });
 
     var gleNum = xrefGleNum(sdata.gle);
+
+    // Count standards with at least one credit mapping that are at or below student's GLE
+    var totAtGle = 0;
+    xrefCompStds.forEach(function(std){
+        var gradeN = std.grade==='K' ? 0 : (parseInt(std.grade)||99);
+        if(gleNum >= 0 && gradeN <= gleNum && (stdCredits[std.id]||[]).length > 0) totAtGle++;
+    });
+
     var html = diagHtml + '<div style="padding:1rem 1.25rem 0.5rem;">';
     html += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
     html += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
@@ -7309,10 +7316,10 @@ function xrefCompDetailHTML(){
 
     // Summary cards
     var summCards = [
-        {l:'Credits Earned',v:totEarned,bg:'#d1fae5',tc:'#065f46'},
-        {l:'Benchmark Mastered',v:totBench,bg:'#dbeafe',tc:'#1e40af'},
-        {l:'Both Confirmed',v:totBoth,bg:'#ede9fe',tc:'#5b21b6'},
-        {l:'Neither Yet',v:totNone,bg:'#fee2e2',tc:'#991b1b'}
+        {l:'Credits Earned',v:totEarned,bg:'#c4eabb',tc:'#2d6e30'},
+        {l:'Benchmark Mastered',v:totBench,bg:'#8cd47e',tc:'#1a4d1e'},
+        {l:'Both Confirmed',v:totBoth,bg:'#5a9e5a',tc:'#ffffff'},
+        {l:'Available at GLE '+(sdata.gle||'?'),v:totAtGle,bg:'#f3f4f6',tc:'#374151'}
     ];
     html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
