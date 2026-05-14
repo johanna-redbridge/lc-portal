@@ -9220,26 +9220,68 @@ var factFluencyData = null;
 var ffGroupFilter   = 'all';
 var ffAlFilter      = 'all';
 
+function ffShortLabel(label) {
+    return (label||'')
+        .replace(/\s*Facts?\s*/i, '')
+        .replace(/\s*Grade\s*/i, ' ')
+        .replace(/Addition/i, 'Add')
+        .replace(/Subtraction/i, 'Sub')
+        .replace(/Multiplication/i, '×')
+        .replace(/Division/i, '÷')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function ffPctNum(pctStr) {
+    var n = parseFloat((pctStr||'').replace('%',''));
+    return isNaN(n) ? null : n;
+}
+
+function ffCellBg(pct) {
+    if (pct === null) return '';
+    if (pct >= 80) return '#d6f5c6';
+    if (pct >= 50) return '#fffacc';
+    return '#ffe5e5';
+}
+
 function parseFactFluencyCsv(text) {
     var rows = parseCSVFull(text);
-    // Row 1 (index 0): label cells — collect non-empty values for display
-    var labelParts = [];
-    if (rows[0]) rows[0].forEach(function(c) { if ((c||'').trim()) labelParts.push(c.trim()); });
-    var label = labelParts.join('  ·  ');
-    // Row 3+ (index 2+): student data
+    if (rows.length < 3) return { ops: [], students: [] };
+    var opRow  = rows[0] || [];   // row 1: operation labels at cols 4, 6, 8, …
+    var subRow = rows[1] || [];   // row 2: "# correct (up to N)" / "% correct"
+    // Parse operations: label every 2 cols starting at index 4
+    var ops = [];
+    for (var c = 4; c < Math.max(opRow.length, subRow.length); c += 2) {
+        var label  = (opRow[c]  || '').trim();
+        var subHdr = (subRow[c] || '').trim();
+        var maxMatch = subHdr.match(/up to (\d+)/i);
+        var max = maxMatch ? parseInt(maxMatch[1]) : null;
+        if (!label && !max) continue;
+        ops.push({ label: label || ('Col '+(c+1)), colIdx: c, max: max });
+    }
+    // Parse student rows (index 2+)
     var students = [];
     for (var i = 2; i < rows.length; i++) {
         var r = rows[i];
         var name = (r[0]||'').trim();
         if (!name) continue;
+        var facts = ops.map(function(op) {
+            return {
+                label: op.label,
+                max:   op.max,
+                count: (r[op.colIdx]     || '').trim(),
+                pct:   (r[op.colIdx + 1] || '').trim()
+            };
+        });
         students.push({
             name:  name,
             al:    (r[1]||'').trim(),
             gle:   (r[2]||'').trim(),
-            group: (r[3]||'').trim()
+            group: (r[3]||'').trim(),
+            facts: facts
         });
     }
-    return { label: label, students: students };
+    return { ops: ops, students: students };
 }
 
 function loadFactFluencyData(cb) {
@@ -9248,7 +9290,7 @@ function loadFactFluencyData(cb) {
         factFluencyData = parseFactFluencyCsv(text);
         cb();
     }).catch(function() {
-        factFluencyData = { label: '', students: [] };
+        factFluencyData = { ops: [], students: [] };
         cb();
     });
 }
@@ -9259,8 +9301,9 @@ function renderFactFluencyTable() {
     if (!content || !factFluencyData) return;
 
     var students = factFluencyData.students;
+    var ops      = factFluencyData.ops;
 
-    // Build filter options
+    // Build filter option lists
     var groups = [], als = [];
     students.forEach(function(s) {
         if (s.group && groups.indexOf(s.group) < 0) groups.push(s.group);
@@ -9271,31 +9314,26 @@ function renderFactFluencyTable() {
     // Toolbar
     if (toolbar) {
         var th = '';
-        if (factFluencyData.label) {
-            th += '<span style="font-size:0.8rem;font-weight:600;color:#1d1d1f;margin-right:0.5rem;">' + factFluencyData.label.replace(/</g,'&lt;') + '</span>';
-        }
-        // AL filter
         if (als.length > 1) {
             th += '<div class="toggle-group">';
-            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" data-al="all" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">All</button>';
+            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">All</button>';
             als.forEach(function(a) {
-                th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter===a?' active':'') + '" data-al="' + a + '" onclick="ffAlFilter=\'' + a.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">' + a.replace(/</g,'&lt;') + '</button>';
+                th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter===a?' active':'') + '" onclick="ffAlFilter=\'' + a.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">AL' + a.replace(/</g,'&lt;') + '</button>';
             });
             th += '</div>';
         }
-        // Group filter
         if (groups.length > 1) {
-            th += '<div class="toggle-group" style="margin-left:0.5rem;">';
-            th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter==='all'?' active':'') + '" data-grp="all" onclick="ffGroupFilter=\'all\';renderFactFluencyTable()">All Groups</button>';
+            th += '<div class="toggle-group">';
+            th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter==='all'?' active':'') + '" onclick="ffGroupFilter=\'all\';renderFactFluencyTable()">All Groups</button>';
             groups.forEach(function(g) {
-                th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter===g?' active':'') + '" data-grp="' + g.replace(/"/g,'&quot;') + '" onclick="ffGroupFilter=\'' + g.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">' + g.replace(/</g,'&lt;') + '</button>';
+                th += '<button class="toggle-btn ff-grp-btn' + (ffGroupFilter===g?' active':'') + '" onclick="ffGroupFilter=\'' + g.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">' + g.replace(/</g,'&lt;') + '</button>';
             });
             th += '</div>';
         }
         toolbar.innerHTML = th;
     }
 
-    // Filter
+    // Filter students
     var filtered = students.filter(function(s) {
         if (ffAlFilter    !== 'all' && s.al    !== ffAlFilter)    return false;
         if (ffGroupFilter !== 'all' && s.group !== ffGroupFilter) return false;
@@ -9307,45 +9345,68 @@ function renderFactFluencyTable() {
         return;
     }
 
-    // Group rows by group value
-    var groupOrder = [];
-    var byGroup = {};
-    filtered.forEach(function(s) {
-        var g = s.group || '—';
-        if (!byGroup[g]) { byGroup[g] = []; groupOrder.push(g); }
-        byGroup[g].push(s);
+    // Only show operation columns that have at least one student with data
+    var activeOps = ops.filter(function(op, oi) {
+        return filtered.some(function(s) { return s.facts[oi] && s.facts[oi].count !== ''; });
     });
 
-    var html = '<div style="padding:1rem 1.25rem;">';
-    groupOrder.forEach(function(g) {
-        var rows = byGroup[g];
-        html += '<div style="margin-bottom:1.25rem;">';
-        if (ffGroupFilter === 'all') {
-            html += '<div style="font-size:0.72rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.4rem;">Group: ' + g.replace(/</g,'&lt;') + '</div>';
-        }
-        html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-        html += '<thead><tr style="background:#f5f5f7;">';
-        html += '<th style="padding:0.45rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">Student</th>';
-        html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">AL</th>';
-        html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">GLE</th>';
-        if (ffGroupFilter === 'all') {
-            html += '<th style="padding:0.45rem 0.75rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:1px solid #e8e8ed;">Group</th>';
-        }
-        html += '</tr></thead><tbody>';
-        rows.forEach(function(s, idx) {
-            var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-            html += '<tr style="background:' + rowBg + ';">';
-            html += '<td style="padding:0.45rem 0.75rem;color:#1d1d1f;font-weight:500;">' + s.name.replace(/</g,'&lt;') + '</td>';
-            html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.al||'—').replace(/</g,'&lt;') + '</td>';
-            html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.gle||'—').replace(/</g,'&lt;') + '</td>';
-            if (ffGroupFilter === 'all') {
-                html += '<td style="padding:0.45rem 0.75rem;text-align:center;color:#1d1d1f;">' + (s.group||'—').replace(/</g,'&lt;') + '</td>';
-            }
-            html += '</tr>';
-        });
-        html += '</tbody></table></div>';
+    var html = '<div style="overflow-x:auto;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+
+    // Header
+    html += '<thead><tr style="background:#f5f5f7;">';
+    html += '<th style="padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;">Student</th>';
+    html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">AL</th>';
+    html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">GLE</th>';
+    if (ffGroupFilter === 'all') {
+        html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">Group</th>';
+    }
+    activeOps.forEach(function(op) {
+        var short = ffShortLabel(op.label);
+        var tip   = op.label + (op.max ? ' (up to ' + op.max + ')' : '');
+        html += '<th colspan="2" style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#86868b;border-bottom:2px solid #e8e8ed;border-left:1px solid #e8e8ed;white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
     });
-    html += '</div>';
+    html += '</tr>';
+
+    // Sub-header: # / %
+    html += '<tr style="background:#f5f5f7;">';
+    html += '<th colspan="' + (ffGroupFilter==='all'?4:3) + '" style="border-bottom:1px solid #e8e8ed;"></th>';
+    activeOps.forEach(function(op) {
+        var maxLbl = op.max ? '/' + op.max : '';
+        html += '<th style="padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;border-left:1px solid #e8e8ed;">#' + maxLbl + '</th>';
+        html += '<th style="padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;">%</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    // Student rows
+    filtered.forEach(function(s, idx) {
+        var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+        html += '<tr style="background:' + rowBg + ';">';
+        html += '<td style="padding:0.45rem 0.75rem;color:#1d1d1f;font-weight:500;white-space:nowrap;">' + s.name.replace(/</g,'&lt;') + '</td>';
+        html += '<td style="padding:0.45rem 0.6rem;text-align:center;color:#1d1d1f;">' + (s.al||'—') + '</td>';
+        html += '<td style="padding:0.45rem 0.6rem;text-align:center;color:#1d1d1f;">' + (s.gle||'—') + '</td>';
+        if (ffGroupFilter === 'all') {
+            html += '<td style="padding:0.45rem 0.6rem;text-align:center;color:#1d1d1f;">' + (s.group||'—') + '</td>';
+        }
+        activeOps.forEach(function(op, ai) {
+            var globalIdx = ops.indexOf(op);
+            var f   = s.facts[globalIdx];
+            var cnt = f ? f.count : '';
+            var pct = f ? f.pct   : '';
+            var pn  = cnt !== '' ? ffPctNum(pct) : null;
+            var bg  = ffCellBg(pn);
+            var bgStyle = bg ? 'background:' + bg + ';' : '';
+            if (cnt !== '') {
+                html += '<td style="padding:0.4rem 0.5rem;text-align:center;' + bgStyle + 'border-left:1px solid #e8e8ed;font-size:0.82rem;">' + cnt.replace(/</g,'&lt;') + '</td>';
+                html += '<td style="padding:0.4rem 0.5rem;text-align:center;' + bgStyle + 'font-weight:600;font-size:0.82rem;">' + pct.replace(/</g,'&lt;') + '</td>';
+            } else {
+                html += '<td colspan="2" style="padding:0.4rem 0.5rem;text-align:center;color:#c4c4c6;border-left:1px solid #e8e8ed;">—</td>';
+            }
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
     content.innerHTML = html;
 }
 
