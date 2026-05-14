@@ -6845,10 +6845,12 @@ function showImportDataModal() {
 var XREF_CCSC_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAoTvp49u0EMHiy4gToLi3XCRTOWS7TLt8FHGqD2WZWYGWPyKG-Ra0sGvOiDTKEXEks1-hQwRfAsAB/pub?gid=0&single=true&output=csv';
 var XREF_LC_URL        = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn61zKcYvdvqpFwZvf3Py42I7QzcIt9k167SwGGEO_KYN9f-kAH-Je8dsQNNrSJTuQJs5GhAgttnMY/pub?gid=995760857&single=true&output=csv';
 var XREF_COMP_STDS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJu44dkOHDeEZ_0mCnUvrsXw6REn-QtMdNlPXTLtvOSRlb3m2ZucvTPYBydIyg2iX228rBlexlvXzO/pub?gid=574178934&single=true&output=csv';
+var XREF_ELA_STDS_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSQEUAAw0_pdVuEtuLbnIm7J22-rmZA7L1BFk_oo7icXbiFeETNOLD2isDJXJBh12M0EGmuu7_dpXeC/pub?gid=200969117&single=true&output=csv';
 
 var xrefCCSCRows  = null;  // [{code,text,credit,link,area,type,stage}]
 var xrefStudents  = null;  // {name->{al,gle,earned,credits:{normName->status}}}
 var xrefCompStds  = null;  // [{grade,domain,id,desc}]
+var xrefElaStds   = null;  // [{gradeNum,grade,domain,id,desc}] authoritative ELA standards
 var xrefReadStds  = null;  // [{gradeNum,grade,domain,id,desc}]
 var xrefStudList  = [];
 var xrefView      = 'student';
@@ -7093,22 +7095,47 @@ function normLexiaCode(k){ return (k||'').replace(/^CA-CCSS\./i,'').replace(/\.(
 
 var ELA_DOMAINS = {RF:1,RL:2,RI:3,L:4,W:5,SL:6};
 
+function xrefParseElaStds(text){
+    var rows = parseCSVFull(text);
+    var result = [];
+    for(var i=1; i<rows.length; i++){
+        var r = rows[i];
+        var grade = (r[0]||'').trim();
+        var id    = (r[2]||'').trim();
+        var desc  = (r[3]||'').trim();
+        if(!grade || !id) continue;
+        var gn = grade==='K' ? 0 : (parseInt(grade)||99);
+        result.push({gradeNum:gn, grade:grade, domain:(id.split('.')[0]||''), id:id, desc:desc});
+    }
+    return result;
+}
+
 function xrefBuildReadStds(){
-    if(!xrefCCSCRows) return [];
     var seen = {};
     var result = [];
 
-    // Source 1: standards with credit mappings
-    xrefCCSCRows.forEach(function(r){
-        if(r.area !== 'Reading' && r.area !== 'Writing') return;
-        if(seen[r.code]) return;
-        seen[r.code] = true;
-        var gn = xrefGradeNum(r.code);
-        var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
-        result.push({gradeNum:gn, grade:g, domain:(r.code||'').split('.')[0], id:r.code, desc:r.text||''});
-    });
+    // Primary: authoritative ELA standards CSV (all standards with descriptions)
+    if(xrefElaStds){
+        xrefElaStds.forEach(function(s){
+            if(seen[s.id]) return;
+            seen[s.id] = true;
+            result.push({gradeNum:s.gradeNum, grade:s.grade, domain:s.domain, id:s.id, desc:s.desc});
+        });
+    }
 
-    // Source 2: Lexia standards not already included
+    // Supplement: xrefCCSCRows standards not already in ELA CSV
+    if(xrefCCSCRows){
+        xrefCCSCRows.forEach(function(r){
+            if(r.area !== 'Reading' && r.area !== 'Writing') return;
+            if(seen[r.code]) return;
+            seen[r.code] = true;
+            var gn = xrefGradeNum(r.code);
+            var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
+            result.push({gradeNum:gn, grade:g, domain:(r.code||'').split('.')[0], id:r.code, desc:r.text||''});
+        });
+    }
+
+    // Supplement: Lexia standards not already covered
     if(lexiaStdsData && lexiaStdsData.standards){
         lexiaStdsData.standards.forEach(function(s){
             var code = normLexiaCode(s.code);
@@ -7142,6 +7169,12 @@ function xrefLoadReadDetail(cb){
         fetch(LEXIA_STDS_URL).then(function(r){return r.text();}).then(function(t){
             lexiaStdsData = parseStandardsCsv(t); done();
         }).catch(function(){ lexiaStdsData = {grades:[],standards:[],students:[]}; done(); });
+    }
+    if(!xrefElaStds){
+        pending++;
+        fetch(XREF_ELA_STDS_URL).then(function(r){return r.text();}).then(function(t){
+            xrefElaStds = xrefParseElaStds(t); done();
+        }).catch(function(){ xrefElaStds = []; done(); });
     }
     if(pending===0) onAllLoaded();
 }
