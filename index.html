@@ -7155,12 +7155,14 @@ function xrefParseElaStds(text){
 function xrefBuildReadStds(){
     var seen = {};
     var result = [];
+    // normalize for dedup: treat RF.K.3.a and RF.K.3a as the same
+    function seenKey(id){ return (id||'').replace(/\.([a-z])$/,'$1'); }
 
     // Primary: authoritative ELA standards CSV (all standards with descriptions)
     if(xrefElaStds){
         xrefElaStds.forEach(function(s){
-            if(seen[s.id]) return;
-            seen[s.id] = true;
+            if(seen[seenKey(s.id)]) return;
+            seen[seenKey(s.id)] = true;
             result.push({gradeNum:s.gradeNum, grade:s.grade, domain:s.domain, id:s.id, desc:s.desc});
         });
     }
@@ -7169,8 +7171,8 @@ function xrefBuildReadStds(){
     if(xrefCCSCRows){
         xrefCCSCRows.forEach(function(r){
             if(r.area !== 'Reading' && r.area !== 'Writing') return;
-            if(seen[r.code]) return;
-            seen[r.code] = true;
+            if(seen[seenKey(r.code)]) return;
+            seen[seenKey(r.code)] = true;
             var gn = xrefGradeNum(r.code);
             var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
             result.push({gradeNum:gn, grade:g, domain:(r.code||'').split('.')[0], id:r.code, desc:r.text||''});
@@ -7181,17 +7183,16 @@ function xrefBuildReadStds(){
     if(lexiaStdsData && lexiaStdsData.standards){
         lexiaStdsData.standards.forEach(function(s){
             var code = normLexiaCode(s.code);
-            if(seen[code]) return;
+            if(seen[seenKey(code)]) return;
             var pre = code.split('.')[0];
             if(!ELA_DOMAINS[pre]) return;
-            seen[code] = true;
+            seen[seenKey(code)] = true;
             var gn = xrefGradeNum(code);
             var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
             result.push({gradeNum:gn, grade:g, domain:pre, id:code, desc:''});
         });
     }
 
-    result = xrefExpandAllSubitems(result);
     result.sort(function(a,b){
         if(a.gradeNum !== b.gradeNum) return a.gradeNum - b.gradeNum;
         var da = ELA_DOMAINS[a.domain]||99, db = ELA_DOMAINS[b.domain]||99;
