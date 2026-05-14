@@ -1138,6 +1138,7 @@
     </div>
     <!-- Student sub-panel -->
     <div id="dp-subtab-student" class="dp-subtab-panel" style="display:none;">
+        <div id="student-tab-sticky" style="display:none;position:sticky;top:var(--nav-h-2,100px);z-index:110;background:#fff;border-bottom:1px solid #e8e8ed;padding:0.75rem 1.5in 0.5rem;"></div>
         <div class="view-container">
             <div id="student-tab-content"></div>
         </div>
@@ -3851,6 +3852,8 @@ function renderStudentTab() {
 function renderStudentTabPicker() {
     var el = document.getElementById('student-tab-content');
     if (!el) return;
+    var stickyEl = document.getElementById('student-tab-sticky');
+    if (stickyEl) { stickyEl.style.display = 'none'; stickyEl.innerHTML = ''; }
 
     // Filter bar row 1: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;flex-wrap:nowrap;">';
@@ -3911,33 +3914,35 @@ function renderStudentTabLibrary() {
         return (subjects.indexOf(a) === -1 ? 999 : subjects.indexOf(a)) - (subjects.indexOf(b) === -1 ? 999 : subjects.indexOf(b));
     });
 
+    // Sticky header: student name + toggle bars
+    var stickyEl = document.getElementById('student-tab-sticky');
+    if (stickyEl) {
+        var btnStyle = 'padding:0.4rem 0.5rem;';
+        var sHtml = '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;">';
+        sHtml += '<button onclick="history.back();" style="cursor:pointer;background:none;border:none;font-size:1.2rem;color:#86868b;padding:0.2rem 0.4rem;border-radius:6px;" onmouseover="this.style.background=\'#f5f5f7\'" onmouseout="this.style.background=\'none\'">&#8592;</button>';
+        sHtml += '<h2 style="font-size:1.1rem;font-weight:700;margin:0;">' + nickName(s.name) + '\'s Learning Library</h2>';
+        sHtml += '</div>';
+        sHtml += '<div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap;">';
+        sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
+        sHtml += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
+        usedSubjects.forEach(function(subj) {
+            var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
+            var active = studentTabSubjectFilter === subj;
+            sHtml += '<button class="toggle-btn" onclick="studentTabSubjectFilter=\'' + subj.replace(/'/g, "\\'") + '\';renderStudentTab()" title="' + subj + '" style="' + btnStyle + (active ? 'background:' + sc.bg + ';color:' + (sc.tc || '#fff') + ';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:' + (sc.ic || sc.bg) + ';') + '">' + subjLabel(subj) + '</button>';
+        });
+        sHtml += '</div>';
+        sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
+        sHtml += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
+        stages.forEach(function(st) {
+            sHtml += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTab()" style="' + btnStyle + '">' + st + '</button>';
+        });
+        sHtml += '</div>';
+        sHtml += '</div>';
+        stickyEl.innerHTML = sHtml;
+        stickyEl.style.display = '';
+    }
+
     var html = '';
-
-    // Header
-    html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.1rem;">';
-    html += '<button onclick="history.back();" style="cursor:pointer;background:none;border:none;font-size:1.2rem;color:#86868b;padding:0.2rem 0.4rem;border-radius:6px;" onmouseover="this.style.background=\'#f5f5f7\'" onmouseout="this.style.background=\'none\'">&#8592;</button>';
-    html += '<h2 style="font-size:1.1rem;font-weight:700;margin:0;">' + nickName(s.name) + '\'s Learning Library</h2>';
-    html += '<span style="font-size:0.82rem;color:#86868b;margin-left:0.1rem;">&#127942; ' + earnedIds.size + ' of ' + credits.length + ' earned</span>';
-    html += '</div>';
-
-    // Subject + Stage filters — single row, no labels
-    var btnStyle = 'padding:0.4rem 0.5rem;';
-    html += '<div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap;margin-bottom:1.8rem;">';
-    html += '<div class="toggle-group" style="margin-bottom:0;">';
-    html += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
-    usedSubjects.forEach(function(subj) {
-        var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
-        var active = studentTabSubjectFilter === subj;
-        html += '<button class="toggle-btn" onclick="studentTabSubjectFilter=\'' + subj.replace(/'/g, "\\'") + '\';renderStudentTab()" title="' + subj + '" style="' + btnStyle + (active ? 'background:' + sc.bg + ';color:' + (sc.tc || '#fff') + ';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:' + (sc.ic || sc.bg) + ';') + '">' + subjLabel(subj) + '</button>';
-    });
-    html += '</div>';
-    html += '<div class="toggle-group" style="margin-bottom:0;">';
-    html += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
-    stages.forEach(function(st) {
-        html += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTab()" style="' + btnStyle + '">' + st + '</button>';
-    });
-    html += '</div>';
-    html += '</div>';
 
     // Which subjects to render
     var subjsToShow = studentTabSubjectFilter === 'all'
