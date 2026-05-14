@@ -906,9 +906,10 @@
 
         /* ── Writing Dashboard scoped styles ── */
         #wd-root { font-family: -apple-system, 'DM Sans', system-ui, sans-serif; color: #1a1a2e; }
-        #wd-nav { display:flex; gap:6px; flex-wrap:wrap; align-items:center; background:#f5f5f7; padding:10px 20px; border-bottom:1px solid #e8e8ed; }
-        .wd-nav-btn { padding:5px 14px; border-radius:20px; border:none; cursor:pointer; font-family:inherit; font-size:.8rem; font-weight:600; background:transparent; color:#4a4a6a; transition:background .15s,color .15s; }
-        .wd-nav-btn.active { background:#1d1d1f; color:#fff; }
+        #wd-nav { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; background:#f5f5f7; padding:0.55rem 1.25rem; border-bottom:1px solid #e8e8ed; }
+        .wd-nav-btn { padding:0.4rem 0.9rem; border-radius:8px; border:none; cursor:pointer; font-family:inherit; font-size:0.72rem; font-weight:500; background:transparent; color:#86868b; transition:all 0.25s ease; white-space:nowrap; }
+        .wd-nav-btn:hover { color:#1d1d1f; }
+        .wd-nav-btn.active { background:#e8e8ed; color:#1d1d1f; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
         #wd-last-updated { margin-left:auto; font-size:.7rem; color:#aeaeb2; }
         .wd-spinner { display:inline-block; width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#FF8200; border-radius:50%; animation:spin .7s linear infinite; margin-bottom:10px; }
         #wd-root .wd-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; margin-bottom:18px; }
@@ -1143,11 +1144,15 @@
 <!-- TAB 7: Data -->
 <div class="tab-content" id="tab-data">
     <div class="view-container" style="padding:0;">
-        <div class="data-subtab-nav">
+        <div class="data-subtab-nav" style="justify-content:flex-start;">
             <button class="data-subtab-btn active" data-subtab="reading" onclick="switchDataSubtab('reading')">Reading Dashboard</button>
             <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
             <button class="data-subtab-btn" data-subtab="xref" onclick="switchDataSubtab('xref')">Cross Reference</button>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;padding:0 0.25rem;">
+                <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+            </div>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -1296,16 +1301,18 @@
         <div class="data-subtab-panel" id="data-subtab-writing" style="display:none;">
             <div id="wd-root">
                 <div id="wd-nav">
-                    <span style="font-size:.65rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;padding:0 4px">Level</span>
-                    <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
-                    <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
-                    <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
-                    <button class="wd-nav-btn" data-level="ms" onclick="WD.setLevel('ms')">MS</button>
-                    <div style="width:1px;height:22px;background:#ddd;align-self:center;margin:0 6px;"></div>
-                    <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">📊 Overview</button>
-                    <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">👤 Student</button>
-                    <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">📈 All Levels</button>
-                    <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">🔍 Category</button>
+                    <div class="toggle-group">
+                        <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
+                        <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
+                        <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
+                        <button class="wd-nav-btn" data-level="ms" onclick="WD.setLevel('ms')">MS</button>
+                    </div>
+                    <div class="toggle-group">
+                        <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">Overview</button>
+                        <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">Student</button>
+                        <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">All Levels</button>
+                        <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">Category</button>
+                    </div>
                 </div>
                 <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
                     <div class="wd-spinner"></div><br>Loading writing data…
@@ -6772,6 +6779,32 @@ function switchDataSubtab(name) {
     if (name === 'xref')    renderXref();
 }
 
+// ── Analytics action modals ──
+function showEnterDataModal() {
+    var m = document.getElementById('analytics-action-modal');
+    var body = document.getElementById('analytics-modal-body');
+    body.innerHTML = '<h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1d1d1f">Enter New Data</h3>'
+        + '<p style="font-size:.82rem;color:#64748b;margin:0 0 16px">Select the data type you want to enter:</p>'
+        + '<div style="display:flex;flex-direction:column;gap:8px;">'
+        + ['Reading (CORE)', 'Reading (F&P)', 'Reading (Lexia)', 'Reading (MAP ELA)', 'Math Benchmark', 'Math (MAP Math)', 'Writing'].map(function(label) {
+            return '<button style="padding:.55rem 1rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;text-align:left;transition:background .15s;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">'
+                + label + '</button>';
+        }).join('')
+        + '</div>';
+    m.style.display = 'flex';
+}
+function showImportDataModal() {
+    var m = document.getElementById('analytics-action-modal');
+    var body = document.getElementById('analytics-modal-body');
+    body.innerHTML = '<h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1d1d1f">Import New Data</h3>'
+        + '<p style="font-size:.82rem;color:#64748b;margin:0 0 16px">Data is loaded live from your linked Google Sheets. To refresh, reload the page or use the reload button in each dashboard.</p>'
+        + '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px;font-size:.78rem;color:#0369a1;">'
+        + '<strong>Tip:</strong> Each analytics dashboard fetches data directly from your Google Sheet CSV export links. '
+        + 'To update the source sheet URLs, edit the config variables at the top of this page\'s source.'
+        + '</div>';
+    m.style.display = 'flex';
+}
+
 // ───────── CROSS REFERENCE ─────────
 
 var XREF_CCSC_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAoTvp49u0EMHiy4gToLi3XCRTOWS7TLt8FHGqD2WZWYGWPyKG-Ra0sGvOiDTKEXEks1-hQwRfAsAB/pub?gid=0&single=true&output=csv';
@@ -8870,13 +8903,39 @@ function renderCompTable() {
     });
     cards += '</div>';
 
+    // Find primary GLE (the one with most questions — likely grade-level benchmark)
+    var primaryGle = gleGroups.reduce(function(best, g) {
+        return g.items.length > best.items.length ? g : best;
+    }, gleGroups[0] || { gle:'', items:[] });
+
+    // Build mini donut SVG helper
+    function benchDonut(pct, gle, sz) {
+        sz = sz || 46;
+        var r = sz * 0.35, cx = sz / 2, cy = sz / 2, circ = 2 * Math.PI * r;
+        var dash = (Math.min(pct, 100) / 100) * circ;
+        var col = pctColor(pct);
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;">'
+            + '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'">'
+            + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e8e8ed" stroke-width="4.5"/>'
+            + (pct > 0 ? '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="4.5"'
+                + ' stroke-dasharray="'+dash.toFixed(1)+' '+(circ-dash).toFixed(1)+'"'
+                + ' stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>' : '')
+            + '<text x="'+cx+'" y="'+(cy+3)+'" text-anchor="middle" font-size="'+(sz*0.17)+'"'
+            + ' font-family="-apple-system,sans-serif" font-weight="700" fill="'+(pct>0?'#1d1d1f':'#aeaeb2')+'">'+pct+'%</text>'
+            + '</svg>'
+            + '<div style="font-size:0.52rem;color:#86868b;text-align:center;line-height:1.1;">GLE&nbsp;'+gle.replace(/</g,'&lt;')+'</div>'
+            + '</div>';
+    }
+
     // ── Flipped table: students as rows, questions as columns ──────
     var html = cards
         + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;">'
         + '<thead>'
         // Row 1: GLE group spans
-        + '<tr><th class="core-name-col" rowspan="2">Student</th>';
+        + '<tr>'
+        + '<th class="core-name-col" rowspan="2">Student</th>'
+        + '<th rowspan="2" style="min-width:120px;white-space:normal;font-size:0.65rem;padding:0.35rem 0.5rem;vertical-align:bottom;line-height:1.3;">GLE Mastery<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">by grade level</span></th>';
     gleGroups.forEach(function(grp) {
         html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.7rem;border-bottom:1px solid #e8e8ed;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
     });
@@ -8898,10 +8957,30 @@ function renderCompTable() {
     // One row per student
     students.forEach(function(s) {
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
+
+        // GLE Mastery pie charts
+        var piesHtml = '';
+        var hasMastery = false;
+        gleGroups.forEach(function(grp) {
+            var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
+            if (masteredCount > 0) {
+                hasMastery = true;
+                var pct = Math.round(masteredCount / grp.items.length * 100);
+                piesHtml += benchDonut(pct, grp.gle);
+            }
+        });
+        // If no mastery anywhere, show primary GLE at 0%
+        if (!hasMastery && primaryGle.items.length) {
+            piesHtml = benchDonut(0, primaryGle.gle);
+        }
+        html += '<td style="padding:4px 6px;vertical-align:middle;">'
+            + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:flex-start;justify-content:center;">'
+            + piesHtml + '</div></td>';
+
         gleGroups.forEach(function(grp) {
             grp.items.forEach(function(item) {
                 if (item.q.mastery[s.name]) {
-                    html += '<td style="text-align:center;background:#186a3b;color:#fff;font-size:0.85rem;">✓</td>';
+                    html += '<td style="text-align:center;background:#5a9e5a;color:#fff;font-size:0.85rem;">✓</td>';
                 } else {
                     html += '<td style="text-align:center;color:#c7c7cc;font-size:0.7rem;">&ndash;</td>';
                 }
@@ -9562,7 +9641,7 @@ function diffBadge(a, b, timeframe, precomputed) {
     return '<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+d.toFixed(1)+'</span>';
 }
 function seasonPill(season) {
-    var lbl=season.charAt(0).toUpperCase()+season.slice(1);
+    var lbl={fall:'BOY',winter:'MOY',spring:'EOY'}[season]||(season.charAt(0).toUpperCase()+season.slice(1));
     var icon={fall:'🍂',winter:'❄️',spring:'🌱'}[season]||'';
     return '<span class="wd-pill wd-pill-'+season+'">'+icon+' '+lbl+'</span>';
 }
@@ -9620,12 +9699,12 @@ function renderClassOverview() {
     var gcFW=growthColors(overallFW,'half'),gcWS=growthColors(overallWS,'half'),gcFS=growthColors(overallFS,'full');
     var html='<div class="wd-kpi-grid">'
         +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+students.length+'</div><div class="wd-kpi-sub">'+LEVELS[currentLevel].label+'</div></div>'
-        +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">Avg F→W Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
-        +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">Avg W→S Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
-        +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">Avg F→S Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">BOY→MOY Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">MOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">BOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
         +'</div>'
         +'<div class="wd-card"><div class="wd-section-title">Avg Growth by Category — click header to sort</div><div class="wd-tbl-wrap"><table id="wd-tbl-cat"><thead><tr>'
-        +makeSortTh('Category','label','cat')+makeSortTh('F→W','fw','cat',true)+makeSortTh('W→S','ws','cat',true)+makeSortTh('F→S','fs','cat',true)
+        +makeSortTh('Category','label','cat')+makeSortTh('BOY→MOY','fw','cat',true)+makeSortTh('MOY→EOY','ws','cat',true)+makeSortTh('BOY→EOY','fs','cat',true)
         +'</tr></thead><tbody>'
         +'<tr style="background:#f8f6f2"><td><strong>⭐ Overall Avg</strong></td>'
         +'<td class="center">'+diffBadge(0,overallFW,'half',true)+'</td>'
@@ -9642,13 +9721,13 @@ function renderClassOverview() {
         +'<div class="wd-section-title" style="margin-bottom:0">All Students Snapshot</div>'
         +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase">Growth</span>'
         +'<div style="display:flex;border:1px solid #d1d1d6;border-radius:8px;overflow:hidden">'
-        +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setRosterGrowth(\''+p[0]+'\')" style="padding:3px 10px;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;background:'+(rosterGrowthCol===p[0]?'#1d1d1f':'transparent')+';color:'+(rosterGrowthCol===p[0]?'#fff':'#64748b')+'">'+p[1]+'</button>';}).join('')
+        +[['fw','BOY→MOY'],['ws','MOY→EOY'],['fs','BOY→EOY']].map(function(p){return'<button onclick="WD.setRosterGrowth(\''+p[0]+'\')" style="padding:3px 10px;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;background:'+(rosterGrowthCol===p[0]?'#1d1d1f':'transparent')+';color:'+(rosterGrowthCol===p[0]?'#fff':'#64748b')+'">'+p[1]+'</button>';}).join('')
         +'</div></div></div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-roster"><thead><tr>'
         +makeSortTh('Student','name','roster')
         +(LEVELS[currentLevel].hasGoal?makeSortTh('Goal','goal','roster',true):'')
-        +makeSortTh('Fall','fallAvg','roster',true)+makeSortTh('Winter','winterAvg','roster',true)+makeSortTh('Spring','springAvg','roster',true)
-        +makeSortTh(rosterGrowthCol==='fw'?'F→W':rosterGrowthCol==='ws'?'W→S':'F→S',rosterGrowthCol,'roster',true)
+        +makeSortTh('BOY','fallAvg','roster',true)+makeSortTh('MOY','winterAvg','roster',true)+makeSortTh('EOY','springAvg','roster',true)
+        +makeSortTh(rosterGrowthCol==='fw'?'BOY→MOY':rosterGrowthCol==='ws'?'MOY→EOY':'BOY→EOY',rosterGrowthCol,'roster',true)
         +'</tr></thead><tbody>'
         +sortedRoster.map(function(s,i){
             var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
@@ -9671,12 +9750,12 @@ function renderStudentView() {
     var s=APP.students.find(function(x){return x.name===selectedStudent;})||APP.students[0];
     var el=document.getElementById('wd-view-student');
     var seasonScores=SEASONS.map(function(season){
-        var d=s[season],v=d?d.avg:null,lbl=season.charAt(0).toUpperCase()+season.slice(1);
+        var d=s[season],v=d?d.avg:null,lbl={fall:'BOY',winter:'MOY',spring:'EOY'}[season]||season;
         return'<div style="text-align:center"><div style="font-size:.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.1em">'+lbl+'</div>'
             +'<div style="font-size:1.4rem;font-weight:800;color:'+(v==null?'#4a5568':v>0?'#f8f6f2':'#ff6961')+'">'+(d&&d.noWork?'—':fmtScore(v,1))+'</div>'
             +(v!=null&&v>0?'<div style="font-size:.66rem;color:#94a3b8">'+gradeBand(v)+'</div>':'')+'</div>';
     }).join('');
-    var gp={fw:{sA:'fall',sB:'winter',tf:'half',label:'Fall → Winter'},ws:{sA:'winter',sB:'spring',tf:'half',label:'Winter → Spring'},fs:{sA:'fall',sB:'spring',tf:'full',label:'Fall → Spring'}}[studentGrowthCol];
+    var gp={fw:{sA:'fall',sB:'winter',tf:'half',label:'BOY → MOY'},ws:{sA:'winter',sB:'spring',tf:'half',label:'MOY → EOY'},fs:{sA:'fall',sB:'spring',tf:'full',label:'BOY → EOY'}}[studentGrowthCol];
     var dA=s[gp.sA],dB=s[gp.sB],pairOk=dA&&!dA.noWork&&dB&&!dB.noWork;
     var growthChips=!pairOk?'':CATS.map(function(cat,ci){
         var a=(dA.scores||[])[ci], b=(dB.scores||[])[ci];
@@ -9703,7 +9782,7 @@ function renderStudentView() {
             +body+'</div>';
     }).join('');
     var growthToggle='<div style="display:flex;border:1px solid rgba(255,255,255,.2);border-radius:8px;overflow:hidden">'
-        +[['fw','F→W'],['ws','W→S'],['fs','F→S']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'rgba(255,255,255,.2)':'transparent')+';color:'+(studentGrowthCol===p[0]?'#f8f6f2':'#64748b')+'">'+p[1]+'</button>';}).join('')+'</div>';
+        +[['fw','BOY→MOY'],['ws','MOY→EOY'],['fs','BOY→EOY']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'rgba(255,255,255,.2)':'transparent')+';color:'+(studentGrowthCol===p[0]?'#f8f6f2':'#64748b')+'">'+p[1]+'</button>';}).join('')+'</div>';
     el.innerHTML='<div class="wd-filter-bar"><label>Student</label>'
         +'<select id="wd-sel-student">'
         +APP.students.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
@@ -9728,14 +9807,14 @@ function renderStudentView() {
 // ── Render: All Levels comparison ──
 function renderGroupsView() {
     var levelKeys = Object.keys(LEVELS);
-    var html = '<div class="wd-card"><div class="wd-section-title">Cross-Level Comparison — Fall → Winter</div>'
+    var html = '<div class="wd-card"><div class="wd-section-title">Cross-Level Comparison — BOY → MOY</div>'
         + '<p style="font-size:.75rem;color:#94a3b8;margin:0 0 14px">Shows overall average scores per level. Click a level button above to load it.</p>'
         + '<div class="wd-tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr>'
         + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Level</th>'
         + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Students</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Fall Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Winter Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">F→W Growth</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">BOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">MOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">BOY→MOY Growth</th>'
         + '</tr></thead><tbody>'
         + levelKeys.map(function(key, i) {
             var cfg = LEVELS[key];
@@ -9769,17 +9848,17 @@ function renderCategoryView() {
         +'<label>Category</label><select id="wd-sel-cat">'+CATS.map(function(c,i){return'<option value="'+i+'"'+(i===catDiveIdx?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'
         +'</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
-        +'<div class="wd-cat-kpi"><div class="ck-label">Fall Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
-        +'<div class="wd-cat-kpi"><div class="ck-label">Winter Avg</div><div class="ck-value">'+fmtScore(clsWin)+'</div></div>'
-        +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">F→W Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'')
+        +'<div class="wd-cat-kpi"><div class="ck-label">BOY Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
+        +'<div class="wd-cat-kpi"><div class="ck-label">MOY Avg</div><div class="ck-value">'+fmtScore(clsWin)+'</div></div>'
+        +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">BOY→MOY Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'')
         +'<div class="wd-cat-kpi"><div class="ck-label">Students</div><div class="ck-value">'+rows.length+'</div></div>'
         +'</div>'
         +'<div class="wd-card"><div class="wd-section-title">'+CATS[catDiveIdx]+' · click header to sort</div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-catdive"><thead><tr>'
         +makeSortTh('Student','name','catDive')+makeSortTh('Level','al','catDive')
-        +makeSortTh('Fall','fallScore','catDive',true)+'<th>Fall bar</th>'
-        +makeSortTh('Winter','winterScore','catDive',true)+'<th>Winter bar</th>'
-        +makeSortTh('F→W','growth','catDive',true)
+        +makeSortTh('BOY','fallScore','catDive',true)+'<th>BOY bar</th>'
+        +makeSortTh('MOY','winterScore','catDive',true)+'<th>MOY bar</th>'
+        +makeSortTh('BOY→MOY','growth','catDive',true)
         +'</tr></thead><tbody>'
         +sorted.map(function(r,i){return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
             +'<td><strong>'+r.name+'</strong></td>'
@@ -9872,6 +9951,14 @@ return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:se
 })();
 
 </script>
+
+<!-- Analytics action modal -->
+<div id="analytics-action-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none';">
+    <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;max-width:400px;width:calc(100% - 48px);box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;">
+        <button onclick="document.getElementById('analytics-action-modal').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#86868b;line-height:1;">✕</button>
+        <div id="analytics-modal-body"></div>
+    </div>
+</div>
 
 </body>
 </html>
