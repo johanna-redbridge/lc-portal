@@ -7312,7 +7312,7 @@ function xrefReadDetailHTML(){
     headerHtml += '</div>';
     var summCards = [
         {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#FFF4F1',tc:'#1d1d1f'},
-        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#FFECE7',tc:'#1d1d1f'},
+        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#FFE6E0',tc:'#1d1d1f'},
         {l:'Both Confirmed',v:totBoth,bg:'#FFD9CF',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
@@ -7359,7 +7359,7 @@ function xrefReadDetailHTML(){
             var rowBg;
             if(best==='e'&&lexMastered)   rowBg='#FFD9CF';
             else if(best==='e')           rowBg='#FFF4F1';
-            else if(lexMastered)          rowBg='#FFECE7';
+            else if(lexMastered)          rowBg='#FFE6E0';
             else if(best==='a')           rowBg='#fffbeb';
             else                          rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
@@ -7650,7 +7650,7 @@ function xrefCompDetailHTML(){
     // Summary cards
     var summCards = [
         {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#CCF9FF',tc:'#1d1d1f'},
-        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#A6F5FF',tc:'#1d1d1f'},
+        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#8CF2FF',tc:'#1d1d1f'},
         {l:'Both Confirmed',v:totBoth,bg:'#4DEBFF',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
@@ -7714,7 +7714,7 @@ function xrefCompDetailHTML(){
             var rowBg;
             if(best==='e'&&anyMastered)  rowBg='#4DEBFF'; // both confirmed: 70% computation
             else if(best==='e')          rowBg='#CCF9FF'; // credit only: 20% computation
-            else if(anyMastered)         rowBg='#A6F5FF'; // benchmark only: 35% computation
+            else if(anyMastered)         rowBg='#8CF2FF'; // benchmark only: 45% computation
             else if(best==='a')          rowBg='#fffbeb';
             else                         rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
