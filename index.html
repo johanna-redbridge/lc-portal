@@ -7326,9 +7326,8 @@ function xrefCompDetailHTML(){
 
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
         html += '<thead><tr style="background:#1d1d1f;">';
-        [['A','CCSC Code'],['B','Description'],['C','Learning Credit'],['D','Credit Status'],['E','Benchmark Q#'],['F','Benchmark Status']].forEach(function(h){
-            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'
-                + '<span style="opacity:0.5;font-size:0.65rem;margin-right:3px;">'+h[0]+'</span>'+h[1]+'</th>';
+        ['CCSC Code','Description','Learning Credit','Credit Status','Benchmark Q#','Benchmark Status'].forEach(function(h){
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
         });
         html += '</tr></thead><tbody>';
 
