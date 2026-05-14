@@ -906,6 +906,7 @@
         .panel-subnav { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
         .subpanel-toolbar { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
         #xref-filter-bar { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
+        #xref-comp-header { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
         #comp-filters { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
 
         /* ── Writing Dashboard scoped styles ── */
@@ -7077,7 +7078,10 @@ function xrefLoadCompDetail(cb){
 }
 
 function xrefSetView(v){
-    if(xrefView === 'comp-detail' && v !== 'comp-detail') xrefTeardownCompDetailLayout();
+    if(xrefView === 'comp-detail' && v !== 'comp-detail'){
+        var hdr = document.getElementById('xref-comp-header');
+        if(hdr){ hdr.style.display='none'; hdr.innerHTML=''; }
+    }
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
     var isStudentLike = (v==='student'||v==='comp-detail');
@@ -7174,28 +7178,6 @@ function xrefCompareLabel(codeGrade, gleNum){
 }
 
 /* ── VIEW 4: Computation Detail ── */
-function xrefSetupCompDetailLayout(){
-    var panel   = document.getElementById('data-subtab-xref');
-    var content = document.getElementById('xref-content');
-    var hdr     = document.getElementById('xref-comp-header');
-    if(!panel||!content) return;
-    var top = panel.getBoundingClientRect().top;
-    panel.style.cssText += ';display:flex;flex-direction:column;overflow:hidden;height:'
-        + Math.max(300, window.innerHeight - Math.max(0, top)) + 'px';
-    if(hdr) hdr.style.display = '';
-    content.style.flex      = '1';
-    content.style.overflowY = 'auto';
-    content.style.minHeight = '0';
-}
-function xrefTeardownCompDetailLayout(){
-    var panel   = document.getElementById('data-subtab-xref');
-    var content = document.getElementById('xref-content');
-    var hdr     = document.getElementById('xref-comp-header');
-    if(panel)  { panel.style.height=''; panel.style.overflow=''; panel.style.flexDirection=''; }
-    if(content){ content.style.flex=''; content.style.overflowY=''; content.style.minHeight=''; }
-    if(hdr)    { hdr.style.display='none'; hdr.innerHTML=''; }
-}
-
 function xrefRenderCompDetail(){
     var el = document.getElementById('xref-content');
     if(!el) return;
@@ -7211,9 +7193,8 @@ function xrefRenderCompDetail(){
         try {
             var parts = xrefCompDetailHTML();
             var hdr = document.getElementById('xref-comp-header');
-            if(hdr){ hdr.innerHTML = parts.header; }
+            if(hdr){ hdr.innerHTML = parts.header; hdr.style.display = parts.header ? '' : 'none'; }
             el.innerHTML = parts.body;
-            xrefSetupCompDetailLayout();
         } catch(e) {
             el.innerHTML = '<div style="padding:2rem;color:#ef4444;">Error rendering Computation view: '+e.message+'</div>';
         }
