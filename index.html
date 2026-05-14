@@ -7316,10 +7316,10 @@ function xrefCompDetailHTML(){
 
     // Summary cards
     var summCards = [
-        {l:'Credits Earned',v:totEarned,bg:'#c4eabb',tc:'#2d6e30'},
-        {l:'Benchmark Mastered',v:totBench,bg:'#8cd47e',tc:'#1a4d1e'},
-        {l:'Both Confirmed',v:totBoth,bg:'#5a9e5a',tc:'#ffffff'},
-        {l:'Available at GLE '+(sdata.gle||'?'),v:totAtGle,bg:'#f3f4f6',tc:'#374151'}
+        {l:'Credits Earned',v:totEarned,bg:'#c4eabb',tc:'#1d1d1f'},
+        {l:'Benchmark Mastered',v:totBench,bg:'#8cd47e',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#5a9e5a',tc:'#1d1d1f'},
+        {l:'Available at GLE '+(sdata.gle||'?'),v:totAtGle,bg:'#f3f4f6',tc:'#1d1d1f'}
     ];
     html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
@@ -7373,21 +7373,21 @@ function xrefCompDetailHTML(){
             var hasBench = bqs.length>0;
             var anyMastered = masteredCount>0;
 
-            // Row color
+            // Row color — matches summary card palette
             var rowBg;
-            if(best==='e'&&anyMastered)  rowBg='#f0fdf4';
-            else if(best==='e')          rowBg='#dcfce7';
-            else if(anyMastered)         rowBg='#eff6ff';
+            if(best==='e'&&anyMastered)  rowBg='#5a9e5a'; // both confirmed: dark green
+            else if(best==='e')          rowBg='#c4eabb'; // credit only: pale green
+            else if(anyMastered)         rowBg='#8cd47e'; // benchmark only: medium green
             else if(best==='a')          rowBg='#fffbeb';
             else                         rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
-            html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0;">';
+            html += '<tr style="background:'+rowBg+';color:#1d1d1f;border-bottom:1px solid #f0f0f0;">';
 
             // A: CCSC Code
             html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
 
             // B: Description
-            html += '<td style="padding:0.45rem 0.6rem;color:#374151;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
 
             // C: Learning Credit(s)
             html += '<td style="padding:0.45rem 0.6rem;max-width:160px;">';
