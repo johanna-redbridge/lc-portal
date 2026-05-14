@@ -2918,6 +2918,7 @@ async function enhanceCreditsWithMetadata() {
         });
         var creditSubjectOverrides = {
             'first_31_sounds_part_a': 'Reading',
+            'my_first_words': 'Reading',
             'letter_writer_a_z': 'Writing'
         };
         credits.forEach(function(c) { if (creditSubjectOverrides[c.id]) c.subject = creditSubjectOverrides[c.id]; });
