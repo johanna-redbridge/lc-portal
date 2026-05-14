@@ -9300,7 +9300,11 @@ function renderLexiaCombined() {
         + '<th style="white-space:nowrap;">Risk</th>'
         + '<th style="min-width:120px;white-space:nowrap;">Predictor</th>'
         + '<th style="min-width:110px;white-space:nowrap;">Usage</th>'
-        + '<th style="white-space:nowrap;">Unit Progress</th>'
+        + '<th style="white-space:nowrap;vertical-align:bottom;padding-bottom:4px;">'
+        + '<div style="font-size:0.65rem;font-weight:600;color:#1d1d1f;margin-bottom:5px;">Unit Progress</div>'
+        + '<div style="display:flex;gap:2px;align-items:center;">'
+        + (function(){var BOX=20,out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*21+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:#86868b;line-height:1;">'+g.label+'</div>';});return out;})()
+        + '</div></th>'
         + '<th style="white-space:nowrap;">Gained / Target</th>'
         + '</tr></thead><tbody>';
 
