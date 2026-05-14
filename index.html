@@ -1205,8 +1205,7 @@
             <div id="reading-panel-lexia" style="display:none;">
                 <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
-                        <button class="toggle-btn lexia-view-btn active" data-view="performance" onclick="setLexiaView('performance')">Performance</button>
-                        <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
+                        <button class="toggle-btn lexia-view-btn active" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
@@ -1214,8 +1213,10 @@
                         <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
                     </div>
                 </div>
-                <div id="lexia-perf"></div>
-                <div id="lexia-prog" style="display:none;"></div>
+                <div id="lexia-progress-combined">
+                    <div id="lexia-perf"></div>
+                    <div id="lexia-prog"></div>
+                </div>
                 <div id="lexia-stds" style="display:none;"></div>
             </div>
             <!-- MAP ELA -->
@@ -7769,7 +7770,7 @@ function parseCoreCsv(text) {
             var v = (r[j] || '').trim();
             scores.push(v === '' ? null : v); // keep raw string so checkmarks are preserved
         }
-        cur[period] = { scores: scores, notes: (r[15] || '').trim() };
+        cur[period] = { scores: scores, gle: (r[15] || '').trim(), gleGoal: (r[16] || '').trim() };
     }
     return result;
 }
@@ -7929,6 +7930,26 @@ function coreBoyMoyHtml(fromTotal, toTotal) {
     return '<span style="font-size:0.78rem;font-weight:600;color:'+color+';">'+sign+delta+'</span>';
 }
 
+function coreGleDonut(gle, gleGoal) {
+    var g = parseFloat(gle), goal = parseFloat(gleGoal);
+    if (isNaN(g) || isNaN(goal) || goal <= 0) return null;
+    var pct = Math.min(Math.round(g / goal * 100), 100);
+    var col = pctColor(pct);
+    var sz = 46, r = 16, cx = sz / 2, cy = sz / 2, circ = 2 * Math.PI * r;
+    var dash = (pct / 100) * circ, gap = circ - dash;
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:1px;">'
+        + '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'">'
+        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e8e8ed" stroke-width="4"/>'
+        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="4"'
+        + ' stroke-dasharray="'+dash.toFixed(1)+' '+gap.toFixed(1)+'"'
+        + ' stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>'
+        + '<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="middle"'
+        + ' font-size="8" font-family="-apple-system,sans-serif" font-weight="700" fill="#1d1d1f">'+g.toFixed(1)+'</text>'
+        + '</svg>'
+        + '<div style="font-size:0.5rem;color:#86868b;white-space:nowrap;">goal&nbsp;'+goal.toFixed(1)+'</div>'
+        + '</div>';
+}
+
 function renderCore() {
     var el = document.getElementById('core-content');
     if (!el) return;
@@ -7946,6 +7967,7 @@ function renderCore() {
     var isAll = (p === 'all');
     var html = '<div class="core-table-wrap"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
+    html += '<th style="min-width:54px;font-size:0.65rem;white-space:normal;line-height:1.2;">GLE<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">goal</span></th>';
     html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">% total</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
@@ -7965,6 +7987,22 @@ function renderCore() {
         var knownTotal = springT !== null ? springT : (winterT !== null ? winterT : fallT);
 
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
+
+        // GLE Goal pie — find best available GLE/goal across periods
+        var gleVal = '', gleGoalVal = '';
+        ['fall','winter','spring'].forEach(function(period) {
+            if (s[period] && s[period].gle && !gleVal) gleVal = s[period].gle;
+            if (s[period] && s[period].gleGoal && !gleGoalVal) gleGoalVal = s[period].gleGoal;
+        });
+        // If current period has values, prefer those
+        if (!isAll && s[p]) {
+            if (s[p].gle) gleVal = s[p].gle;
+            if (s[p].gleGoal) gleGoalVal = s[p].gleGoal;
+        }
+        var gleSvg = coreGleDonut(gleVal, gleGoalVal);
+        html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
+        html += gleSvg || '<span style="color:#d1d1d6;font-size:0.65rem;">—</span>';
+        html += '</td>';
 
         // Pie chart — % of total possible words known
         html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
@@ -9049,7 +9087,7 @@ var LEXIA_STDS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0Wxx
 var lexiaPerfData = null;
 var lexiaProgData = null;
 var lexiaStdsData = null;
-var lexiaView     = 'performance';
+var lexiaView     = 'progress';
 
 // 21 Lexia units in 7 skill groups
 var LEXIA_GROUPS = [
@@ -9152,12 +9190,10 @@ function setLexiaView(v) {
     document.querySelectorAll('.lexia-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === v);
     });
-    var pe = document.getElementById('lexia-perf');
-    var pr = document.getElementById('lexia-prog');
-    var st = document.getElementById('lexia-stds');
-    if (pe) pe.style.display = v === 'performance' ? '' : 'none';
-    if (pr) pr.style.display = v === 'progress'    ? '' : 'none';
-    if (st) st.style.display = v === 'standards'   ? '' : 'none';
+    var comb = document.getElementById('lexia-progress-combined');
+    var st   = document.getElementById('lexia-stds');
+    if (comb) comb.style.display = v === 'progress'  ? '' : 'none';
+    if (st)   st.style.display   = v === 'standards' ? '' : 'none';
     if (v === 'standards' && lexiaStdsData) renderLexiaStds();
 }
 
