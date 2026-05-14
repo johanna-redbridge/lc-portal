@@ -8986,31 +8986,13 @@ function renderCompTable() {
             + '</div>';
     }
 
-    // ── Flipped table: students as rows, questions as columns ──────
+    // ── Flipped table: students as rows, GLE pie columns only ──────
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;">'
-        + '<thead>'
-        // Row 1: per-GLE pie columns (rowspan=2) then question group spans
-        + '<tr>'
-        + '<th class="core-name-col" rowspan="2">Student</th>';
+        + '<thead><tr>'
+        + '<th class="core-name-col">Student</th>';
     gleGroups.forEach(function(grp) {
-        html += '<th rowspan="2" style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.35rem 0.4rem;white-space:nowrap;min-width:54px;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
-    });
-    gleGroups.forEach(function(grp) {
-        html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.7rem;border-bottom:1px solid #e8e8ed;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
-    });
-    html += '</tr>';
-    // Row 2: Q numbers with CCSS standard code below
-    html += '<tr>';
-    gleGroups.forEach(function(grp) {
-        grp.items.forEach(function(item) {
-            var stdCode = item.q.std
-                ? '<div style="font-size:0.54rem;color:#6e6e73;margin-top:2px;white-space:nowrap;">' + item.q.std.replace(/</g,'&lt;') + '</div>'
-                : '';
-            html += '<th style="text-align:center;font-size:0.63rem;vertical-align:top;padding:4px 3px;">'
-                + '<div>Q' + (item.q.q || (item.idx + 1)) + '</div>'
-                + stdCode + '</th>';
-        });
+        html += '<th style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.35rem 0.4rem;white-space:nowrap;min-width:54px;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -9025,15 +9007,6 @@ function renderCompTable() {
             html += '<td style="padding:4px 4px;vertical-align:middle;text-align:center;">' + benchDonut(pct, '') + '</td>';
         });
 
-        gleGroups.forEach(function(grp) {
-            grp.items.forEach(function(item) {
-                if (item.q.mastery[s.name]) {
-                    html += '<td style="text-align:center;background:#5a9e5a;color:#fff;font-size:0.85rem;">✓</td>';
-                } else {
-                    html += '<td style="text-align:center;color:#c7c7cc;font-size:0.7rem;">&ndash;</td>';
-                }
-            });
-        });
         html += '</tr>';
     });
 
