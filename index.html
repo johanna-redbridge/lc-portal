@@ -7087,22 +7087,45 @@ function xrefLoadCompDetail(cb){
     if(pending===0) cb();
 }
 
+// Strip CA-CCSS. prefix and remove dots before lowercase letter suffixes
+// "CA-CCSS.L.K.1.a" → "L.K.1a",  "RF.K.1.a" → "RF.K.1a"
+function normLexiaCode(k){ return (k||'').replace(/^CA-CCSS\./i,'').replace(/\.([a-z])/g,'$1'); }
+
+var ELA_DOMAINS = {RF:1,RL:2,RI:3,L:4,W:5,SL:6};
+
 function xrefBuildReadStds(){
     if(!xrefCCSCRows) return [];
     var seen = {};
     var result = [];
+
+    // Source 1: standards with credit mappings
     xrefCCSCRows.forEach(function(r){
         if(r.area !== 'Reading' && r.area !== 'Writing') return;
         if(seen[r.code]) return;
         seen[r.code] = true;
         var gn = xrefGradeNum(r.code);
         var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
-        var dom = (r.code||'').split('.')[0];
-        result.push({gradeNum:gn, grade:g, domain:dom, id:r.code, desc:r.text||''});
+        result.push({gradeNum:gn, grade:g, domain:(r.code||'').split('.')[0], id:r.code, desc:r.text||''});
     });
+
+    // Source 2: Lexia standards not already included
+    if(lexiaStdsData && lexiaStdsData.standards){
+        lexiaStdsData.standards.forEach(function(s){
+            var code = normLexiaCode(s.code);
+            if(seen[code]) return;
+            var pre = code.split('.')[0];
+            if(!ELA_DOMAINS[pre]) return;
+            seen[code] = true;
+            var gn = xrefGradeNum(code);
+            var g = gn === 0 ? 'K' : (gn > 0 ? gn.toString() : 'Other');
+            result.push({gradeNum:gn, grade:g, domain:pre, id:code, desc:''});
+        });
+    }
+
     result.sort(function(a,b){
         if(a.gradeNum !== b.gradeNum) return a.gradeNum - b.gradeNum;
-        if(a.domain < b.domain) return -1; if(a.domain > b.domain) return 1;
+        var da = ELA_DOMAINS[a.domain]||99, db = ELA_DOMAINS[b.domain]||99;
+        if(da !== db) return da - db;
         if(a.id < b.id) return -1; if(a.id > b.id) return 1;
         return 0;
     });
@@ -7111,20 +7134,16 @@ function xrefBuildReadStds(){
 
 function xrefLoadReadDetail(cb){
     var pending = 0;
-    function done(){ if(--pending===0) cb(); }
-    if(!xrefCCSCRows || !xrefStudents){
-        pending++;
-        xrefLoadData(function(){ xrefReadStds = xrefBuildReadStds(); done(); });
-    } else if(!xrefReadStds){
-        xrefReadStds = xrefBuildReadStds();
-    }
+    function onAllLoaded(){ xrefReadStds = xrefBuildReadStds(); cb(); }
+    function done(){ if(--pending===0) onAllLoaded(); }
+    if(!xrefCCSCRows || !xrefStudents){ pending++; xrefLoadData(done); }
     if(!lexiaStdsData){
         pending++;
         fetch(LEXIA_STDS_URL).then(function(r){return r.text();}).then(function(t){
             lexiaStdsData = parseStandardsCsv(t); done();
         }).catch(function(){ lexiaStdsData = {grades:[],standards:[],students:[]}; done(); });
     }
-    if(pending===0) cb();
+    if(pending===0) onAllLoaded();
 }
 
 function xrefRenderReadDetail(){
@@ -7214,10 +7233,6 @@ function xrefReadDetailHTML(){
         stdCredits[r.code].push(r);
     });
 
-    // Normalize a CCSS code: strip CA-CCSS. prefix and remove dots before lowercase letters
-    // "CA-CCSS.L.K.1.a" → "L.K.1a",  "RF.K.1.a" → "RF.K.1a"
-    function normLexiaCode(k){ return k.replace(/^CA-CCSS\./i,'').replace(/\.([a-z])/g,'$1'); }
-
     // Build Lexia score lookup: normalized code → pct
     var lexiaScores = {};
     if(lexiaStudent){
@@ -7263,9 +7278,9 @@ function xrefReadDetailHTML(){
     if(!lexiaStudent) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">No Lexia data matched</span>';
     headerHtml += '</div>';
     var summCards = [
-        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#c4eabb',tc:'#1d1d1f'},
-        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#8cd47e',tc:'#1d1d1f'},
-        {l:'Both Confirmed',v:totBoth,bg:'#6db86d',tc:'#1d1d1f'}
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#d6f5c6',tc:'#1d1d1f'},
+        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#6edc5a',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#3ec83e',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
@@ -7309,9 +7324,9 @@ function xrefReadDetailHTML(){
             var lexMastered = lexPct === 100;
 
             var rowBg;
-            if(best==='e'&&lexMastered)   rowBg='#6db86d';
-            else if(best==='e')           rowBg='#c4eabb';
-            else if(lexMastered)          rowBg='#8cd47e';
+            if(best==='e'&&lexMastered)   rowBg='#3ec83e';
+            else if(best==='e')           rowBg='#d6f5c6';
+            else if(lexMastered)          rowBg='#6edc5a';
             else if(best==='a')           rowBg='#fffbeb';
             else                          rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
@@ -7601,9 +7616,9 @@ function xrefCompDetailHTML(){
 
     // Summary cards
     var summCards = [
-        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#c4eabb',tc:'#1d1d1f'},
-        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#8cd47e',tc:'#1d1d1f'},
-        {l:'Both Confirmed',v:totBoth,bg:'#6db86d',tc:'#1d1d1f'}
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#d6f5c6',tc:'#1d1d1f'},
+        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#6edc5a',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#3ec83e',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
@@ -7664,9 +7679,9 @@ function xrefCompDetailHTML(){
 
             // Row color — matches summary card palette
             var rowBg;
-            if(best==='e'&&anyMastered)  rowBg='#6db86d'; // both confirmed: medium green
-            else if(best==='e')          rowBg='#c4eabb'; // credit only: pale green
-            else if(anyMastered)         rowBg='#8cd47e'; // benchmark only: medium green
+            if(best==='e'&&anyMastered)  rowBg='#3ec83e'; // both confirmed: medium green
+            else if(best==='e')          rowBg='#d6f5c6'; // credit only: pale green
+            else if(anyMastered)         rowBg='#6edc5a'; // benchmark only: medium green
             else if(best==='a')          rowBg='#fffbeb';
             else                         rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
@@ -7883,7 +7898,7 @@ function xrefClassHTML(){
         var notS = total - c.e - c.a;
         var pct = total ? Math.round(c.e/total*100) : 0;
         var rowBg = idx%2===0?'#ffffff':'#f9fafb';
-        var barColor = pct>=75?'#8cd47e':pct>=40?'#ffb54c':'#ff6961';
+        var barColor = pct>=75?'#6edc5a':pct>=40?'#ffb54c':'#ff6961';
         html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
         html += '<td style="padding:0.55rem 0.75rem;">';
         if(c.link&&c.link!=='(no URL)') html += '<a href="'+c.link+'" target="_blank" style="color:#FF8200;font-weight:600;text-decoration:none;">'+cn+'</a>';
@@ -7975,7 +7990,7 @@ function xrefStandardsHTML(){
     stdCodes.forEach(function(code, idx){
         var s = stdMap[code];
         var pct = total && s.credits.length ? Math.round(s.earnedStudents/total*100) : 0;
-        var barColor = pct>=75?'#8cd47e':pct>=40?'#ffb54c':'#ff6961';
+        var barColor = pct>=75?'#6edc5a':pct>=40?'#ffb54c':'#ff6961';
         var rowBg = s.mapped ? (idx%2===0?'#ffffff':'#f9fafb') : '#fefce8';
         html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
         html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+code+'</td>';
@@ -8105,9 +8120,9 @@ function coreIsMastered(student, catIdx, period) {
 function pctColor(pct) {
     if (pct >= 100) return '#5a9e5a';  // deep green
     if (pct >= 90)  return '#7abd7e';  // dark green
-    if (pct >= 80)  return '#8cd47e';  // light green
+    if (pct >= 80)  return '#6edc5a';  // light green
     if (pct >= 70)  return '#a8df9e';  // pale green
-    if (pct >= 60)  return '#c4eabb';  // very pale green
+    if (pct >= 60)  return '#d6f5c6';  // very pale green
     if (pct >= 50)  return '#F8D66D';  // yellow
     if (pct >= 40)  return '#f9c85a';  // yellow-orange
     if (pct >= 30)  return '#ffb54c';  // orange
@@ -10122,7 +10137,7 @@ function gradeBand(v) {
 }
 function scoreColor(v) {
     if (v==null||v===0) return '#e5e5e5';
-    if (v>=5.0) return '#8cd47e'; if (v>=4.0) return '#a8df9e';
+    if (v>=5.0) return '#6edc5a'; if (v>=4.0) return '#a8df9e';
     if (v>=3.0) return '#F8D66D'; if (v>=2.0) return '#ffb54c';
     return '#ff6961';
 }
@@ -10132,7 +10147,7 @@ function growthColors(d, timeframe) {
     if (d<0)    return { bg:'#ffb0ac', text:'#7f1d1d', symbol:'▼' };
     if (d<low)  return { bg:'#ffd9d7', text:'#b34040', symbol:'●' };
     if (d<high) return { bg:'#fdf0a0', text:'#7a5c00', symbol:'▲' };
-    return             { bg:'#c4eabb', text:'#2d6e30', symbol:'▲' };
+    return             { bg:'#d6f5c6', text:'#2d6e30', symbol:'▲' };
 }
 function grpAvg(members, season, catIdx) {
     var vals = members
