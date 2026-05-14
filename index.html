@@ -7838,6 +7838,51 @@ function coreCellAllHtml(student, catIdx) {
     return '<div style="padding:2px 2px;">' + rows + '</div>';
 }
 
+var CORE_TOTAL_MAX = CORE_CATS.reduce(function(a, c) { return a + c.max; }, 0);
+
+function coreStudentTotal(student, period) {
+    var pData = student[period];
+    if (!pData) return null;
+    var total = 0, hasAny = false;
+    CORE_CATS.forEach(function(cat, i) {
+        var raw = pData.scores[i];
+        if (raw === null || raw === undefined) return;
+        if (coreRawIsMastered(raw)) { total += cat.max; hasAny = true; return; }
+        var n = parseInt(raw, 10);
+        if (!isNaN(n)) { total += Math.min(n, cat.max); hasAny = true; }
+    });
+    return hasAny ? total : null;
+}
+
+function coreDonutSvg(total) {
+    var pct = Math.round(total / CORE_TOTAL_MAX * 100);
+    var r = 15, cx = 19, cy = 19, circ = 2 * Math.PI * r;
+    var dash = Math.min(pct / 100, 1) * circ;
+    var color = pctColor(pct);
+    return '<svg width="38" height="38" viewBox="0 0 38 38" style="flex-shrink:0;">'
+        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e8e8ed" stroke-width="5"/>'
+        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="5"'
+        + ' stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" stroke-linecap="round"'
+        + ' transform="rotate(-90 '+cx+' '+cy+')"/>'
+        + '<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="7.5"'
+        + ' font-family="-apple-system,sans-serif" font-weight="700" fill="#1d1d1f">'+pct+'%</text>'
+        + '</svg>';
+}
+
+function coreGrowthBarHtml(fromTotal, toTotal, label) {
+    if (fromTotal === null || toTotal === null)
+        return '<div style="font-size:0.55rem;color:#aeaeb2;text-align:center;">'+label+'<br><span style="color:#d1d1d6;">—</span></div>';
+    var delta = toTotal - fromTotal;
+    var barPct = Math.abs(delta) / CORE_TOTAL_MAX * 100;
+    var color = delta > 5 ? '#8cd47e' : delta > 0 ? '#c4eabb' : delta === 0 ? '#d1d1d6' : '#ff6961';
+    var sign = delta > 0 ? '+' : '';
+    return '<div style="font-size:0.55rem;color:#aeaeb2;margin-bottom:2px;text-align:center;">'+label+'</div>'
+        + '<div style="width:52px;height:7px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin:0 auto;">'
+        + '<div style="width:'+barPct.toFixed(1)+'%;height:100%;background:'+color+';border-radius:3px;"></div>'
+        + '</div>'
+        + '<div style="text-align:center;font-size:0.6rem;color:#374151;margin-top:2px;font-weight:600;">'+sign+delta+'</div>';
+}
+
 function renderCore() {
     var el = document.getElementById('core-content');
     if (!el) return;
@@ -7855,15 +7900,43 @@ function renderCore() {
     var isAll = (p === 'all');
     var html = '<div class="core-table-wrap"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
+    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">% total</span></th>';
+    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
+    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
     if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:#aeaeb2;font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
     CORE_CATS.forEach(function(cat) {
         html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:#86868b;font-size:0.63rem;">/' + cat.max + '</span></th>';
     });
-    html += '<th style="text-align:left;min-width:160px;white-space:normal;font-size:0.72rem;">Notes</th>';
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
+
+        // Summary totals for new columns
+        var fallT   = coreStudentTotal(s, 'fall');
+        var winterT = coreStudentTotal(s, 'winter');
+        var springT = coreStudentTotal(s, 'spring');
+        // "Known %" uses most recent available period
+        var knownTotal = springT !== null ? springT : (winterT !== null ? winterT : fallT);
+
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
+
+        // Pie chart — % of total possible words known
+        html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
+        if (knownTotal !== null) {
+            html += coreDonutSvg(knownTotal);
+        } else {
+            html += '<span style="color:#d1d1d6;font-size:0.7rem;">—</span>';
+        }
+        html += '</td>';
+
+        // BOY→MOY growth bar
+        html += '<td style="padding:3px 5px;vertical-align:middle;text-align:center;">'
+            + coreGrowthBarHtml(fallT, winterT, 'BOY→MOY') + '</td>';
+
+        // MOY→EOY growth bar
+        html += '<td style="padding:3px 5px;vertical-align:middle;text-align:center;">'
+            + coreGrowthBarHtml(winterT, springT, 'MOY→EOY') + '</td>';
+
         if (isAll) {
             html += '<td style="padding:2px 4px;vertical-align:middle;white-space:nowrap;">'
                 + '<div style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;">'
@@ -7895,18 +7968,6 @@ function renderCore() {
                 html += '<td><span class="core-chip" style="background:' + bg + ';color:' + color + ';">' + label + '</span></td>';
             }
         });
-        var notes = '';
-        if (isAll) {
-            var noteParts = [];
-            ['fall','winter','spring'].forEach(function(pk, pi) {
-                var n = s[pk] && s[pk].notes ? s[pk].notes.trim() : '';
-                if (n) noteParts.push('<span style="color:#aeaeb2;">' + ['BOY','MOY','EOY'][pi] + ':</span> ' + n.replace(/</g,'&lt;'));
-            });
-            notes = noteParts.join('<br>');
-        } else {
-            notes = pData && pData.notes ? pData.notes.replace(/</g,'&lt;') : '';
-        }
-        html += '<td style="text-align:left;white-space:normal;font-size:0.7rem;color:#3a3a3c;padding:0.3rem 0.5rem;">' + notes + '</td>';
         html += '</tr>';
     });
     html += '</tbody></table></div>';
