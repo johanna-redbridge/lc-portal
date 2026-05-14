@@ -7930,23 +7930,20 @@ function coreBoyMoyHtml(fromTotal, toTotal) {
     return '<span style="font-size:0.78rem;font-weight:600;color:'+color+';">'+sign+delta+'</span>';
 }
 
-function coreGleDonut(gle, gleGoal) {
-    var g = parseFloat(gle), goal = parseFloat(gleGoal);
-    if (isNaN(g) || isNaN(goal) || goal <= 0) return null;
-    var pct = Math.min(Math.round(g / goal * 100), 100);
+function coreGleBar(knownTotal, gleGoal) {
+    var current = parseInt(knownTotal, 10), goal = parseInt(gleGoal, 10);
+    if (isNaN(current) || isNaN(goal) || goal <= 0) return null;
+    var pct = Math.min(Math.round(current / goal * 100), 100);
     var col = pctColor(pct);
-    var sz = 46, r = 16, cx = sz / 2, cy = sz / 2, circ = 2 * Math.PI * r;
-    var dash = (pct / 100) * circ, gap = circ - dash;
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:1px;">'
-        + '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'">'
-        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e8e8ed" stroke-width="4"/>'
-        + '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="4"'
-        + ' stroke-dasharray="'+dash.toFixed(1)+' '+gap.toFixed(1)+'"'
-        + ' stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>'
-        + '<text x="'+cx+'" y="'+(cy+1)+'" text-anchor="middle" dominant-baseline="middle"'
-        + ' font-size="8" font-family="-apple-system,sans-serif" font-weight="700" fill="#1d1d1f">'+g.toFixed(1)+'</text>'
-        + '</svg>'
-        + '<div style="font-size:0.5rem;color:#86868b;white-space:nowrap;">goal&nbsp;'+goal.toFixed(1)+'</div>'
+    return '<div style="min-width:110px;padding:1px 0;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">'
+        + '<span style="font-size:0.65rem;font-weight:700;color:#1d1d1f;">' + current + '</span>'
+        + '<span style="font-size:0.6rem;color:#86868b;">/ ' + goal + ' goal</span>'
+        + '</div>'
+        + '<div style="height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:4px;transition:width 0.4s;"></div>'
+        + '</div>'
+        + '<div style="text-align:right;font-size:0.58rem;color:' + col + ';font-weight:600;margin-top:2px;">' + pct + '%</div>'
         + '</div>';
 }
 
@@ -7967,7 +7964,7 @@ function renderCore() {
     var isAll = (p === 'all');
     var html = '<div class="core-table-wrap"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
-    html += '<th style="min-width:54px;font-size:0.65rem;white-space:normal;line-height:1.2;">GLE<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">goal</span></th>';
+    html += '<th style="min-width:120px;font-size:0.65rem;white-space:normal;line-height:1.2;">EOY Goal<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">words known</span></th>';
     html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">% total</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
@@ -7999,9 +7996,9 @@ function renderCore() {
             if (s[p].gle) gleVal = s[p].gle;
             if (s[p].gleGoal) gleGoalVal = s[p].gleGoal;
         }
-        var gleSvg = coreGleDonut(gleVal, gleGoalVal);
-        html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
-        html += gleSvg || '<span style="color:#d1d1d6;font-size:0.65rem;">—</span>';
+        var gleBar = coreGleBar(knownTotal, gleGoalVal);
+        html += '<td style="padding:4px 8px;vertical-align:middle;">';
+        html += gleBar || '<span style="color:#d1d1d6;font-size:0.65rem;">—</span>';
         html += '</td>';
 
         // Pie chart — % of total possible words known
