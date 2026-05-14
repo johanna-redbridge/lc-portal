@@ -7158,22 +7158,49 @@ function xrefReadDetailHTML(){
     if(!sdata) return {header:'', body:'<div style="padding:2rem;color:#86868b;">No data found for this student.</div>'};
 
     // Find student in Lexia Standards data
+    // Lexia names are stored as "First Last" after lexiaFlipName, sometimes with nicknames:
+    // e.g. "Clarkson (Clark) Lane" — we also try matching via the nickname in parentheses.
     var lexiaStudent = null;
     if(lexiaStdsData && lexiaStdsData.students.length){
         var normXref = xrefNorm(xrefStudent);
+        // 1. Alias override
         if(BENCH_NAME_ALIASES[xrefStudent]){
             var alias = BENCH_NAME_ALIASES[xrefStudent].toLowerCase();
             lexiaStdsData.students.forEach(function(s){
                 if(!lexiaStudent && s.name.trim().toLowerCase()===alias) lexiaStudent = s;
             });
         }
+        // 2. Exact match
         if(!lexiaStudent)
             lexiaStudent = lexiaStdsData.students.find(function(s){ return s.name===xrefStudent; })||null;
+        // 3. Normalized full-name match
         if(!lexiaStudent)
             lexiaStudent = lexiaStdsData.students.find(function(s){ return xrefNorm(s.name)===normXref; })||null;
+        // 4. Nickname-in-parentheses match: "Clarkson (Clark) Lane" → try "Clark Lane"
+        if(!lexiaStudent){
+            lexiaStdsData.students.forEach(function(s){
+                if(lexiaStudent) return;
+                var m = s.name.match(/\(([^)]+)\)/);
+                if(!m) return;
+                var nickname = m[1].trim();
+                // reconstruct as "Nickname LastName"
+                var withoutNick = s.name.replace(/\s*\([^)]+\)/, '').replace(/\s+/,' ').trim();
+                var parts = withoutNick.split(/\s+/);
+                var lastName = parts[parts.length-1];
+                var nickFull = nickname + ' ' + lastName;
+                if(nickFull === xrefStudent || xrefNorm(nickFull) === normXref) lexiaStudent = s;
+            });
+        }
+        // 5. First-name-only match (last resort)
         if(!lexiaStudent){
             var firstName = xrefStudent.split(/\s+/)[0].toLowerCase();
-            lexiaStudent = lexiaStdsData.students.find(function(s){ return s.name.trim().toLowerCase().split(/\s+/)[0]===firstName; })||null;
+            lexiaStudent = lexiaStdsData.students.find(function(s){
+                // check both the first word and any nickname
+                var sLower = s.name.trim().toLowerCase();
+                if(sLower.split(/\s+/)[0] === firstName) return true;
+                var nm = s.name.match(/\(([^)]+)\)/);
+                return nm && nm[1].trim().toLowerCase() === firstName;
+            })||null;
         }
     }
 
@@ -7186,14 +7213,19 @@ function xrefReadDetailHTML(){
         stdCredits[r.code].push(r);
     });
 
-    // Build Lexia score lookup: stripped code → pct
+    // Normalize a CCSS code: strip CA-CCSS. prefix and remove dots before lowercase letters
+    // "CA-CCSS.L.K.1.a" → "L.K.1a",  "RF.K.1.a" → "RF.K.1a"
+    function normLexiaCode(k){ return k.replace(/^CA-CCSS\./i,'').replace(/\.([a-z])/g,'$1'); }
+
+    // Build Lexia score lookup: normalized code → pct
     var lexiaScores = {};
     if(lexiaStudent){
         Object.keys(lexiaStudent.scores).forEach(function(k){
-            var stripped = k.replace(/^CA-CCSS\./i, '');
-            lexiaScores[stripped] = lexiaStudent.scores[k];
+            lexiaScores[normLexiaCode(k)] = lexiaStudent.scores[k];
         });
     }
+
+    function getLexiaPct(code){ var nk=normLexiaCode(code); return lexiaScores.hasOwnProperty(nk)?lexiaScores[nk]:null; }
 
     // Group by grade (already sorted from build step)
     var gradeGroups = {}, gradeOrder = [];
@@ -7213,7 +7245,7 @@ function xrefReadDetailHTML(){
         var credits = stdCredits[std.id]||[];
         var best='';
         credits.forEach(function(r){ var st=xrefCreditStatus(xrefStudent,r.credit); if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a'; });
-        var lexPct = lexiaScores.hasOwnProperty(std.id) ? lexiaScores[std.id] : null;
+        var lexPct = getLexiaPct(std.id);
         var lexMastered = lexPct === 100;
         if(atGle && credits.length>0) totAtGle++;
         if(atGle && lexPct !== null) totLexiaAtGle++;
@@ -7272,7 +7304,7 @@ function xrefReadDetailHTML(){
                 var st=xrefCreditStatus(xrefStudent,r.credit);
                 if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a';
             });
-            var lexPct = lexiaScores.hasOwnProperty(std.id) ? lexiaScores[std.id] : null;
+            var lexPct = getLexiaPct(std.id);
             var lexMastered = lexPct === 100;
 
             var rowBg;
@@ -8277,7 +8309,7 @@ function renderCore() {
 
         // MOY→EOY: no data yet
         html += '<td style="padding:3px 5px;vertical-align:middle;text-align:center;">'
-            + '<span style="font-size:0.68rem;color:#aeaeb2;">no data</span>' + '</td>';
+            + '<span style="font-size:0.68rem;color:#aeaeb2;">no data yet</span>' + '</td>';
 
         if (isAll) {
             html += '<td style="padding:2px 4px;vertical-align:middle;white-space:nowrap;">'
