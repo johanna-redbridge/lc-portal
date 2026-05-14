@@ -1149,10 +1149,6 @@
             <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
             <button class="data-subtab-btn" data-subtab="xref" onclick="switchDataSubtab('xref')">Cross Reference</button>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;padding:0 0.25rem;">
-                <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
-            </div>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -1177,7 +1173,10 @@
                         <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
                         <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                     </div>
-                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    </div>
                 </div>
                 <div id="core-content"></div>
             </div>
@@ -1195,7 +1194,10 @@
                         <button class="toggle-btn fp-view-btn active" data-view="table" onclick="setFpViewMode('table')">Class View</button>
                         <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">📈 Student Growth</button>
                     </div>
-                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    </div>
                 </div>
                 <div id="fp-content"></div>
             </div>
@@ -1207,7 +1209,10 @@
                         <button class="toggle-btn lexia-view-btn" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
-                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    </div>
                 </div>
                 <div id="lexia-perf"></div>
                 <div id="lexia-prog" style="display:none;"></div>
@@ -1223,7 +1228,10 @@
                         <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="4" onclick="setMapElaAL('4')">AL4</button>
                     </div>
-                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    </div>
                 </div>
                 <div id="map-ela-content"></div>
             </div>
@@ -1252,7 +1260,10 @@
                         <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
                         <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
                     </div>
-                    <button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    </div>
                 </div>
                 <div id="map-math-content"></div>
             </div>
@@ -1261,7 +1272,7 @@
         <!-- ── Cross Reference sub-tab ── -->
         <div class="data-subtab-panel" id="data-subtab-xref" style="display:none;">
             <!-- filter bar -->
-            <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;row-gap:0.45rem;">
+            <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;row-gap:0.45rem;justify-content:flex-start;">
                 <div class="toggle-group">
                     <button class="toggle-btn xref-view-btn active" data-view="student" onclick="xrefSetView('student')">Student View</button>
                     <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
@@ -1293,6 +1304,10 @@
                         <button class="toggle-btn xref-grade-btn" data-grade="6" onclick="xrefSetGrade('6')">6+</button>
                     </div>
                 </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                    <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                    <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                </div>
             </div>
             <div id="xref-content" style="padding:0;"></div>
         </div>
@@ -1312,6 +1327,10 @@
                         <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">Student</button>
                         <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">All Levels</button>
                         <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">Category</button>
+                    </div>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
@@ -8850,7 +8869,10 @@ function renderCompFilters() {
         html += '<button class="toggle-btn comp-group-btn' + active + '" data-group="' + g.replace(/"/g,'&quot;') + '" onclick="setCompGroup(\'' + g.replace(/'/g,"\\'") + '\')">' + lbl.replace(/</g,'&lt;') + '</button>';
     });
     html += '</div>';
-    html += '<button class="btn btn-primary" style="margin-left:auto;" onclick="">Enter New Data</button>';
+    html += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">'
+        + '<button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">+ Enter New Data</button>'
+        + '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">↑ Import New Data</button>'
+        + '</div>';
     el.innerHTML = html;
 }
 
