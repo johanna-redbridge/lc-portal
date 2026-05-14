@@ -8928,8 +8928,7 @@ function renderCompTable() {
     }
 
     // ── Flipped table: students as rows, questions as columns ──────
-    var html = cards
-        + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;">'
         + '<thead>'
         // Row 1: per-GLE pie columns (rowspan=2) then question group spans
@@ -8996,6 +8995,8 @@ function renderCompTable() {
         });
         html += '</div></div>';
     }
+
+    html += cards;
 
     el.innerHTML = html;
 }
