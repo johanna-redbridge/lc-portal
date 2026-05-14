@@ -975,7 +975,7 @@
         <button class="tab-btn active" onclick="switchTab('available')">Learning Credits</button>
         <button class="tab-btn" onclick="switchTab('portfolio')">Digital Portfolio</button>
         <button class="tab-btn" onclick="switchTab('data')">Analytics</button>
-        <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Groups</button>
+        <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Manage</button>
     </nav>
     <div id="drive-user-info" style="position:absolute;right:1.5rem;display:none;align-items:center;gap:0.6rem;">
         <span id="drive-user-name" style="font-size:0.78rem;color:#86868b;"></span>
@@ -4046,7 +4046,7 @@ function applyTabRender(tab) {
         switchDPSubtab('student');
         return;
     }
-    var tabLabels = { available: 'Learning Credits', manage: 'Groups', portfolio: 'Digital Portfolio', data: 'Analytics' };
+    var tabLabels = { available: 'Learning Credits', manage: 'Manage', portfolio: 'Digital Portfolio', data: 'Analytics' };
     document.querySelectorAll('.tab-btn').forEach(function(b) {
         if (b.textContent === tabLabels[tab]) b.classList.add('active');
     });
