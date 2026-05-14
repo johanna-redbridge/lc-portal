@@ -2662,7 +2662,7 @@ var SHEET_CREDIT_ALIASES = {
 };
 
 function sheetNorm(s) {
-    return s.replace(/[^a-z0-9]/gi, '').toLowerCase();
+    return s.replace(/\bto\b/gi, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
 }
 
 function buildCreditLookup() {
