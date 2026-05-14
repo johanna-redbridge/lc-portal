@@ -7369,9 +7369,9 @@ function xrefCompDetailHTML(){
                 credits.forEach(function(r,ci){
                     if(ci>0) html += '<br>';
                     if(r.link&&r.link!=='(no URL)')
-                        html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-size:0.75rem;text-decoration:none;font-weight:500;">'+r.credit.replace(/</g,'&lt;')+'</a>';
+                        html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-size:0.75rem;text-decoration:none;font-weight:600;">'+r.credit.replace(/</g,'&lt;')+'</a>';
                     else
-                        html += '<span style="font-size:0.75rem;color:#374151;">'+r.credit.replace(/</g,'&lt;')+'</span>';
+                        html += '<span style="font-size:0.75rem;color:#1d1d1f;font-weight:600;">'+r.credit.replace(/</g,'&lt;')+'</span>';
                 });
             } else {
                 html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
