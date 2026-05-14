@@ -8195,7 +8195,7 @@ function fpProgressBar(student) {
     var sz = 52, r = 19, cx = sz / 2, cy = sz / 2;
     var circ = 2 * Math.PI * r;
     var dash = (pct / 100) * circ, gap = circ - dash;
-    return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;">'
+    return '<div style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;">'
         + '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '">'
         + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e8e8ed" stroke-width="6"/>'
         + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="6"'
@@ -8204,7 +8204,7 @@ function fpProgressBar(student) {
         + '<text x="' + cx + '" y="' + (cy + 1) + '" text-anchor="middle" dominant-baseline="middle"'
         + ' font-size="10" font-family="-apple-system,sans-serif" font-weight="700" fill="#1d1d1f">' + pct + '%</text>'
         + '</svg>'
-        + '<span style="font-size:0.6rem;color:#aeaeb2;white-space:nowrap;">target&nbsp;' + fpDisplayLevel(targetLv) + '</span>'
+        + '<span style="font-size:0.65rem;color:#86868b;white-space:nowrap;">target&nbsp;<strong style="color:#3a3a3c;">' + fpDisplayLevel(targetLv) + '</strong></span>'
         + '</div>';
 }
 
@@ -8254,8 +8254,8 @@ function renderFPTable() {
         + '<th>BOY</th>'
         + '<th>MOY</th>'
         + '<th>EOY</th>'
-        + '<th style="text-align:center;">+1.0 Growth</th>'
         + '<th style="min-width:200px;">GLE Progress</th>'
+        + '<th style="text-align:center;">+1.0 Growth</th>'
         + '<th></th>'
         + '</tr></thead><tbody>';
 
@@ -8274,8 +8274,8 @@ function renderFPTable() {
             + lvCell(s.boy)
             + lvCell(s.moy)
             + lvCell(s.eoy)
-            + '<td style="text-align:center;">' + fpProgressBar(s) + '</td>'
             + '<td>' + fpGLEBar(s) + '</td>'
+            + '<td style="text-align:center;">' + fpProgressBar(s) + '</td>'
             + '<td style="text-align:center;">'
             + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
                 + (expanded ? '&#9650;' : '&#9660;') + '&nbsp;notes</button>' : '')
