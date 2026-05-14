@@ -899,14 +899,18 @@
         .core-table td.core-name-col { position: sticky; left: 0; background: #fff; text-align: left; font-weight: 500; z-index: 1; padding-left: 0.55rem; padding-right: 0.55rem; font-size: 0.78rem; }
         .core-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; padding: 0.15rem 0.28rem; min-width: 2.7rem; font-size: 0.69rem; font-weight: 600; line-height: 1.2; }
         /* ── Data sub-tabs ── */
-        .data-subtab-nav { display: flex; justify-content: center; border-bottom: 2px solid #e8e8ed; padding: 0 1.25rem; background: #fff; }
+        .data-subtab-nav { display: flex; justify-content: center; border-bottom: 2px solid #e8e8ed; padding: 0 1.25rem; background: #fff; position: sticky; top: var(--nav-h-1, 57px); z-index: 150; }
         .data-subtab-btn { padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 500; border: none; background: none; cursor: pointer; color: #86868b; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color 0.15s; white-space: nowrap; }
         .data-subtab-btn:hover { color: #1d1d1f; }
         .data-subtab-btn.active { color: #FF8200; border-bottom-color: #FF8200; }
+        .panel-subnav { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
+        .subpanel-toolbar { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
+        #xref-filter-bar { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
+        #comp-filters { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
 
         /* ── Writing Dashboard scoped styles ── */
         #wd-root { font-family: -apple-system, 'DM Sans', system-ui, sans-serif; color: #1a1a2e; }
-        #wd-nav { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; background:#f5f5f7; padding:0.55rem 1.25rem; border-bottom:1px solid #e8e8ed; }
+        #wd-nav { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; background:#f5f5f7; padding:0.55rem 1.25rem; border-bottom:1px solid #e8e8ed; position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
         .wd-nav-btn { padding:0.4rem 0.9rem; border-radius:8px; border:none; cursor:pointer; font-family:inherit; font-size:0.72rem; font-weight:500; background:transparent; color:#86868b; transition:all 0.25s ease; white-space:nowrap; }
         .wd-nav-btn:hover { color:#1d1d1f; }
         .wd-nav-btn.active { background:#e8e8ed; color:#1d1d1f; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
@@ -1153,7 +1157,7 @@
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
-            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+            <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
                 <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
                 <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
                 <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
@@ -1161,7 +1165,7 @@
             </div>
             <!-- CORE -->
             <div id="reading-panel-core">
-                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
                         <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
                         <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
@@ -1174,15 +1178,15 @@
                         <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="core-content"></div>
             </div>
             <!-- F&P -->
             <div id="reading-panel-fp" style="display:none;">
-                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
                         <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
                         <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
@@ -1195,22 +1199,22 @@
                         <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">📈 Student Growth</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="fp-content"></div>
             </div>
             <!-- Lexia -->
             <div id="reading-panel-lexia" style="display:none;">
-                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
                         <button class="toggle-btn lexia-view-btn active" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="lexia-progress-combined">
@@ -1221,7 +1225,7 @@
             </div>
             <!-- MAP ELA -->
             <div id="reading-panel-map-ela" style="display:none;">
-                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
                         <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
@@ -1230,8 +1234,8 @@
                         <button class="toggle-btn map-ela-al-btn" data-al="4" onclick="setMapElaAL('4')">AL4</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="map-ela-content"></div>
@@ -1240,7 +1244,7 @@
 
         <!-- ── Math Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
-            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+            <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
                 <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Benchmark</button>
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
             </div>
@@ -1253,7 +1257,7 @@
             </div>
             <!-- MAP Math -->
             <div id="math-panel-map-math" style="display:none;">
-                <div style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
                         <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
                         <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
@@ -1262,8 +1266,8 @@
                         <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="map-math-content"></div>
@@ -1306,10 +1310,11 @@
                     </div>
                 </div>
                 <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                    <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                    <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                    <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                    <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                 </div>
             </div>
+            <div id="xref-comp-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
             <div id="xref-content" style="padding:0;"></div>
         </div>
 
@@ -1330,8 +1335,8 @@
                         <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">Category</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">↑ Import New Data</button>
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
@@ -7072,6 +7077,7 @@ function xrefLoadCompDetail(cb){
 }
 
 function xrefSetView(v){
+    if(xrefView === 'comp-detail' && v !== 'comp-detail') xrefTeardownCompDetailLayout();
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
     var isStudentLike = (v==='student'||v==='comp-detail');
@@ -7168,6 +7174,28 @@ function xrefCompareLabel(codeGrade, gleNum){
 }
 
 /* ── VIEW 4: Computation Detail ── */
+function xrefSetupCompDetailLayout(){
+    var panel   = document.getElementById('data-subtab-xref');
+    var content = document.getElementById('xref-content');
+    var hdr     = document.getElementById('xref-comp-header');
+    if(!panel||!content) return;
+    var top = panel.getBoundingClientRect().top;
+    panel.style.cssText += ';display:flex;flex-direction:column;overflow:hidden;height:'
+        + Math.max(300, window.innerHeight - Math.max(0, top)) + 'px';
+    if(hdr) hdr.style.display = '';
+    content.style.flex      = '1';
+    content.style.overflowY = 'auto';
+    content.style.minHeight = '0';
+}
+function xrefTeardownCompDetailLayout(){
+    var panel   = document.getElementById('data-subtab-xref');
+    var content = document.getElementById('xref-content');
+    var hdr     = document.getElementById('xref-comp-header');
+    if(panel)  { panel.style.height=''; panel.style.overflow=''; panel.style.flexDirection=''; }
+    if(content){ content.style.flex=''; content.style.overflowY=''; content.style.minHeight=''; }
+    if(hdr)    { hdr.style.display='none'; hdr.innerHTML=''; }
+}
+
 function xrefRenderCompDetail(){
     var el = document.getElementById('xref-content');
     if(!el) return;
@@ -7181,7 +7209,11 @@ function xrefRenderCompDetail(){
             sel.value = xrefStudent;
         }
         try {
-            el.innerHTML = xrefCompDetailHTML();
+            var parts = xrefCompDetailHTML();
+            var hdr = document.getElementById('xref-comp-header');
+            if(hdr){ hdr.innerHTML = parts.header; }
+            el.innerHTML = parts.body;
+            xrefSetupCompDetailLayout();
         } catch(e) {
             el.innerHTML = '<div style="padding:2rem;color:#ef4444;">Error rendering Computation view: '+e.message+'</div>';
         }
@@ -7190,12 +7222,12 @@ function xrefRenderCompDetail(){
 
 function xrefCompDetailHTML(){
     if(!xrefCompStds||!xrefCCSCRows||!xrefStudents)
-        return '<div style="padding:2rem;color:#86868b;">Data unavailable.</div>';
+        return {header:'', body:'<div style="padding:2rem;color:#86868b;">Data unavailable.</div>'};
     if(!xrefStudent)
-        return '<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>';
+        return {header:'', body:'<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>'};
 
     var sdata = xrefStudents[xrefStudent];
-    if(!sdata) return '<div style="padding:2rem;color:#86868b;">No data found for this student.</div>';
+    if(!sdata) return {header:'', body:'<div style="padding:2rem;color:#86868b;">No data found for this student.</div>'};
 
     // Find this student's name in benchmark data
     // LC sheet uses full names ("Clark Lane"); benchmark CSV uses first names only ("Clark")
@@ -7292,30 +7324,43 @@ function xrefCompDetailHTML(){
         if(gleNum >= 0 && gradeN <= gleNum && (stdCredits[std.id]||[]).length > 0) totAtGle++;
     });
 
-    var html = '<div style="padding:1rem 1.25rem 0.5rem;">';
-    html += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
-    html += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
-    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
-    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
-    html += '</div>';
+    // Count standards with at least one benchmark question at or below student's GLE
+    var totBenchAtGle = 0;
+    xrefCompStds.forEach(function(std){
+        var gradeN = std.grade==='K' ? 0 : (parseInt(std.grade)||99);
+        if(gleNum >= 0 && gradeN <= gleNum && (stdBenchQs[std.id]||[]).length > 0) totBenchAtGle++;
+    });
+
+    var headerHtml = '<div style="padding:1rem 1.25rem 0.5rem;">';
+    headerHtml += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
+    headerHtml += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
+    headerHtml += '</div>';
 
     // Summary cards
     var summCards = [
-        {l:'Credits Earned',v:totEarned,bg:'#c4eabb',tc:'#1d1d1f'},
-        {l:'Benchmark Mastered',v:totBench,bg:'#8cd47e',tc:'#1d1d1f'},
-        {l:'Both Confirmed',v:totBoth,bg:'#5a9e5a',tc:'#1d1d1f'},
-        {l:'Available at GLE '+(sdata.gle||'?'),v:totAtGle,bg:'#f3f4f6',tc:'#1d1d1f'}
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#c4eabb',tc:'#1d1d1f'},
+        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#8cd47e',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#6db86d',tc:'#1d1d1f'}
     ];
-    html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
+    headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
-        html += '<div style="flex:1;min-width:110px;background:'+c.bg+';border-radius:10px;padding:0.6rem 0.9rem;">';
-        html += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</div>';
-        html += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;">'+c.l+'</div></div>';
+        headerHtml += '<div style="flex:1;min-width:120px;background:'+c.bg+';border-radius:10px;padding:0.6rem 0.9rem;">';
+        if(c.tot !== undefined){
+            headerHtml += '<div style="display:flex;align-items:baseline;gap:4px;">'
+                + '<span style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</span>'
+                + '<span style="font-size:0.82rem;font-weight:600;color:'+c.tc+';opacity:0.65;">/ '+c.tot+'</span>'
+                + '</div>';
+        } else {
+            headerHtml += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.v+'</div>';
+        }
+        headerHtml += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;margin-top:2px;">'+c.l+'</div></div>';
     });
-    html += '</div></div>';
+    headerHtml += '</div></div>';
 
-    // Per-grade tables
-    html += '<div style="padding:0 1.25rem 1.5rem;">';
+    // Per-grade tables (body)
+    var html = '<div style="padding:0 1.25rem 1.5rem;">';
     gradeOrder.forEach(function(g){
         var stds = gradeGroups[g];
         // Grade-level summary
@@ -7358,7 +7403,7 @@ function xrefCompDetailHTML(){
 
             // Row color — matches summary card palette
             var rowBg;
-            if(best==='e'&&anyMastered)  rowBg='#5a9e5a'; // both confirmed: dark green
+            if(best==='e'&&anyMastered)  rowBg='#6db86d'; // both confirmed: medium green
             else if(best==='e')          rowBg='#c4eabb'; // credit only: pale green
             else if(anyMastered)         rowBg='#8cd47e'; // benchmark only: medium green
             else if(best==='a')          rowBg='#fffbeb';
@@ -7424,7 +7469,7 @@ function xrefCompDetailHTML(){
         html += '</tbody></table>';
     });
     html += '</div>';
-    return html;
+    return {header: headerHtml, body: html};
 }
 
 /* ── VIEW 1: Student ── */
@@ -8841,7 +8886,7 @@ function parseCompCsv(text) {
     var students = [];
     for (var j = 4; j < nameRow.length; j++) {
         var n = (nameRow[j] || '').trim();
-        if (!n) continue;
+        if (!n || /^GLE\s+(#|%)/i.test(n)) continue;
         students.push({ name: n, group: (groupRow[j] || '').trim(), col: j });
     }
 
@@ -8899,8 +8944,8 @@ function renderCompFilters() {
     });
     html += '</div>';
     html += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">'
-        + '<button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">+ Enter New Data</button>'
-        + '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">↑ Import New Data</button>'
+        + '<button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">+ Enter New Data</button>'
+        + '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">↑ Import New Data</button>'
         + '</div>';
     el.innerHTML = html;
 }
@@ -8977,27 +9022,51 @@ function renderCompTable() {
             + '</div>';
     }
 
-    // ── Flipped table: students as rows, GLE pie columns only ──────
+    // ── Table: GLE pie columns + individual Q# check columns ───────
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
-        + '<table class="core-table" style="width:auto;">'
-        + '<thead><tr>'
-        + '<th class="core-name-col">Student</th>';
+        + '<table class="core-table" style="width:auto;border-collapse:collapse;">'
+        + '<thead>'
+        + '<tr>'
+        + '<th class="core-name-col" rowspan="2" style="vertical-align:bottom;">Student</th>';
+    // GLE pie headers (rowspan=2, one per group)
     gleGroups.forEach(function(grp) {
-        html += '<th style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.35rem 0.4rem;white-space:nowrap;min-width:54px;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
+        html += '<th rowspan="2" style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.35rem 0.4rem;white-space:nowrap;min-width:54px;vertical-align:bottom;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
+    });
+    // GLE group spans for Q# sub-columns
+    gleGroups.forEach(function(grp) {
+        if (!grp.items.length) return;
+        html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.25rem 0.4rem;white-space:nowrap;border-bottom:1px solid #d1d5db;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
+    });
+    html += '</tr><tr>';
+    // Q# sub-headers
+    gleGroups.forEach(function(grp) {
+        grp.items.forEach(function(item) {
+            html += '<th style="text-align:center;font-size:0.58rem;font-weight:500;padding:0.2rem 0.25rem;min-width:30px;max-width:52px;color:#86868b;word-break:break-word;white-space:normal;">'
+                + (item.q.q || '').replace(/</g,'&lt;') + '</th>';
+        });
     });
     html += '</tr></thead><tbody>';
 
     // One row per student
     students.forEach(function(s) {
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
-
-        // One pie column per GLE group — always show (0% if nothing mastered)
+        // GLE pie columns
         gleGroups.forEach(function(grp) {
             var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
-            var pct = Math.round(masteredCount / grp.items.length * 100);
+            var pct = grp.items.length > 0 ? Math.round(masteredCount / grp.items.length * 100) : 0;
             html += '<td style="padding:4px 4px;vertical-align:middle;text-align:center;">' + benchDonut(pct, '') + '</td>';
         });
-
+        // Q# check columns
+        gleGroups.forEach(function(grp) {
+            grp.items.forEach(function(item) {
+                var mastered = item.q.mastery[s.name];
+                html += '<td style="text-align:center;vertical-align:middle;padding:2px 3px;">'
+                    + (mastered
+                        ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:transparent;border:2px solid #4b5563;color:#4b5563;font-size:0.65rem;font-weight:700;">✓</span>'
+                        : '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#e8e8ed;color:#aeaeb2;font-size:0.65rem;">–</span>')
+                    + '</td>';
+            });
+        });
         html += '</tr>';
     });
 
@@ -9159,6 +9228,191 @@ function setLexiaView(v) {
     if (comb) comb.style.display = v === 'progress'  ? '' : 'none';
     if (st)   st.style.display   = v === 'standards' ? '' : 'none';
     if (v === 'standards' && lexiaStdsData) renderLexiaStds();
+}
+
+function renderLexiaCombined() {
+    var pel = document.getElementById('lexia-perf');
+    var prel = document.getElementById('lexia-prog');
+    if (!pel) return;
+    if (prel) prel.innerHTML = '';
+
+    var perf = lexiaPerfData || [];
+    var prog = lexiaProgData || [];
+    if (!perf.length && !prog.length) { pel.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    // Build name-keyed lookups
+    var perfMap = {}, progMap = {};
+    perf.forEach(function(s) { perfMap[s.name] = s; });
+    prog.forEach(function(s) { progMap[s.name] = s; });
+
+    // Union of all names, sorted by risk then name
+    var order = { 'At Risk': 0, 'High Risk': 0, 'Some Risk': 1, 'On Target': 2 };
+    var allNames = [];
+    var seen = {};
+    perf.forEach(function(s) { if(!seen[s.name]){ seen[s.name]=true; allNames.push(s.name); } });
+    prog.forEach(function(s) { if(!seen[s.name]){ seen[s.name]=true; allNames.push(s.name); } });
+    allNames.sort(function(a, b) {
+        var pa = perfMap[a], pb = perfMap[b];
+        var ra = pa ? (order.hasOwnProperty(pa.riskLevel) ? order[pa.riskLevel] : 1) : 99;
+        var rb = pb ? (order.hasOwnProperty(pb.riskLevel) ? order[pb.riskLevel] : 1) : 99;
+        return ra - rb || a.localeCompare(b);
+    });
+
+    // Pie chart summary from perf data
+    var BOX = 20;
+    var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
+    var total = perf.length;
+    var counts = { 'On Target': 0, 'Some Risk': 0, 'At Risk': 0 };
+    perf.forEach(function(s) {
+        if (/on.target/i.test(s.riskLevel))              counts['On Target']++;
+        else if (/some.risk/i.test(s.riskLevel))         counts['Some Risk']++;
+        else if (/at.risk|high.risk/i.test(s.riskLevel)) counts['At Risk']++;
+    });
+    var slices = [
+        { label: 'On Target', color: '#7abd7e', count: counts['On Target'] },
+        { label: 'Some Risk', color: '#ffb54c', count: counts['Some Risk'] },
+        { label: 'At Risk',   color: '#ff6961', count: counts['At Risk']   }
+    ];
+    var html = '<div style="display:flex;align-items:center;gap:24px;padding:16px 1.25rem 10px;flex-wrap:wrap;">'
+        + '<canvas id="lexia-perf-pie" width="110" height="110" style="flex-shrink:0;"></canvas>'
+        + '<div style="display:flex;flex-direction:column;gap:6px;">';
+    slices.forEach(function(s) {
+        var pct = total > 0 ? Math.round(s.count / total * 100) : 0;
+        html += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<span style="width:12px;height:12px;border-radius:50%;background:' + s.color + ';flex-shrink:0;display:inline-block;"></span>'
+            + '<span style="font-size:0.82rem;color:#1d1d1f;">' + s.label + '</span>'
+            + '<span style="font-size:0.82rem;font-weight:600;color:#1d1d1f;margin-left:4px;">' + s.count + '</span>'
+            + '<span style="font-size:0.75rem;color:#86868b;">(' + pct + '%)</span></div>';
+    });
+    html += '</div>';
+    // Progress group legend
+    html += '<div style="display:flex;flex-direction:column;gap:4px;font-size:0.68rem;color:#86868b;">';
+    LEXIA_GROUPS.forEach(function(g, i) {
+        html += '<span><span style="display:inline-block;width:10px;height:10px;background:' + GROUP_COLORS[i] + ';border:1px solid #c8c8cc;border-radius:2px;vertical-align:middle;margin-right:3px;"></span>' + g.label + '</span>';
+    });
+    html += '</div></div>';
+
+    // Combined table
+    html += '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+        + '<table class="core-table" style="width:100%;"><thead><tr>'
+        + '<th class="core-name-col">Student</th>'
+        + '<th style="white-space:nowrap;">Grade</th>'
+        + '<th style="white-space:nowrap;">Risk</th>'
+        + '<th style="min-width:120px;white-space:nowrap;">Predictor</th>'
+        + '<th style="min-width:110px;white-space:nowrap;">Usage</th>'
+        + '<th style="white-space:nowrap;">Unit Progress</th>'
+        + '<th style="white-space:nowrap;">Gained / Target</th>'
+        + '</tr></thead><tbody>';
+
+    allNames.forEach(function(name) {
+        var p = perfMap[name];
+        var r = progMap[name];
+
+        // Risk color row background
+        var riskBg = '';
+        if (p) {
+            if (/at.risk|high.risk/i.test(p.riskLevel)) riskBg = '#fff5f5';
+            else if (/some.risk/i.test(p.riskLevel))    riskBg = '#fffbf0';
+        }
+
+        html += '<tr style="background:' + (riskBg||'') + ';">';
+        // Name
+        var displayName = (r && r.struggling ? '<span style="color:#e74c3c;margin-right:3px;font-size:0.65rem;">●</span>' : '')
+            + name.replace(/</g,'&lt;');
+        html += '<td class="core-name-col">' + displayName + '</td>';
+        // Grade
+        html += '<td style="text-align:center;font-size:0.8rem;">' + (p ? p.grade : '—') + '</td>';
+        // Risk badge
+        if (p) {
+            var rc = lexiaRiskColor(p.riskLevel);
+            html += '<td style="padding:4px 8px;white-space:nowrap;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:' + rc + ';color:#fff;font-size:0.68rem;font-weight:600;">' + p.riskLevel.replace(/</g,'&lt;') + '</span></td>';
+        } else { html += '<td style="color:#aeaeb2;font-size:0.8rem;">—</td>'; }
+        // Predictor bar
+        if (p) {
+            var predCol = pctColor(p.predictor);
+            html += '<td style="padding:4px 8px;">'
+                + '<div style="display:flex;align-items:center;gap:5px;">'
+                + '<div style="flex:1;height:9px;background:#e8e8ed;border-radius:5px;overflow:hidden;">'
+                + '<div style="width:' + Math.min(p.predictor,100) + '%;height:100%;background:' + predCol + ';border-radius:5px;"></div></div>'
+                + '<span style="font-size:0.73rem;min-width:24px;">' + p.predictor + '</span></div></td>';
+        } else { html += '<td style="color:#aeaeb2;font-size:0.8rem;">—</td>'; }
+        // Usage bar
+        if (p) {
+            var usageCol = pctColor(p.usagePct);
+            html += '<td style="padding:4px 8px;">'
+                + '<div style="display:flex;align-items:center;gap:5px;">'
+                + '<div style="flex:1;height:9px;background:#e8e8ed;border-radius:5px;overflow:hidden;">'
+                + '<div style="width:' + Math.min(p.usagePct,100) + '%;height:100%;background:' + usageCol + ';border-radius:5px;"></div></div>'
+                + '<span style="font-size:0.73rem;min-width:28px;">' + Math.round(p.usagePct) + '%</span></div></td>';
+        } else { html += '<td style="color:#aeaeb2;font-size:0.8rem;">—</td>'; }
+        // Unit boxes
+        if (r) {
+            var cur = 20;
+            for (var j = 0; j < 21; j++) {
+                var v = r.units[j];
+                if (!v) { cur = j; break; }
+                if (v !== '>' && lexiaUnitPct(v) < 100) { cur = j; break; }
+            }
+            html += '<td style="padding:2px 4px;"><div style="display:flex;gap:2px;align-items:center;">';
+            var unitIdx = 0;
+            LEXIA_GROUPS.forEach(function(grp, gi) {
+                html += '<div style="display:flex;gap:1px;background:' + GROUP_COLORS[gi] + ';padding:2px;border-radius:3px;">';
+                for (var k = 0; k < grp.count; k++) {
+                    var val = r.units[unitIdx] || '';
+                    var color = lexiaUnitColor(val);
+                    var isActive = (unitIdx === cur && val !== '>');
+                    var border = isActive ? '2px solid #1d1d1f' : '1px solid rgba(0,0,0,0.08)';
+                    var tip = 'Unit ' + (unitIdx + 1) + ': ' + (val === '>' ? 'Prior year' : val || 'Not started');
+                    html += '<div title="' + tip + '" style="width:' + BOX + 'px;height:' + BOX + 'px;background:' + color + ';border:' + border + ';border-radius:2px;"></div>';
+                    unitIdx++;
+                }
+                html += '</div>';
+            });
+            html += '</div></td>';
+        } else { html += '<td style="color:#aeaeb2;font-size:0.8rem;">—</td>'; }
+        // Gained / to target
+        if (r) {
+            html += '<td style="white-space:nowrap;font-size:0.75rem;padding:4px 8px;">';
+            if (r.gained) html += '<span style="color:#27ae60;font-weight:600;">+' + r.gained + '</span><span style="color:#86868b;"> gained</span>';
+            if (r.toTarget > 0) html += '&nbsp;&nbsp;<span style="color:#e74c3c;font-weight:600;">' + r.toTarget + '</span><span style="color:#86868b;"> to go</span>';
+            else if (r.gained)  html += '&nbsp;&nbsp;<span style="color:#186a3b;font-weight:600;">✓</span>';
+            html += '</td>';
+        } else { html += '<td style="color:#aeaeb2;font-size:0.8rem;">—</td>'; }
+
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    pel.innerHTML = html;
+
+    // Draw pie chart
+    var canvas = document.getElementById('lexia-perf-pie');
+    if (canvas && canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+        var cx = 55, cy = 55, r2 = 48;
+        var angle = -Math.PI / 2;
+        var drawn = slices.filter(function(s) { return s.count > 0; });
+        if (!drawn.length) {
+            ctx.beginPath(); ctx.arc(cx, cy, r2, 0, Math.PI * 2);
+            ctx.fillStyle = '#e8e8ed'; ctx.fill();
+        } else {
+            drawn.forEach(function(s) {
+                var sweep = (s.count / total) * Math.PI * 2;
+                ctx.beginPath(); ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r2, angle, angle + sweep);
+                ctx.closePath(); ctx.fillStyle = s.color; ctx.fill();
+                angle += sweep;
+            });
+            ctx.beginPath(); ctx.arc(cx, cy, r2 * 0.52, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff'; ctx.fill();
+            ctx.fillStyle = '#1d1d1f';
+            ctx.font = 'bold 18px -apple-system,sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(total, cx, cy - 5);
+            ctx.font = '10px -apple-system,sans-serif'; ctx.fillStyle = '#86868b';
+            ctx.fillText('students', cx, cy + 10);
+        }
+    }
 }
 
 function renderLexiaPerf() {
@@ -9473,12 +9727,12 @@ function renderLexia() {
     var pe = document.getElementById('lexia-perf');
     var pr = document.getElementById('lexia-prog');
     var st = document.getElementById('lexia-stds');
-    if (total === 0) { renderLexiaPerf(); renderLexiaProg(); if (lexiaView === 'standards') renderLexiaStds(); return; }
+    if (total === 0) { renderLexiaCombined(); if (lexiaView === 'standards') renderLexiaStds(); return; }
     if (pe) pe.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
     if (pr) pr.innerHTML = '';
     if (st) st.innerHTML = '';
 
-    function onDone() { if (++loaded >= total) { renderLexiaPerf(); renderLexiaProg(); if (lexiaView === 'standards') renderLexiaStds(); } }
+    function onDone() { if (++loaded >= total) { renderLexiaCombined(); if (lexiaView === 'standards') renderLexiaStds(); } }
 
     if (!lexiaPerfData) {
         fetch(LEXIA_PERF_URL).then(function(r){return r.text();}).then(function(t){
@@ -9961,6 +10215,18 @@ function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
 
 return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth };
 })();
+
+function updateStickyOffsets() {
+    var hdr = document.querySelector('header');
+    var h1 = hdr ? hdr.offsetHeight : 57;
+    var h2 = h1 + 44;
+    var h3 = h2 + 44;
+    document.documentElement.style.setProperty('--nav-h-1', h1 + 'px');
+    document.documentElement.style.setProperty('--nav-h-2', h2 + 'px');
+    document.documentElement.style.setProperty('--nav-h-3', h3 + 'px');
+}
+window.addEventListener('load', updateStickyOffsets);
+window.addEventListener('resize', updateStickyOffsets);
 
 </script>
 
