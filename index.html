@@ -6850,6 +6850,7 @@ var XREF_ELA_STDS_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSQEUA
 var xrefCCSCRows  = null;  // [{code,text,credit,link,area,type,stage}]
 var xrefStudents  = null;  // {name->{al,gle,earned,credits:{normName->status}}}
 var xrefCompStds  = null;  // [{grade,domain,id,desc}]
+var xrefMathStdsData = null; // parsed from XREF_COMP_STDS_URL
 var xrefElaStds   = null;  // [{gradeNum,grade,domain,id,desc}] authoritative ELA standards
 var xrefReadStds  = null;  // [{gradeNum,grade,domain,id,desc}]
 var xrefStudList  = [];
@@ -7066,6 +7067,7 @@ function xrefParseCompStds(text){
 }
 
 function xrefBuildCompStds(){
+    if(xrefMathStdsData && xrefMathStdsData.length) return xrefMathStdsData;
     return XREF_ALL_CCSS
         .filter(function(s){ var pre=s[0].split('.')[0]; return pre==='K'||!isNaN(parseInt(pre)); })
         .map(function(s){ var pts=s[0].split('.'); return {grade:pts[0],domain:pts[1]||'',id:s[0],desc:s[1]}; });
@@ -7073,9 +7075,8 @@ function xrefBuildCompStds(){
 
 function xrefLoadCompDetail(cb){
     var pending = 0;
-    function done(){ if(--pending===0) cb(); }
-
-    if(!xrefCompStds){ xrefCompStds = xrefBuildCompStds(); }
+    function onAllLoaded(){ xrefCompStds = xrefBuildCompStds(); cb(); }
+    function done(){ if(--pending===0) onAllLoaded(); }
 
     if(!xrefCCSCRows || !xrefStudents){ pending++; xrefLoadData(done); }
 
@@ -7086,7 +7087,14 @@ function xrefLoadCompDetail(cb){
         }).catch(function(){ done(); });
     }
 
-    if(pending===0) cb();
+    if(!xrefMathStdsData){
+        pending++;
+        fetch(XREF_COMP_STDS_URL).then(function(r){return r.text();}).then(function(t){
+            xrefMathStdsData = xrefParseCompStds(t); done();
+        }).catch(function(){ xrefMathStdsData = []; done(); });
+    }
+
+    if(pending===0) onAllLoaded();
 }
 
 // Strip CA-CCSS. prefix and remove dots before lowercase letter suffixes
@@ -7365,7 +7373,7 @@ function xrefReadDetailHTML(){
 
             html += '<tr style="background:'+rowBg+';color:#1d1d1f;border-bottom:1px solid #f0f0f0;">';
             html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
-            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;font-size:0.72rem;line-height:1.4;">'+std.desc.replace(/</g,'&lt;')+'</td>';
             html += '<td style="padding:0.45rem 0.6rem;max-width:160px;">';
             if(credits.length){
                 credits.forEach(function(r,ci){
@@ -7724,7 +7732,7 @@ function xrefCompDetailHTML(){
             html += '<td style="padding:0.45rem 0.6rem;font-weight:600;color:#1d1d1f;white-space:nowrap;font-size:0.75rem;">'+std.id.replace(/</g,'&lt;')+'</td>';
 
             // B: Description
-            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;max-width:240px;">'+std.desc.replace(/</g,'&lt;')+'</td>';
+            html += '<td style="padding:0.45rem 0.6rem;color:#1d1d1f;font-size:0.72rem;line-height:1.4;">'+std.desc.replace(/</g,'&lt;')+'</td>';
 
             // C: Learning Credit(s)
             html += '<td style="padding:0.45rem 0.6rem;max-width:160px;">';
