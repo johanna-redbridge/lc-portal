@@ -7066,11 +7066,45 @@ function xrefParseCompStds(text){
     return out;
 }
 
+// Expand "RF.K.2" with desc "Main text. a. Sub-a text. b. Sub-b text."
+// into [{id:'RF.K.2',desc:'Main text'},{id:'RF.K.2a',desc:'Sub-a text'},{id:'RF.K.2b',desc:'Sub-b text'}]
+function xrefExpandSubitems(entry){
+    var code = entry.id || '';
+    var desc = entry.desc || '';
+    var aPos = desc.indexOf(' a. ');
+    if(aPos < 0) return null;
+    var preamble = desc.slice(0, aPos).replace(/[.\s]+$/, '').trim();
+    var rest = desc.slice(aPos + 1); // starts with "a. ..."
+    var parts = rest.split(/ ([a-z])\. /);
+    var result = [];
+    if(preamble) result.push(Object.assign({}, entry, {id: code, desc: preamble}));
+    var firstText = parts[0].replace(/^a\.\s+/, '').replace(/\s*\.?\s*CA\s*$/, '').trim();
+    if(firstText) result.push(Object.assign({}, entry, {id: code + 'a', desc: firstText}));
+    for(var i = 1; i < parts.length; i += 2){
+        var letter = parts[i];
+        var text = (parts[i+1] || '').replace(/\s*\.?\s*CA\s*$/, '').trim();
+        if(letter && text) result.push(Object.assign({}, entry, {id: code + letter, desc: text}));
+    }
+    return result.length > 1 ? result : null;
+}
+
+function xrefExpandAllSubitems(stds){
+    var seen = {}, result = [];
+    stds.forEach(function(s){
+        var expanded = xrefExpandSubitems(s);
+        var items = expanded || [s];
+        items.forEach(function(e){ if(!seen[e.id]){ seen[e.id]=true; result.push(e); } });
+    });
+    return result;
+}
+
 function xrefBuildCompStds(){
-    if(xrefMathStdsData && xrefMathStdsData.length) return xrefMathStdsData;
-    return XREF_ALL_CCSS
+    var stds;
+    if(xrefMathStdsData && xrefMathStdsData.length) stds = xrefMathStdsData;
+    else stds = XREF_ALL_CCSS
         .filter(function(s){ var pre=s[0].split('.')[0]; return pre==='K'||!isNaN(parseInt(pre)); })
         .map(function(s){ var pts=s[0].split('.'); return {grade:pts[0],domain:pts[1]||'',id:s[0],desc:s[1]}; });
+    return xrefExpandAllSubitems(stds);
 }
 
 function xrefLoadCompDetail(cb){
@@ -7157,6 +7191,7 @@ function xrefBuildReadStds(){
         });
     }
 
+    result = xrefExpandAllSubitems(result);
     result.sort(function(a,b){
         if(a.gradeNum !== b.gradeNum) return a.gradeNum - b.gradeNum;
         var da = ELA_DOMAINS[a.domain]||99, db = ELA_DOMAINS[b.domain]||99;
