@@ -7311,9 +7311,9 @@ function xrefReadDetailHTML(){
     if(!lexiaStudent) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">No Lexia data matched</span>';
     headerHtml += '</div>';
     var summCards = [
-        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#d6f5c6',tc:'#1d1d1f'},
-        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#6edc5a',tc:'#1d1d1f'},
-        {l:'Both Confirmed',v:totBoth,bg:'#3ec83e',tc:'#1d1d1f'}
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#FFF4F1',tc:'#1d1d1f'},
+        {l:'Lexia Mastered',v:totLexia,tot:totLexiaAtGle,bg:'#FFECE7',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#FFE4DD',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
@@ -7357,9 +7357,9 @@ function xrefReadDetailHTML(){
             var lexMastered = lexPct === 100;
 
             var rowBg;
-            if(best==='e'&&lexMastered)   rowBg='#3ec83e';
-            else if(best==='e')           rowBg='#d6f5c6';
-            else if(lexMastered)          rowBg='#6edc5a';
+            if(best==='e'&&lexMastered)   rowBg='#FFE4DD';
+            else if(best==='e')           rowBg='#FFF4F1';
+            else if(lexMastered)          rowBg='#FFECE7';
             else if(best==='a')           rowBg='#fffbeb';
             else                          rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
@@ -7649,9 +7649,9 @@ function xrefCompDetailHTML(){
 
     // Summary cards
     var summCards = [
-        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#d6f5c6',tc:'#1d1d1f'},
-        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#6edc5a',tc:'#1d1d1f'},
-        {l:'Both Confirmed',v:totBoth,bg:'#3ec83e',tc:'#1d1d1f'}
+        {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#CCF9FF',tc:'#1d1d1f'},
+        {l:'Benchmark Mastered',v:totBench,tot:totBenchAtGle,bg:'#A6F5FF',tc:'#1d1d1f'},
+        {l:'Both Confirmed',v:totBoth,bg:'#80F1FF',tc:'#1d1d1f'}
     ];
     headerHtml += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
     summCards.forEach(function(c){
@@ -7712,9 +7712,9 @@ function xrefCompDetailHTML(){
 
             // Row color — matches summary card palette
             var rowBg;
-            if(best==='e'&&anyMastered)  rowBg='#3ec83e'; // both confirmed: medium green
-            else if(best==='e')          rowBg='#d6f5c6'; // credit only: pale green
-            else if(anyMastered)         rowBg='#6edc5a'; // benchmark only: medium green
+            if(best==='e'&&anyMastered)  rowBg='#80F1FF'; // both confirmed: 50% computation
+            else if(best==='e')          rowBg='#CCF9FF'; // credit only: 20% computation
+            else if(anyMastered)         rowBg='#A6F5FF'; // benchmark only: 35% computation
             else if(best==='a')          rowBg='#fffbeb';
             else                         rowBg=idx%2===0?'#ffffff':'#f9fafb';
 
