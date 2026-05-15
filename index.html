@@ -1251,6 +1251,7 @@
                 <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Benchmark</button>
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
+                <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1280,6 +1281,11 @@
             <div id="math-panel-fact-fluency" style="display:none;">
                 <div id="fact-fluency-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;"></div>
                 <div id="fact-fluency-content"></div>
+            </div>
+            <!-- STmath -->
+            <div id="math-panel-stmath" style="display:none;">
+                <div id="stmath-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;"></div>
+                <div id="stmath-content"></div>
             </div>
         </div>
 
@@ -6789,7 +6795,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['benchmark', 'map-math', 'fact-fluency'].forEach(function(n) {
+    ['benchmark', 'map-math', 'fact-fluency', 'stmath'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -6800,6 +6806,7 @@ function renderMathSubtab() {
     if (mathSubtab === 'benchmark')    renderComp();
     if (mathSubtab === 'map-math')     renderMapMath();
     if (mathSubtab === 'fact-fluency') renderFactFluency();
+    if (mathSubtab === 'stmath')       renderSTMath();
 }
 
 function switchDataSubtab(name) {
@@ -9416,6 +9423,166 @@ function renderFactFluency() {
     if (factFluencyData) { renderFactFluencyTable(); return; }
     content.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
     loadFactFluencyData(renderFactFluencyTable);
+}
+
+/* =========================================================
+   STmath
+   ========================================================= */
+var STMATH_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=159981394&single=true&output=csv';
+var stmathData        = null;
+var stmathGradeFilter = 'all';
+
+function stmathCellBg(val) {
+    if (!val || val === '---') return '';
+    var n = parseFloat((val||'').replace('%',''));
+    if (isNaN(n)) return '';
+    if (n >= 90) return '#d6f5c6';
+    if (n >= 70) return '#fffacc';
+    if (n >= 50) return '#ffe8cc';
+    return '#ffe5e5';
+}
+
+function stmathFlipName(n) {
+    var parts = (n||'').split(',');
+    return parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : n;
+}
+
+function parseSTMathCsv(text) {
+    var rows = parseCSVFull(text);
+    var sections = [];
+    var i = 0;
+    while (i < rows.length) {
+        var r = rows[i] || [];
+        // Find a standard-codes row: col A empty, col B+ has CCSS codes like "K.CC.A.1" or "1.G.A.1"
+        var isCodes = !(r[0]||'').trim() && r.slice(1).some(function(c){ return /^[K\d]+\.[A-Z]/.test((c||'').trim()); });
+        if (!isCodes) { i++; continue; }
+
+        // Domain labels: row immediately before this one
+        var domainRow = (rows[i-1] || []);
+
+        // Grade title: last non-empty col-A value before this row
+        var gradeTitle = '';
+        for (var gi = i-1; gi >= 0; gi--) {
+            var gc = ((rows[gi]||[])[0]||'').trim();
+            if (gc) { gradeTitle = gc; break; }
+        }
+
+        // Parse standards, mapping each to its domain
+        var standards = [];
+        var lastDomain = '';
+        for (var c = 1; c < r.length; c++) {
+            var code = (r[c]||'').trim();
+            if (!code) continue;
+            if ((domainRow[c]||'').trim()) lastDomain = domainRow[c].trim();
+            standards.push({ code: code, domain: lastDomain, col: c });
+        }
+
+        // Collect student rows until an empty row or next grade section
+        var students = [];
+        var j = i + 1;
+        while (j < rows.length) {
+            var sr = rows[j] || [];
+            var name = (sr[0]||'').trim();
+            if (!name) { j++; break; }
+            // Stop if we hit another grade title
+            if (!/,/.test(name) && !/[%\-]/.test(sr[1]||'')) { break; }
+            var scores = {};
+            standards.forEach(function(std) { scores[std.code] = (sr[std.col]||'').trim(); });
+            students.push({ name: stmathFlipName(name), scores: scores });
+            j++;
+        }
+        sections.push({ grade: gradeTitle, standards: standards, students: students });
+        i = j;
+    }
+    return sections;
+}
+
+function loadSTMathData(cb) {
+    if (stmathData) { cb(); return; }
+    fetch(STMATH_URL).then(function(r){ return r.text(); }).then(function(text){
+        stmathData = parseSTMathCsv(text); cb();
+    }).catch(function(){
+        stmathData = []; cb();
+    });
+}
+
+function renderSTMathTable() {
+    var toolbar = document.getElementById('stmath-toolbar');
+    var content = document.getElementById('stmath-content');
+    if (!content || !stmathData) return;
+
+    // Grade filter toolbar
+    if (toolbar) {
+        var th = '<div class="toggle-group">';
+        th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">All</button>';
+        stmathData.forEach(function(s) {
+            var g = s.grade;
+            th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter===g?' active':'') + '" onclick="stmathGradeFilter=\'' + g.replace(/'/g,"\\'") + '\';renderSTMathTable()">' + g.replace(/</g,'&lt;') + '</button>';
+        });
+        th += '</div>';
+        toolbar.innerHTML = th;
+    }
+
+    var sections = stmathGradeFilter === 'all' ? stmathData : stmathData.filter(function(s){ return s.grade === stmathGradeFilter; });
+
+    var html = '';
+    sections.forEach(function(section) {
+        // Build domain groups for header
+        var domainGroups = [];
+        section.standards.forEach(function(std) {
+            var last = domainGroups[domainGroups.length-1];
+            if (last && last.name === std.domain) last.stds.push(std);
+            else domainGroups.push({ name: std.domain, stds: [std] });
+        });
+
+        html += '<div style="margin-bottom:2.5rem;">';
+        html += '<div style="font-size:0.88rem;font-weight:700;color:#1d1d1f;padding:0.6rem 1.25rem;background:#f5f5f7;border-bottom:2px solid #e8e8ed;border-top:1px solid #e8e8ed;">' + section.grade.replace(/</g,'&lt;') + '</div>';
+        html += '<div style="overflow-x:auto;">';
+        html += '<table style="border-collapse:collapse;font-size:0.78rem;">';
+
+        // Row 1: domain spans
+        html += '<thead><tr style="background:#f5f5f7;">';
+        html += '<th rowspan="2" style="padding:0.4rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;vertical-align:bottom;">Student</th>';
+        domainGroups.forEach(function(dg) {
+            html += '<th colspan="' + dg.stds.length + '" style="padding:0.3rem 0.5rem;text-align:center;font-weight:600;font-size:0.62rem;color:#86868b;border-bottom:1px solid #d1d5db;border-left:2px solid #d1d5db;white-space:nowrap;">' + (dg.name||'').replace(/</g,'&lt;') + '</th>';
+        });
+        html += '</tr>';
+
+        // Row 2: standard codes
+        html += '<tr style="background:#f5f5f7;">';
+        section.standards.forEach(function(std, si) {
+            var isFirstInDomain = si === 0 || section.standards[si-1].domain !== std.domain;
+            html += '<th style="padding:0.2rem 0.25rem;text-align:center;font-weight:500;font-size:0.58rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;min-width:38px;' + (isFirstInDomain?'border-left:2px solid #d1d5db;':'border-left:1px solid #f0f0f5;') + '" title="' + std.code.replace(/"/g,'&quot;') + '">' + std.code.replace(/</g,'&lt;') + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+
+        // Student rows
+        section.students.forEach(function(s, idx) {
+            var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+            html += '<tr style="background:' + rowBg + ';">';
+            html += '<td style="padding:0.35rem 0.75rem;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + s.name.replace(/</g,'&lt;') + '</td>';
+            section.standards.forEach(function(std, si) {
+                var val   = s.scores[std.code] || '';
+                var bg    = stmathCellBg(val);
+                var isFirstInDomain = si === 0 || section.standards[si-1].domain !== std.domain;
+                var display = val === '---' ? '<span style="color:#c4c4c6;">—</span>' : (val || '<span style="color:#c4c4c6;">—</span>');
+                html += '<td style="padding:0.3rem 0.35rem;text-align:center;font-size:0.75rem;' + (bg?'background:'+bg+';':'') + (isFirstInDomain?'border-left:2px solid #d1d5db;':'border-left:1px solid #f0f0f5;') + '">' + display + '</td>';
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div></div>';
+    });
+
+    content.innerHTML = html || '<p style="padding:1rem;color:#aeaeb2;">No data.</p>';
+}
+
+function renderSTMath() {
+    var content = document.getElementById('stmath-content');
+    if (!content) return;
+    if (stmathData) { renderSTMathTable(); return; }
+    content.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
+    loadSTMathData(renderSTMathTable);
 }
 
 function renderMapEla() {
