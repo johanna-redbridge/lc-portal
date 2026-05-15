@@ -9588,16 +9588,12 @@ function renderCompTable() {
             + '</div>';
     }
 
-    // ── Table: GLE pie columns + individual Q# check columns ───────
+    // ── Table: GLE group headers + individual Q# check columns ───────
     var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;border-collapse:collapse;">'
         + '<thead>'
         + '<tr>'
         + '<th class="core-name-col" rowspan="2" style="vertical-align:bottom;">Student</th>';
-    // GLE pie headers (rowspan=2, one per group)
-    gleGroups.forEach(function(grp) {
-        html += '<th rowspan="2" style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.35rem 0.4rem;white-space:nowrap;min-width:54px;vertical-align:bottom;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
-    });
     // GLE group spans for Q# sub-columns
     gleGroups.forEach(function(grp) {
         if (!grp.items.length) return;
@@ -9616,13 +9612,7 @@ function renderCompTable() {
     // One row per student
     students.forEach(function(s) {
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
-        // GLE pie columns
-        gleGroups.forEach(function(grp) {
-            var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
-            var pct = grp.items.length > 0 ? Math.round(masteredCount / grp.items.length * 100) : 0;
-            html += '<td style="padding:4px 4px;vertical-align:middle;text-align:center;">' + benchDonut(pct, '') + '</td>';
-        });
-        // Q# check columns
+        // Q# check columns only
         gleGroups.forEach(function(grp) {
             grp.items.forEach(function(item) {
                 var mastered = item.q.mastery[s.name];
