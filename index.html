@@ -7142,6 +7142,8 @@ function xrefLoadCompDetail(cb){
         }).catch(function(){ xrefMathStdsData = []; done(); });
     }
 
+    if(!stmathData){ pending++; loadSTMathData(done); }
+
     if(pending===0) onAllLoaded();
 }
 
@@ -7587,6 +7589,32 @@ function xrefRenderCompDetail(){
     });
 }
 
+function getSTMathPct(studentName, stdCode) {
+    if (!stmathData || !stmathData.length) return null;
+    var normTarget = xrefNorm(studentName);
+    var firstTarget = (studentName.split(/\s+/)[0]||'').toLowerCase();
+    for (var si = 0; si < stmathData.length; si++) {
+        var section = stmathData[si];
+        var hasStd = section.standards.some(function(s){ return s.code === stdCode; });
+        if (!hasStd) continue;
+        var match = null;
+        section.students.forEach(function(s){ if(!match && s.name===studentName) match=s; });
+        if(!match) section.students.forEach(function(s){ if(!match && xrefNorm(s.name)===normTarget) match=s; });
+        if(!match) section.students.forEach(function(s){
+            if(!match && (s.name.split(/\s+/)[0]||'').toLowerCase()===firstTarget) match=s;
+        });
+        if(!match) section.students.forEach(function(s){
+            var m = s.name.match(/\(([^)]+)\)/);
+            if(m && !match && m[1].trim().toLowerCase()===firstTarget) match=s;
+        });
+        if(match){
+            var val = match.scores[stdCode];
+            if(val && val !== '---' && val !== '') return val;
+        }
+    }
+    return null;
+}
+
 function xrefCompDetailHTML(){
     if(!xrefCompStds||!xrefCCSCRows||!xrefStudents)
         return {header:'', body:'<div style="padding:2rem;color:#86868b;">Data unavailable.</div>'};
@@ -7748,7 +7776,7 @@ function xrefCompDetailHTML(){
 
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
         html += '<thead><tr style="background:#1d1d1f;">';
-        ['CCSC Code','Description','Learning Credit','Credit Status','Benchmark Q#','Benchmark Status'].forEach(function(h){
+        ['CCSC Code','Description','Learning Credit','Credit Status','Benchmark Q#','Benchmark Status','STmath %'].forEach(function(h){
             html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
         });
         html += '</tr></thead><tbody>';
@@ -7830,6 +7858,18 @@ function xrefCompDetailHTML(){
                 html += '<span class="earned-icon earned-no">–</span>';
             } else {
                 html += '<span class="earned-icon attempted-icon" style="font-size:0.6rem;">'+masteredCount+'/'+bqs.length+'</span>';
+            }
+            html += '</td>';
+
+            // G: STmath %
+            var stPct = getSTMathPct(xrefStudent, std.id);
+            html += '<td style="padding:0.45rem 0.6rem;text-align:center;white-space:nowrap;">';
+            if(stPct){
+                var stN = parseFloat(stPct.replace('%',''));
+                var stBg = isNaN(stN)?'':stmathCellBg(stPct);
+                html += '<span style="display:inline-block;padding:2px 7px;border-radius:6px;font-size:0.75rem;font-weight:600;'+(stBg?'background:'+stBg+';':'')+'color:#1d1d1f;">'+stPct+'</span>';
+            } else {
+                html += '<span style="color:#d1d5db;font-size:0.73rem;">—</span>';
             }
             html += '</td></tr>';
         });
