@@ -9803,8 +9803,8 @@ function renderCompTable() {
         + '<thead>'
         + '<tr>'
         + '<th class="core-name-col" rowspan="2" style="vertical-align:bottom;">Student</th>';
-    // GLE pie headers (rowspan=2, one per GLE group)
-    gleGroups.forEach(function(grp) {
+    // GLE pie headers (rowspan=2, first 7 groups only)
+    gleGroups.slice(0, 7).forEach(function(grp) {
         var gLabel = grp.gle === 'K' ? 'K' : grp.gle;
         html += '<th rowspan="2" style="text-align:center;font-size:0.62rem;font-weight:600;padding:0.25rem 0.3rem;white-space:nowrap;min-width:50px;vertical-align:bottom;border-right:1px solid #e8e8ed;">GLE&nbsp;' + gLabel + '</th>';
     });
@@ -9830,8 +9830,8 @@ function renderCompTable() {
     // One row per student
     students.forEach(function(s) {
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
-        // GLE pie chart columns
-        gleGroups.forEach(function(grp) {
+        // GLE pie chart columns (first 7 only)
+        gleGroups.slice(0, 7).forEach(function(grp) {
             var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
             var pct = grp.items.length > 0 ? Math.round(masteredCount / grp.items.length * 100) : 0;
             html += '<td style="padding:3px 3px;vertical-align:middle;text-align:center;border-right:1px solid #e8e8ed;">' + benchDonut(pct, grp.gle) + '</td>';
