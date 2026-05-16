@@ -1215,9 +1215,9 @@
                         <button class="toggle-btn lexia-view-btn active" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
-                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.6rem;">
+                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">Import New Data</button>
+                        <span style="font-size:0.65rem;color:#aeaeb2;white-space:nowrap;">Last updated: 05/14/2026</span>
                     </div>
                 </div>
                 <div id="lexia-progress-combined">
@@ -7688,6 +7688,14 @@ function xrefCompDetailHTML(){
             stdBenchQs[fullCode].push(q);
         });
     }
+    // Sub-standards inherit parent's benchmark questions:
+    // handles both "K.CC.B.4a" and "K.CC.B.4.a" → parent "K.CC.B.4"
+    xrefCompStds.forEach(function(std){
+        if(!/\.?[a-z]$/.test(std.id)) return;
+        var parentId = std.id.replace(/\.?[a-z]$/, '');
+        var parentQs = stdBenchQs[shortToFull[parentId] || parentId] || stdBenchQs[parentId];
+        if(parentQs && parentQs.length && !stdBenchQs[std.id]) stdBenchQs[std.id] = parentQs;
+    });
 
     // Group standards by grade
     var gradeGroups = {}, gradeOrder = [];
@@ -9555,13 +9563,18 @@ function renderSTMathTable() {
 
     // Grade filter toolbar
     if (toolbar) {
-        var th = '<div class="toggle-group">';
+        var th = '<div style="display:flex;align-items:center;gap:0.6rem;width:100%;">';
+        th += '<div class="toggle-group">';
         th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">All</button>';
         stmathData.forEach(function(s) {
             var g = s.grade;
             th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter===g?' active':'') + '" onclick="stmathGradeFilter=\'' + g.replace(/'/g,"\\'") + '\';renderSTMathTable()">' + g.replace(/</g,'&lt;') + '</button>';
         });
         th += '</div>';
+        th += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.6rem;">';
+        th += '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">Import New Data</button>';
+        th += '<span style="font-size:0.65rem;color:#aeaeb2;white-space:nowrap;">Last updated: 05/14/2026</span>';
+        th += '</div></div>';
         toolbar.innerHTML = th;
     }
 
@@ -9803,18 +9816,13 @@ function renderCompTable() {
         + '<thead>'
         + '<tr>'
         + '<th class="core-name-col" rowspan="2" style="vertical-align:bottom;">Student</th>';
-    // GLE pie headers (rowspan=2, first 7 groups only)
-    gleGroups.slice(0, 7).forEach(function(grp) {
+    // GLE pie headers (rowspan=2, all 8 groups)
+    gleGroups.forEach(function(grp) {
         var gLabel = grp.gle === 'K' ? 'K' : grp.gle;
         html += '<th rowspan="2" style="text-align:center;font-size:0.62rem;font-weight:600;padding:0.25rem 0.3rem;white-space:nowrap;min-width:50px;vertical-align:bottom;border-right:1px solid #e8e8ed;">GLE&nbsp;' + gLabel + '</th>';
     });
     // Separator
     html += '<th rowspan="2" style="width:8px;border-right:2px solid #d1d5db;"></th>';
-    // GLE group spans for Q# sub-columns
-    gleGroups.forEach(function(grp) {
-        if (!grp.items.length) return;
-        html += '<th colspan="' + grp.items.length + '" style="text-align:center;font-size:0.65rem;font-weight:600;padding:0.25rem 0.4rem;white-space:nowrap;border-bottom:1px solid #d1d5db;">GLE&nbsp;' + grp.gle.replace(/</g,'&lt;') + '</th>';
-    });
     html += '</tr><tr>';
     // Q# + CCSS standard sub-headers
     gleGroups.forEach(function(grp) {
@@ -9830,8 +9838,8 @@ function renderCompTable() {
     // One row per student
     students.forEach(function(s) {
         html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
-        // GLE pie chart columns (first 7 only)
-        gleGroups.slice(0, 7).forEach(function(grp) {
+        // GLE pie chart columns (all 8 groups)
+        gleGroups.forEach(function(grp) {
             var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
             var pct = grp.items.length > 0 ? Math.round(masteredCount / grp.items.length * 100) : 0;
             html += '<td style="padding:3px 3px;vertical-align:middle;text-align:center;border-right:1px solid #e8e8ed;">' + benchDonut(pct, grp.gle) + '</td>';
