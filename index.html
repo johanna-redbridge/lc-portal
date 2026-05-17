@@ -7514,6 +7514,7 @@ function xrefReadDetailHTML(){
         var gradeBestMap = xrefBestMap(stds, xrefStudent, stdCredits);
 
         stds.forEach(function(std, idx){
+            var credits = stdCredits[std.id] || [];
             var best = gradeBestMap[std.id]||'';
             var lexPct = getLexiaPct(std.id);
             var lexMastered = lexPct === 100;
