@@ -5744,10 +5744,10 @@ function renderDrafting() {
     });
 
     filtered.sort(function(a, b) {
-        var ai = subjects.indexOf(a.area), bi = subjects.indexOf(b.area);
-        var si = (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-        if (si !== 0) return si;
-        return a.title.localeCompare(b.title);
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(b.date) - new Date(a.date);
     });
 
     var total = draftingData.length;
