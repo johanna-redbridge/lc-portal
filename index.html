@@ -7503,13 +7503,10 @@ function xrefReadDetailHTML(){
         });
         html += '</tr></thead><tbody>';
 
+        var gradeBestMap = xrefBestMap(stds, xrefStudent, stdCredits);
+
         stds.forEach(function(std, idx){
-            var credits = stdCredits[std.id]||[];
-            var best='';
-            credits.forEach(function(r){
-                var st=xrefCreditStatus(xrefStudent,r.credit);
-                if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a';
-            });
+            var best = gradeBestMap[std.id]||'';
             var lexPct = getLexiaPct(std.id);
             var lexMastered = lexPct === 100;
 
@@ -7631,6 +7628,41 @@ function xrefFilter(rows){
         }
         return true;
     });
+}
+
+// Returns the parent standard code if id is a sub-standard (ends in letter), else null
+// "RF.K.1.a" → "RF.K.1",  "RF.K.1a" → "RF.K.1",  "RF.K.1" → null
+function xrefParentCode(id){
+    var m = (id||'').match(/^(.*\d)\.?[a-z]$/);
+    return m ? m[1] : null;
+}
+
+// Given an array of standard objects and a student name, return a map of id→best status
+// with parent standards promoted to 'e' when all their sub-standards are 'e'
+function xrefBestMap(stds, student, stdCreditsMap){
+    var map = {};
+    stds.forEach(function(std){
+        var credits = stdCreditsMap[std.id]||[];
+        var best = '';
+        credits.forEach(function(r){
+            var st = xrefCreditStatus(student, r.credit);
+            if(st==='e') best='e'; else if(st==='a'&&best!=='e') best='a';
+        });
+        map[std.id] = best;
+    });
+    // Rollup: group sub-standards by parent
+    var parentSubs = {};
+    stds.forEach(function(std){
+        var p = xrefParentCode(std.id);
+        if(p){ if(!parentSubs[p]) parentSubs[p]=[]; parentSubs[p].push(std.id); }
+    });
+    Object.keys(parentSubs).forEach(function(p){
+        var subs = parentSubs[p];
+        if(subs.length && subs.every(function(id){ return map[id]==='e'; })){
+            if(map.hasOwnProperty(p)) map[p]='e';
+        }
+    });
+    return map;
 }
 
 function xrefCreditStatus(student, creditName){
