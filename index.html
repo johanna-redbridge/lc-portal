@@ -10124,21 +10124,22 @@ function doRenderBenchOverview(el) {
         return av !== bv ? dir * (av - bv) : a.name.localeCompare(b.name);
     });
 
+    var PH = 'padding:3px 4px;';  // compact cell padding
+
     function arrow(c) {
-        if (benchOverviewSortCol !== c) return '<div style="font-size:0.55rem;opacity:0.35;margin-top:1px;">↕</div>';
-        return '<div style="font-size:0.6rem;margin-top:1px;">' + (benchOverviewSortDir === 'asc' ? '▲' : '▼') + '</div>';
+        if (benchOverviewSortCol !== c) return '<div style="font-size:0.5rem;opacity:0.3;margin-top:1px;">↕</div>';
+        return '<div style="font-size:0.55rem;margin-top:1px;">' + (benchOverviewSortDir === 'asc' ? '▲' : '▼') + '</div>';
     }
-    function sortTh(label, c, extra) {
-        extra = extra || '';
-        return '<th rowspan="2" onclick="setBenchOverviewSort(\'' + c + '\')" style="text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;' + extra + '">'
+    function sortTh(label, c) {
+        return '<th rowspan="2" onclick="setBenchOverviewSort(\'' + c + '\')" style="text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
             + label + arrow(c) + '</th>';
     }
 
     // Score cell — colored by distance to goal if provided
     function numCell(v, goal, borderLeft, curYear) {
-        var bl = borderLeft ? 'border-left:1px solid #e8e8ed;' : '';
+        var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
         var bg = curYear ? 'background:#fffbf5;' : '';
-        if (v === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.75rem;padding:5px 7px;' + bl + bg + '">–</td>';
+        if (v === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.68rem;' + PH + bl + bg + '">–</td>';
         var colStyle = bg;
         if (goal !== null) {
             var d = v - goal;
@@ -10146,62 +10147,69 @@ function doRenderBenchOverview(el) {
             else if (d >= -0.5) colStyle = 'background:#fef9c3;color:#854d0e;';
             else                colStyle = 'background:#fee2e2;color:#991b1b;';
         }
-        return '<td style="text-align:center;font-size:0.8rem;font-weight:500;padding:5px 7px;' + bl + colStyle + '">' + v.toFixed(2) + '</td>';
+        return '<td style="text-align:center;font-size:0.72rem;font-weight:500;' + PH + bl + colStyle + '">' + v.toFixed(2) + '</td>';
     }
 
-    // Goal cell — progress bar (most recent score / goal)
+    // Goal cell — compact progress bar
     function goalBarCell(yd, borderLeft, curYear) {
-        var bl = borderLeft ? 'border-left:1px solid #e8e8ed;' : '';
+        var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
         var bg = curYear ? 'background:#fffbf5;' : '';
-        if (yd.goal === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.72rem;padding:5px 8px;min-width:100px;' + bl + bg + '">–</td>';
+        if (yd.goal === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
         var score = yd.eoy !== null ? yd.eoy : (yd.moy !== null ? yd.moy : yd.boy);
-        if (score === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.72rem;padding:5px 8px;min-width:100px;' + bl + bg + '">Goal: ' + yd.goal.toFixed(2) + '</td>';
+        if (score === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.62rem;' + PH + bl + bg + '">—</td>';
         var pct = Math.min(100, Math.round(score / yd.goal * 100));
         var barCol = pctColor(pct);
-        return '<td style="padding:5px 10px;min-width:110px;' + bl + bg + '">'
-            + '<div style="display:flex;align-items:center;gap:5px;">'
-            + '<div style="flex:1;height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
-            + '<div style="height:100%;width:' + pct + '%;background:' + barCol + ';border-radius:4px;"></div>'
+        return '<td style="padding:3px 5px;' + bl + bg + '">'
+            + '<div style="height:5px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + barCol + ';border-radius:3px;"></div>'
             + '</div>'
-            + '<span style="font-size:0.72rem;font-weight:600;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
-            + '</div>'
-            + '<div style="font-size:0.62rem;color:#aeaeb2;margin-top:2px;text-align:right;">↗ ' + yd.goal.toFixed(2) + '</div>'
+            + '<div style="font-size:0.62rem;font-weight:600;color:#3a3a3c;text-align:center;line-height:1;">' + pct + '%</div>'
             + '</td>';
     }
 
+    // colgroup: Student 14% | AL 3% | GLE 3% | Group 4% | 5 years × (BOY 3.5% MOY 3.5% EOY 3.5% Goal 5%) = 77%
+    var colgroup = '<colgroup>'
+        + '<col style="width:14%">'
+        + '<col style="width:3%"><col style="width:3%"><col style="width:4%">';
+    BENCH_LONG_YEARS.forEach(function() {
+        colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
+    });
+    colgroup += '</colgroup>';
+
+    var TH = 'padding:4px 3px;font-size:0.65rem;white-space:nowrap;';
+
     // Header row 1 — fixed cols + year group labels
     var hdr1 = '<tr>'
-        + '<th rowspan="2" style="text-align:left;white-space:nowrap;position:sticky;left:0;z-index:3;min-width:160px;background:#5c5b5a;">Student</th>'
-        + sortTh('AL', 'al')
-        + sortTh('GLE', 'gle')
-        + sortTh('Group', 'group');
+        + '<th rowspan="2" style="text-align:left;position:sticky;left:0;z-index:3;background:#5c5b5a;' + TH + '">Student</th>'
+        + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
-    // Header row 2 — BOY / MOY / EOY / Goal sub-headers
+    // Header row 2 — BOY / MOY / EOY / Goal
     var hdr2 = '<tr>';
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
         var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
-        hdr2 += '<th style="text-align:center;font-size:0.65rem;font-weight:600;border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
-             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">MOY</th>'
-             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">EOY</th>'
-             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">Goal</th>';
+        var sub = 'text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
+        hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
+             + '<th style="' + sub + bg + '">MOY</th>'
+             + '<th style="' + sub + bg + '">EOY</th>'
+             + '<th style="' + sub + bg + '">Goal</th>';
     });
     hdr2 += '</tr>';
 
-    // Flat sorted rows — no AL dividers
+    // Flat sorted body rows
     var bodyRows = '';
     sorted.forEach(function(s, si) {
         var rb = si % 2 === 0 ? '#fff' : '#fafafa';
         bodyRows += '<tr>'
-            + '<td style="padding:7px 14px;font-size:0.82rem;color:#1d1d1f;white-space:nowrap;font-weight:500;position:sticky;left:0;background:' + rb + ';z-index:1;">' + s.name.replace(/</g,'&lt;') + '</td>'
-            + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.al||'—') + '</td>'
-            + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.gle||'—') + '</td>'
-            + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.group||'—') + '</td>';
+            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + s.name.replace(/"/g,'&quot;') + '">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al||'—') + '</td>'
+            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle||'—') + '</td>'
+            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>';
         BENCH_LONG_YEARS.forEach(function(y) {
             var yd = s.years[y.key];
             var cur = y.key === '2025-26';
@@ -10214,7 +10222,8 @@ function doRenderBenchOverview(el) {
     });
 
     var html = '<div class="progress-table-wrapper" style="margin:1.25rem;">'
-        + '<table style="border-collapse:collapse;width:max-content;min-width:100%;">'
+        + '<table style="border-collapse:collapse;width:100%;table-layout:fixed;">'
+        + colgroup
         + '<thead>' + hdr1 + hdr2 + '</thead>'
         + '<tbody>' + bodyRows + '</tbody>'
         + '</table></div>';
