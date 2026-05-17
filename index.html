@@ -10083,11 +10083,15 @@ function renderBenchOverview() {
     if (!el) return;
     if (benchLongData) { doRenderBenchOverview(el); return; }
     el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading overview…</p>';
-    fetch(BENCH_LONG_URL).then(function(r){ return r.text(); }).then(function(text){
+    fetch(BENCH_LONG_URL).then(function(r){
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+    }).then(function(text){
         benchLongData = parseBenchLongCsv(text);
         doRenderBenchOverview(el);
     }).catch(function(e){
-        el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load overview data.</p>';
+        console.error('Bench overview error:', e);
+        el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load overview data: ' + (e && e.message ? e.message : e) + '</p>';
     });
 }
 
