@@ -10055,7 +10055,7 @@ var BENCH_LONG_YEARS = [
 ];
 
 function parseBenchLongCsv(text) {
-    var rows = parseCsvText(text);
+    var rows = parseCSVFull(text);
     if (rows.length < 3) return [];
     function pn(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
     var students = [];
