@@ -8882,7 +8882,7 @@ function renderFPTable() {
     if (fpALFilter !== 'all') all = all.filter(function(s){ return s.al === fpALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+    var html = '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;">'
         + '<table class="core-table" style="width:100%;">'
         + '<thead><tr>'
         + '<th class="core-name-col">Student</th>'
@@ -9365,7 +9365,7 @@ function renderMapElaTable() {
         return active.indexOf(p.boyIdx) >= 0 && active.indexOf(p.eoyIdx) >= 0;
     });
 
-    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+    var html = '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;">'
         + '<table class="core-table" style="width:100%;"><thead>'
         + '<tr><th class="core-name-col" rowspan="3">Student</th>'
         + '<th rowspan="3">GLE</th><th rowspan="3">AL</th>';
@@ -10438,7 +10438,7 @@ function renderLexiaCombined() {
 
     var html = '';
     // Combined table
-    html += '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+    html += '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:100%;"><thead><tr>'
         + '<th class="core-name-col">Student</th>'
         + '<th style="white-space:nowrap;">Grade</th>'
