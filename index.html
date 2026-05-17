@@ -939,18 +939,18 @@
         #wd-root .wd-chip { display:inline-block; padding:2px 7px; border-radius:5px; font-weight:600; font-size:.8rem; }
         #wd-root .wd-diff { display:inline-flex; align-items:center; gap:2px; padding:2px 7px; border-radius:10px; font-size:.75rem; font-weight:700; }
         #wd-root .wd-pill { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:12px; font-size:.68rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
-        #wd-root .wd-pill-fall { background:#fde68a; color:#92400e; }
-        #wd-root .wd-pill-winter { background:#bfdbfe; color:#1e40af; }
-        #wd-root .wd-pill-spring { background:#bbf7d0; color:#166534; }
+        #wd-root .wd-pill-fall { background:#f0f0f5; color:#86868b; }
+        #wd-root .wd-pill-winter { background:#f0f0f5; color:#86868b; }
+        #wd-root .wd-pill-spring { background:#f0f0f5; color:#86868b; }
         #wd-root .wd-goal-tag { font-size:.8rem; font-weight:600; color:#1d1d1f; }
         #wd-root .wd-bar-wrap { background:#f1f5f9; border-radius:4px; height:10px; overflow:hidden; width:100%; }
         #wd-root .wd-bar-fill { height:100%; border-radius:4px; }
-        #wd-root .wd-student-header { background:#1d1d1f; color:#fff; border-radius:10px; padding:18px 22px; margin-bottom:14px; }
+        #wd-root .wd-student-header { background:#f5f5f7; color:#1d1d1f; border-radius:10px; padding:18px 22px; margin-bottom:14px; border:1px solid #e5e5ea; }
         #wd-root .wd-student-header h2 { font-size:1.3rem; font-weight:800; }
         #wd-root .wd-season-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
-        #wd-root .wd-season-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; }
-        #wd-root .wd-growth-chip { background:rgba(255,255,255,.07); border-radius:6px; padding:5px 9px; min-width:90px; }
-        #wd-root .wd-growth-chip .gc-label { font-size:.63rem; color:#94a3b8; margin-bottom:2px; }
+        #wd-root .wd-season-card { background:transparent; border-radius:10px; border:1px solid #e5e5ea; padding:18px 22px; }
+        #wd-root .wd-growth-chip { background:#ebebf0; border-radius:6px; padding:5px 9px; min-width:90px; }
+        #wd-root .wd-growth-chip .gc-label { font-size:.63rem; color:#86868b; margin-bottom:2px; }
         #wd-root .wd-group-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:18px 22px; margin-bottom:14px; }
         #wd-root .wd-cat-kpi { padding:9px 16px; border-radius:10px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.08); min-width:100px; }
         #wd-root .wd-cat-kpi .ck-label { font-size:.63rem; color:#94a3b8; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
@@ -10901,9 +10901,9 @@ function renderStudentView() {
     var el=document.getElementById('wd-view-student');
     var seasonScores=SEASONS.map(function(season){
         var d=s[season],v=d?d.avg:null,lbl={fall:'BOY',winter:'MOY',spring:'EOY'}[season]||season;
-        return'<div style="text-align:center"><div style="font-size:.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.1em">'+lbl+'</div>'
-            +'<div style="font-size:1.4rem;font-weight:800;color:'+(v==null?'#4a5568':v>0?'#f8f6f2':'#ff6961')+'">'+(d&&d.noWork?'—':fmtScore(v,1))+'</div>'
-            +(v!=null&&v>0?'<div style="font-size:.66rem;color:#94a3b8">'+gradeBand(v)+'</div>':'')+'</div>';
+        return'<div style="text-align:center"><div style="font-size:.63rem;color:#86868b;text-transform:uppercase;letter-spacing:.1em">'+lbl+'</div>'
+            +'<div style="font-size:1.4rem;font-weight:800;color:'+(v==null?'#86868b':v>0?'#1d1d1f':'#ff6961')+'">'+(d&&d.noWork?'—':fmtScore(v,1))+'</div>'
+            +(v!=null&&v>0?'<div style="font-size:.66rem;color:#86868b">'+gradeBand(v)+'</div>':'')+'</div>';
     }).join('');
     var gp={fw:{sA:'fall',sB:'winter',tf:'half',label:'BOY → MOY'},ws:{sA:'winter',sB:'spring',tf:'half',label:'MOY → EOY'},fs:{sA:'fall',sB:'spring',tf:'full',label:'BOY → EOY'}}[studentGrowthCol];
     var dA=s[gp.sA],dB=s[gp.sB],pairOk=dA&&!dA.noWork&&dB&&!dB.noWork;
@@ -10915,7 +10915,7 @@ function renderStudentView() {
             +'<span class="wd-diff" style="background:'+gc.bg+';color:'+gc.text+'">'+gc.symbol+' '+sign+d.toFixed(1)+'</span></div>';
     }).join('');
     var seasonCards=SEASONS.map(function(season){
-        var d=s[season],border=season==='fall'?'#fde68a':season==='winter'?'#bfdbfe':'#bbf7d0';
+        var d=s[season],border='#e5e5ea';
         var body='';
         if (!d) { body='<div style="color:#cbd5e1;font-size:.8rem;padding:8px 0;text-align:center">Not yet</div>'; }
         else if (d.noWork) { body='<div style="color:#f87171;font-weight:700;font-size:.8rem;padding:8px 0">Did not produce work</div>'; }
@@ -10931,8 +10931,8 @@ function renderStudentView() {
             +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+seasonPill(season)+avgDisp+'</div>'
             +body+'</div>';
     }).join('');
-    var growthToggle='<div style="display:flex;border:1px solid rgba(255,255,255,.2);border-radius:8px;overflow:hidden">'
-        +[['fw','BOY→MOY'],['ws','MOY→EOY'],['fs','BOY→EOY']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'rgba(255,255,255,.2)':'transparent')+';color:'+(studentGrowthCol===p[0]?'#f8f6f2':'#64748b')+'">'+p[1]+'</button>';}).join('')+'</div>';
+    var growthToggle='<div style="display:flex;border:1px solid #e5e5ea;border-radius:8px;overflow:hidden">'
+        +[['fw','BOY→MOY'],['ws','MOY→EOY'],['fs','BOY→EOY']].map(function(p){return'<button onclick="WD.setStudentGrowth(\''+p[0]+'\')" style="padding:3px 9px;border:none;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:'+(studentGrowthCol===p[0]?'#e8e8ed':'transparent')+';color:'+(studentGrowthCol===p[0]?'#1d1d1f':'#86868b')+'">'+p[1]+'</button>';}).join('')+'</div>';
     el.innerHTML='<div class="wd-filter-bar"><label>Student</label>'
         +'<select id="wd-sel-student">'
         +APP.students.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
@@ -10941,13 +10941,13 @@ function renderStudentView() {
         +'<div class="wd-student-header">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
         +'<div><h2>'+s.name+'</h2>'
-        +'<div style="color:#94a3b8;font-size:.8rem;margin-top:3px">Level: <strong style="color:#FF8200">'+s.al+'</strong>'+(s.goal?' &nbsp;·&nbsp; EOY Goal: <strong style="color:#FF8200">'+s.goal+'</strong> · '+gradeBand(s.goal)+' grade':'')+'</div>'
+        +'<div style="color:#86868b;font-size:.8rem;margin-top:3px">Level: <strong style="color:#FF8200">'+s.al+'</strong>'+(s.goal?' &nbsp;·&nbsp; EOY Goal: <strong style="color:#FF8200">'+s.goal+'</strong> · '+gradeBand(s.goal)+' grade':'')+'</div>'
         +'</div><div style="display:flex;gap:12px">'+seasonScores+'</div></div>'
-        +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #2d3748">'
+        +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e5ea">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
-        +'<div style="font-size:.66rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em">'+gp.label+' Growth by Category</div>'
+        +'<div style="font-size:.66rem;color:#86868b;text-transform:uppercase;letter-spacing:.08em">'+gp.label+' Growth by Category</div>'
         +growthToggle+'</div>'
-        +(growthChips?'<div style="display:flex;gap:6px;flex-wrap:wrap">'+growthChips+'</div>':'<div style="color:#64748b;font-size:.78rem;padding:3px 0">No data for this season pair yet.</div>')
+        +(growthChips?'<div style="display:flex;gap:6px;flex-wrap:wrap">'+growthChips+'</div>':'<div style="color:#86868b;font-size:.78rem;padding:3px 0">No data for this season pair yet.</div>')
         +'</div></div>'
         +'<div class="wd-season-cards">'+seasonCards+'</div>';
     var sel=document.getElementById('wd-sel-student');
