@@ -7550,7 +7550,7 @@ function xrefReadDetailHTML(){
             if(lexPct === null){
                 html += '<span style="color:#1d1d1f;font-size:0.73rem;">—</span>';
             } else if(lexMastered){
-                html += '<span class="earned-icon earned-yes">✓</span>';
+                html += '<span style="font-size:0.8rem;font-weight:600;color:#16a34a;">100%</span>';
             } else {
                 var pctColor = lexPct >= 80 ? '#16a34a' : lexPct >= 50 ? '#d97706' : '#dc2626';
                 html += '<span style="font-size:0.8rem;font-weight:600;color:'+pctColor+';">'+Math.round(lexPct)+'%</span>';
