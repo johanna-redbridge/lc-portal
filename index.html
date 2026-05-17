@@ -1259,6 +1259,8 @@
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
                 <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
+                <button class="toggle-btn math-view-btn" data-view="desmos" onclick="switchMathSubtab('desmos')">Desmos</button>
+                <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1293,6 +1295,14 @@
             <div id="math-panel-stmath" style="display:none;">
                 <div id="stmath-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;"></div>
                 <div id="stmath-content"></div>
+            </div>
+            <!-- Desmos -->
+            <div id="math-panel-desmos" style="display:none;">
+                <div id="desmos-content"></div>
+            </div>
+            <!-- Beast Academy -->
+            <div id="math-panel-beast-academy" style="display:none;">
+                <div id="beast-academy-content"></div>
             </div>
         </div>
 
@@ -6868,7 +6878,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['benchmark', 'map-math', 'fact-fluency', 'stmath'].forEach(function(n) {
+    ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'desmos', 'beast-academy'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
