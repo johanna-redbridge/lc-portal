@@ -1199,7 +1199,7 @@
                     </div>
                     <div class="toggle-group">
                         <button class="toggle-btn fp-view-btn active" data-view="table" onclick="setFpViewMode('table')">Class View</button>
-                        <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">📈 Student Growth</button>
+                        <button class="toggle-btn fp-view-btn" data-view="growth" onclick="setFpViewMode('growth')">Student Growth</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
                         <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
@@ -10776,8 +10776,7 @@ function diffBadge(a, b, timeframe, precomputed) {
 }
 function seasonPill(season) {
     var lbl={fall:'BOY',winter:'MOY',spring:'EOY'}[season]||(season.charAt(0).toUpperCase()+season.slice(1));
-    var icon={fall:'🍂',winter:'❄️',spring:'🌱'}[season]||'';
-    return '<span class="wd-pill wd-pill-'+season+'">'+icon+' '+lbl+'</span>';
+    return '<span class="wd-pill wd-pill-'+season+'">'+lbl+'</span>';
 }
 function barHTML(v) {
     return '<div class="wd-bar-wrap"><div class="wd-bar-fill" style="width:'+((v||0)/6*100)+'%;background:'+scoreColor(v)+'"></div></div>';
