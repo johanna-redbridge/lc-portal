@@ -1215,6 +1215,13 @@
                         <button class="toggle-btn lexia-view-btn active" data-view="progress" onclick="setLexiaView('progress')">Progress</button>
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn lexia-al-btn active" data-al="all" onclick="setLexiaAL('all')">All</button>
+                        <button class="toggle-btn lexia-al-btn" data-al="1" onclick="setLexiaAL('1')">AL1</button>
+                        <button class="toggle-btn lexia-al-btn" data-al="2" onclick="setLexiaAL('2')">AL2</button>
+                        <button class="toggle-btn lexia-al-btn" data-al="3" onclick="setLexiaAL('3')">AL3</button>
+                        <button class="toggle-btn lexia-al-btn" data-al="4" onclick="setLexiaAL('4')">AL4</button>
+                    </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.6rem;">
                         <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">Import New Data</button>
                         <span style="font-size:0.65rem;color:#aeaeb2;white-space:nowrap;">Last updated: 05/14/2026</span>
@@ -10082,6 +10089,27 @@ function lexiaUnitPct(val) {
     return isNaN(p) ? 0 : p;
 }
 
+var lexiaALFilter = 'all';
+function setLexiaAL(al) {
+    lexiaALFilter = al;
+    document.querySelectorAll('.lexia-al-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.al === al);
+    });
+    renderLexiaCombined();
+    if (lexiaView === 'standards') renderLexiaStds();
+}
+function lexiaGetAL(name) {
+    var n = (name || '').trim().toLowerCase();
+    if (fpStudents) {
+        var s = fpStudents.find(function(x) { return x.name.trim().toLowerCase() === n; });
+        if (s && s.al) return s.al;
+    }
+    if (fpLongData) {
+        var s2 = fpLongData.find(function(x) { return x.name.trim().toLowerCase() === n; });
+        if (s2 && s2.al) return s2.al;
+    }
+    return null;
+}
 function setLexiaView(v) {
     lexiaView = v;
     document.querySelectorAll('.lexia-view-btn').forEach(function(b) {
@@ -10122,40 +10150,12 @@ function renderLexiaCombined() {
         return ra - rb || a.localeCompare(b);
     });
 
-    // Pie chart summary from perf data
-    var BOX = 20;
-    var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
-    var total = perf.length;
-    var counts = { 'On Target': 0, 'Some Risk': 0, 'At Risk': 0 };
-    perf.forEach(function(s) {
-        if (/on.target/i.test(s.riskLevel))              counts['On Target']++;
-        else if (/some.risk/i.test(s.riskLevel))         counts['Some Risk']++;
-        else if (/at.risk|high.risk/i.test(s.riskLevel)) counts['At Risk']++;
-    });
-    var slices = [
-        { label: 'On Target', color: '#7abd7e', count: counts['On Target'] },
-        { label: 'Some Risk', color: '#ffb54c', count: counts['Some Risk'] },
-        { label: 'At Risk',   color: '#ff6961', count: counts['At Risk']   }
-    ];
-    var html = '<div style="display:flex;align-items:center;gap:24px;padding:16px 1.25rem 10px;flex-wrap:wrap;">'
-        + '<canvas id="lexia-perf-pie" width="110" height="110" style="flex-shrink:0;"></canvas>'
-        + '<div style="display:flex;flex-direction:column;gap:6px;">';
-    slices.forEach(function(s) {
-        var pct = total > 0 ? Math.round(s.count / total * 100) : 0;
-        html += '<div style="display:flex;align-items:center;gap:8px;">'
-            + '<span style="width:12px;height:12px;border-radius:50%;background:' + s.color + ';flex-shrink:0;display:inline-block;"></span>'
-            + '<span style="font-size:0.82rem;color:#1d1d1f;">' + s.label + '</span>'
-            + '<span style="font-size:0.82rem;font-weight:600;color:#1d1d1f;margin-left:4px;">' + s.count + '</span>'
-            + '<span style="font-size:0.75rem;color:#86868b;">(' + pct + '%)</span></div>';
-    });
-    html += '</div>';
-    // Progress group legend
-    html += '<div style="display:flex;flex-direction:column;gap:4px;font-size:0.68rem;color:#86868b;">';
-    LEXIA_GROUPS.forEach(function(g, i) {
-        html += '<span><span style="display:inline-block;width:10px;height:10px;background:' + GROUP_COLORS[i] + ';border:1px solid #c8c8cc;border-radius:2px;vertical-align:middle;margin-right:3px;"></span>' + g.label + '</span>';
-    });
-    html += '</div></div>';
+    // AL filter
+    if (lexiaALFilter !== 'all') {
+        allNames = allNames.filter(function(name) { return lexiaGetAL(name) === lexiaALFilter; });
+    }
 
+    var html = '';
     // Combined table
     html += '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:100%;"><thead><tr>'
@@ -10518,6 +10518,12 @@ function renderLexiaStds() {
     var d = lexiaStdsData;
     if (!d.students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
+    // AL filter
+    var visibleStudents = d.students.filter(function(st) {
+        if (lexiaALFilter === 'all') return true;
+        return lexiaGetAL(st.name) === lexiaALFilter;
+    });
+
     var html = '<div style="padding:1rem 1.25rem;">';
 
     // One section per grade
@@ -10528,10 +10534,10 @@ function renderLexiaStds() {
         var stds = d.standards.filter(function(s) { return s.grade === gradeName; });
         if (!stds.length) return;
 
-        // Compute class average per standard
+        // Compute class average per standard (filtered students)
         var avgs = {};
         stds.forEach(function(s) {
-            var vals = d.students.map(function(st) { return st.scores[s.code]; }).filter(function(v) { return v !== null; });
+            var vals = visibleStudents.map(function(st) { return st.scores[s.code]; }).filter(function(v) { return v !== null; });
             avgs[s.code] = vals.length ? vals.reduce(function(a, b) { return a + b; }, 0) / vals.length : null;
         });
 
@@ -10540,11 +10546,12 @@ function renderLexiaStds() {
         html += '<div style="overflow-x:auto;">';
         html += '<table style="border-collapse:collapse;font-size:0.72rem;min-width:max-content;">';
 
-        // Header row: standard codes
+        // Header row: standard codes (strip CA-CCSS. prefix)
         html += '<thead><tr>';
-        html += '<th style="position:sticky;left:0;background:#f5f5f7;z-index:2;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;">Student</th>';
+        html += '<th style="position:sticky;left:0;background:#f5f5f7;z-index:2;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;color:#1d1d1f;">Student</th>';
         stds.forEach(function(s) {
-            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + s.code + '</th>';
+            var dispCode = s.code.replace(/^CA-CCSS\./i, '');
+            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + dispCode + '</th>';
         });
         html += '</tr></thead>';
 
@@ -10552,7 +10559,7 @@ function renderLexiaStds() {
 
         // Class average row
         html += '<tr style="background:#f0f0f5;">';
-        html += '<td style="position:sticky;left:0;background:#f0f0f5;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;font-weight:600;white-space:nowrap;">Class Avg</td>';
+        html += '<td style="position:sticky;left:0;background:#f0f0f5;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;font-weight:600;white-space:nowrap;color:#1d1d1f;">Class Avg</td>';
         stds.forEach(function(s) {
             var avg = avgs[s.code];
             if (avg === null) {
@@ -10566,9 +10573,9 @@ function renderLexiaStds() {
         html += '</tr>';
 
         // Student rows
-        d.students.forEach(function(st) {
+        visibleStudents.forEach(function(st) {
             html += '<tr>';
-            html += '<td style="position:sticky;left:0;background:#fff;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;">' + st.name + '</td>';
+            html += '<td style="position:sticky;left:0;background:#fff;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;color:#1d1d1f;">' + st.name + '</td>';
             stds.forEach(function(s) {
                 var pct = st.scores[s.code];
                 if (pct === null) {
