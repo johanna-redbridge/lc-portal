@@ -1265,7 +1265,15 @@
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
-                <div id="comp-filters" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                <!-- Benchmark view toggle bar -->
+                <div id="bench-view-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn bench-view-btn active" data-view="overview" onclick="setBenchView('overview')">Overview</button>
+                        <button class="toggle-btn bench-view-btn" data-view="drilldown" onclick="setBenchView('drilldown')">Drilldown</button>
+                        <button class="toggle-btn bench-view-btn" data-view="student-growth" onclick="setBenchView('student-growth')">Student Growth</button>
+                    </div>
+                </div>
+                <div id="comp-filters" style="display:none;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
                 </div>
                 <div id="comp-content"></div>
@@ -9017,6 +9025,7 @@ function renderFPGrowthView() {
             + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#FF8200;display:inline-block;"></span>BOY (Sep)</span>'
             + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#007aff;display:inline-block;"></span>MOY (Jan)</span>'
             + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#34c759;display:inline-block;"></span>EOY (Jun)</span>'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2px dashed #16a34a;display:inline-block;vertical-align:middle;"></span>EOY Target</span>'
             + '</div></div>'
             + '<div id="fp-long-wrap" style="overflow-x:auto;"><canvas id="fp-long-canvas" style="display:block;"></canvas></div>'
             + '</div></div>';
@@ -9029,7 +9038,7 @@ function renderFPGrowthView() {
         if (canvas && wrap) {
             canvas.width  = Math.min(920, wrap.clientWidth - 4 || 760);
             canvas.height = 330;
-            drawFpGrowthGraph(canvas, student.points);
+            drawFpGrowthGraph(canvas, student.points, student.gle);
         }
     }
 
@@ -9042,7 +9051,7 @@ function renderFPGrowthView() {
     }).catch(function(e){ el.innerHTML = '<p style="padding:1rem;color:#f87171;">Error: ' + e.message + '</p>'; });
 }
 
-function drawFpGrowthGraph(canvas, points) {
+function drawFpGrowthGraph(canvas, points, gle) {
     var dpr = window.devicePixelRatio || 1;
     var cssW = canvas.width, cssH = canvas.height;
     canvas.width  = cssW * dpr;
@@ -9064,6 +9073,17 @@ function drawFpGrowthGraph(canvas, points) {
     var minS = Math.min.apply(null, scores), maxS = Math.max.apply(null, scores);
     var rng = maxS - minS || 0.5;
     var yMin = Math.max(0, minS - rng * 0.25), yMax = maxS + rng * 0.25;
+
+    // Resolve EOY GLE target score
+    var gleTargetScore = null, gleTargetLabel = '';
+    if (gle) {
+        var gleLvl = gleTargetLevel(gle);
+        if (gleLvl) { gleTargetScore = fpScore(gleLvl.toLowerCase()); gleTargetLabel = gleLvl.toUpperCase(); }
+    }
+    if (gleTargetScore !== null) {
+        if (gleTargetScore < yMin) yMin = Math.max(0, gleTargetScore - rng * 0.15);
+        if (gleTargetScore > yMax) yMax = gleTargetScore + rng * 0.15;
+    }
 
     var n = points.length;
     function xOf(i){ return padL + (i / (n - 1)) * plotW; }
@@ -9092,6 +9112,18 @@ function drawFpGrowthGraph(canvas, points) {
         ctx.fillStyle = '#8e8e93'; ctx.font = '11px -apple-system,sans-serif'; ctx.textAlign = 'right';
         ctx.fillText(lv.toUpperCase(), padL - 6, y + 4);
     });
+
+    // EOY GLE target line (green dashed)
+    if (gleTargetScore !== null) {
+        var gleY = yOf(gleTargetScore);
+        ctx.save();
+        ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+        ctx.beginPath(); ctx.moveTo(padL, gleY); ctx.lineTo(padL + plotW, gleY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#16a34a'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText('EOY Target: ' + gleTargetLabel, padL + plotW - 4, gleY - 4);
+        ctx.restore();
+    }
 
     // Connecting line (orange, skip null gaps)
     ctx.strokeStyle = '#FF8200'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -9785,6 +9817,10 @@ var BENCH_NAME_ALIASES = {
 var compData       = null;
 var compGroupFilter = 'all';
 
+var BENCH_LONG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=1047888246&single=true&output=csv';
+var benchLongData  = null;
+var benchViewMode  = 'overview';
+
 function parseCompCsv(text) {
     var rows = parseCSVFull(text);
     if (rows.length < 3) return null;
@@ -10007,12 +10043,182 @@ function renderCompTable() {
     el.innerHTML = html;
 }
 
+/* =========================================================
+   Math Benchmark — Longitudinal Overview
+   ========================================================= */
+var BENCH_LONG_YEARS = [
+    { key: '2021-22', label: '21-22', boy: 5,  moy: 6,  eoy: 7,  goal: 8  },
+    { key: '2022-23', label: '22-23', boy: 10, moy: 11, eoy: 12, goal: 13 },
+    { key: '2023-24', label: '23-24', boy: 15, moy: 16, eoy: 17, goal: 18 },
+    { key: '2024-25', label: '24-25', boy: 20, moy: 21, eoy: 22, goal: 23 },
+    { key: '2025-26', label: '25-26', boy: 25, moy: 26, eoy: 28, goal: 29, growthGoal: 31 }
+];
+
+function parseBenchLongCsv(text) {
+    var rows = parseCsvText(text);
+    if (rows.length < 3) return [];
+    function pn(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+    var students = [];
+    for (var i = 2; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1] || '').trim();
+        if (!name) continue;
+        var years = {};
+        BENCH_LONG_YEARS.forEach(function(y) {
+            years[y.key] = {
+                boy:        pn(r[y.boy]),
+                moy:        pn(r[y.moy]),
+                eoy:        pn(r[y.eoy]),
+                goal:       pn(r[y.goal]),
+                growthGoal: y.growthGoal ? pn(r[y.growthGoal]) : null
+            };
+        });
+        students.push({ id:(r[0]||'').trim(), name:name, al:(r[2]||'').trim(), gle:(r[3]||'').trim(), group:(r[4]||'').trim(), years:years });
+    }
+    return students;
+}
+
+function renderBenchOverview() {
+    var el = document.getElementById('comp-content');
+    if (!el) return;
+    if (benchLongData) { doRenderBenchOverview(el); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading overview…</p>';
+    fetch(BENCH_LONG_URL).then(function(r){ return r.text(); }).then(function(text){
+        benchLongData = parseBenchLongCsv(text);
+        doRenderBenchOverview(el);
+    }).catch(function(e){
+        el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load overview data.</p>';
+    });
+}
+
+function doRenderBenchOverview(el) {
+    var students = benchLongData || [];
+    if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var sorted = students.slice().sort(function(a, b) {
+        var alA = parseInt(a.al)||99, alB = parseInt(b.al)||99;
+        return alA !== alB ? alA - alB : a.name.localeCompare(b.name);
+    });
+
+    function numCell(v, goal, extraStyle) {
+        extraStyle = extraStyle || '';
+        if (v === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.75rem;padding:4px 6px;' + extraStyle + '">–</td>';
+        var colStyle = '';
+        if (goal !== null) {
+            var d = v - goal;
+            if (d >= 0)      colStyle = 'background:#d1fae5;color:#065f46;';
+            else if (d >= -0.5) colStyle = 'background:#fef9c3;color:#854d0e;';
+            else             colStyle = 'background:#fee2e2;color:#991b1b;';
+        }
+        return '<td style="text-align:center;font-size:0.78rem;font-weight:500;padding:4px 7px;' + colStyle + extraStyle + '">' + v.toFixed(2) + '</td>';
+    }
+    function goalCell(v, extraStyle) {
+        extraStyle = extraStyle || '';
+        if (v === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.72rem;padding:4px 5px;' + extraStyle + '">–</td>';
+        return '<td style="text-align:center;font-size:0.72rem;color:#94a3b8;padding:4px 5px;' + extraStyle + '">' + v.toFixed(2) + '</td>';
+    }
+
+    // Header
+    var html = '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">'
+        + '<table style="border-collapse:collapse;width:max-content;min-width:100%;font-family:-apple-system,sans-serif;">'
+        + '<thead>';
+
+    // Row 1: year group headers
+    html += '<tr style="background:#f5f5f7;">'
+        + '<th rowspan="2" style="padding:8px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;white-space:nowrap;position:sticky;left:0;background:#f5f5f7;z-index:2;min-width:160px;">Student</th>'
+        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">AL</th>'
+        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">GLE</th>'
+        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">Group</th>';
+    BENCH_LONG_YEARS.forEach(function(y) {
+        var cur = y.key === '2025-26';
+        html += '<th colspan="4" style="padding:6px 10px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:1px solid #e8e8ed;border-left:2px solid #c7c7cc;' + (cur ? 'background:#fff7ed;' : '') + '">' + y.label + '</th>';
+    });
+    html += '</tr>';
+
+    // Row 2: BOY / MOY / EOY / Goal sub-headers
+    html += '<tr style="background:#fafafa;">';
+    BENCH_LONG_YEARS.forEach(function(y) {
+        var cur = y.key === '2025-26';
+        var bg = cur ? 'background:#fff7ed;' : 'background:#fafafa;';
+        html += '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;border-left:2px solid #c7c7cc;' + bg + '">BOY</th>'
+             + '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;' + bg + '">MOY</th>'
+             + '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;' + bg + '">EOY</th>'
+             + '<th style="padding:5px 6px;text-align:center;font-size:0.64rem;font-weight:600;color:#94a3b8;border-bottom:2px solid #d1d5db;' + bg + '">Goal</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    // Group by AL
+    var alGroups = {}, alOrder = [];
+    sorted.forEach(function(s) {
+        var k = s.al || '?';
+        if (!alGroups[k]) { alGroups[k] = []; alOrder.push(k); }
+        alGroups[k].push(s);
+    });
+
+    alOrder.forEach(function(al) {
+        var colCount = 4 + BENCH_LONG_YEARS.length * 4;
+        html += '<tr><td colspan="' + colCount + '" style="padding:5px 12px;font-size:0.7rem;font-weight:700;color:#fff;background:#3a3a3c;letter-spacing:0.5px;text-transform:uppercase;">AL ' + al.replace(/</g,'&lt;') + '</td></tr>';
+
+        alGroups[al].forEach(function(s, si) {
+            var rb = si % 2 === 0 ? '#fff' : '#fafafa';
+            html += '<tr style="background:' + rb + ';">'
+                + '<td style="padding:6px 12px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;font-weight:500;position:sticky;left:0;background:' + rb + ';z-index:1;">' + s.name.replace(/</g,'&lt;') + '</td>'
+                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.al||'—') + '</td>'
+                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.gle||'—') + '</td>'
+                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.group||'—') + '</td>';
+            BENCH_LONG_YEARS.forEach(function(y) {
+                var yd = s.years[y.key];
+                var cur = y.key === '2025-26';
+                var bg = cur ? 'background:#fffbf5;' : '';
+                html += numCell(yd.boy,  null,    'border-left:2px solid #c7c7cc;' + bg)
+                     + numCell(yd.moy,  null,    bg)
+                     + numCell(yd.eoy,  yd.goal, bg)
+                     + goalCell(yd.goal, bg);
+            });
+            html += '</tr>';
+        });
+    });
+
+    html += '</tbody></table></div>';
+    html += '<div style="padding:0 1.25rem 1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.7rem;color:#64748b;">'
+        + '<span style="font-weight:600;color:#1d1d1f;">EOY color:</span>'
+        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#d1fae5;vertical-align:middle;margin-right:3px;"></span>Met goal</span>'
+        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fef9c3;vertical-align:middle;margin-right:3px;"></span>Within 0.5 of goal</span>'
+        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fee2e2;vertical-align:middle;margin-right:3px;"></span>More than 0.5 below goal</span>'
+        + '</div>';
+
+    el.innerHTML = html;
+}
+
+function renderBenchStudentGrowth() {
+    var el = document.getElementById('comp-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Student Growth view coming soon.</p>';
+}
+
+function setBenchView(view) {
+    benchViewMode = view;
+    document.querySelectorAll('.bench-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === view);
+    });
+    var filtersEl = document.getElementById('comp-filters');
+    if (filtersEl) filtersEl.style.display = view === 'drilldown' ? 'flex' : 'none';
+    renderComp();
+}
+
 function renderComp() {
     var filtersEl = document.getElementById('comp-filters');
     var contentEl = document.getElementById('comp-content');
     if (!contentEl) return;
+
+    if (filtersEl) filtersEl.style.display = benchViewMode === 'drilldown' ? 'flex' : 'none';
+
+    if (benchViewMode === 'overview') { renderBenchOverview(); return; }
+    if (benchViewMode === 'student-growth') { renderBenchStudentGrowth(); return; }
+
+    // drilldown
     if (compData) { renderCompFilters(); renderCompTable(); return; }
-    if (filtersEl) filtersEl.innerHTML = '';
+    if (filtersEl) filtersEl.innerHTML = '<span style="font-size:0.8rem;color:#86868b;">Loading…</span>';
     contentEl.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
     fetch(COMP_CSV_URL).then(function(r) { return r.text(); }).then(function(text) {
         compData = parseCompCsv(text);
