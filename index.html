@@ -10104,52 +10104,66 @@ function doRenderBenchOverview(el) {
         return alA !== alB ? alA - alB : a.name.localeCompare(b.name);
     });
 
-    function numCell(v, goal, extraStyle) {
-        extraStyle = extraStyle || '';
-        if (v === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.75rem;padding:4px 6px;' + extraStyle + '">–</td>';
-        var colStyle = '';
+    // Score cell — colored by distance to goal if provided
+    function numCell(v, goal, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:2px solid rgba(255,255,255,0.15);' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (v === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.75rem;padding:5px 7px;' + bl + bg + '">–</td>';
+        var colStyle = bg;
         if (goal !== null) {
             var d = v - goal;
-            if (d >= 0)      colStyle = 'background:#d1fae5;color:#065f46;';
+            if (d >= 0)         colStyle = 'background:#d1fae5;color:#065f46;';
             else if (d >= -0.5) colStyle = 'background:#fef9c3;color:#854d0e;';
-            else             colStyle = 'background:#fee2e2;color:#991b1b;';
+            else                colStyle = 'background:#fee2e2;color:#991b1b;';
         }
-        return '<td style="text-align:center;font-size:0.78rem;font-weight:500;padding:4px 7px;' + colStyle + extraStyle + '">' + v.toFixed(2) + '</td>';
-    }
-    function goalCell(v, extraStyle) {
-        extraStyle = extraStyle || '';
-        if (v === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.72rem;padding:4px 5px;' + extraStyle + '">–</td>';
-        return '<td style="text-align:center;font-size:0.72rem;color:#94a3b8;padding:4px 5px;' + extraStyle + '">' + v.toFixed(2) + '</td>';
+        return '<td style="text-align:center;font-size:0.8rem;font-weight:500;padding:5px 7px;' + bl + colStyle + '">' + v.toFixed(2) + '</td>';
     }
 
-    // Header
-    var html = '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">'
-        + '<table style="border-collapse:collapse;width:max-content;min-width:100%;font-family:-apple-system,sans-serif;">'
-        + '<thead>';
+    // Goal cell — progress bar (most recent score / goal)
+    function goalBarCell(yd, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:2px solid rgba(255,255,255,0.15);' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (yd.goal === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.72rem;padding:5px 8px;min-width:100px;' + bl + bg + '">–</td>';
+        var score = yd.eoy !== null ? yd.eoy : (yd.moy !== null ? yd.moy : yd.boy);
+        if (score === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.72rem;padding:5px 8px;min-width:100px;' + bl + bg + '">Goal: ' + yd.goal.toFixed(2) + '</td>';
+        var pct = Math.min(100, Math.round(score / yd.goal * 100));
+        var barCol = pctColor(pct);
+        return '<td style="padding:5px 10px;min-width:110px;' + bl + bg + '">'
+            + '<div style="display:flex;align-items:center;gap:5px;">'
+            + '<div style="flex:1;height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + barCol + ';border-radius:4px;"></div>'
+            + '</div>'
+            + '<span style="font-size:0.72rem;font-weight:600;color:#3a3a3c;white-space:nowrap;">' + pct + '%</span>'
+            + '</div>'
+            + '<div style="font-size:0.62rem;color:#aeaeb2;margin-top:2px;text-align:right;">↗ ' + yd.goal.toFixed(2) + '</div>'
+            + '</td>';
+    }
 
-    // Row 1: year group headers
-    html += '<tr style="background:#f5f5f7;">'
-        + '<th rowspan="2" style="padding:8px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;white-space:nowrap;position:sticky;left:0;background:#f5f5f7;z-index:2;min-width:160px;">Student</th>'
-        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">AL</th>'
-        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">GLE</th>'
-        + '<th rowspan="2" style="padding:8px 8px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:2px solid #d1d5db;">Group</th>';
+    var colCount = 4 + BENCH_LONG_YEARS.length * 4;
+
+    // Header row 1 — year group labels
+    var hdr1 = '<tr>'
+        + '<th rowspan="2" style="text-align:left;white-space:nowrap;position:sticky;left:0;z-index:3;min-width:160px;background:#1d1d1f;">Student</th>'
+        + '<th rowspan="2" style="text-align:center;background:#1d1d1f;">AL</th>'
+        + '<th rowspan="2" style="text-align:center;background:#1d1d1f;">GLE</th>'
+        + '<th rowspan="2" style="text-align:center;background:#1d1d1f;">Group</th>';
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        html += '<th colspan="4" style="padding:6px 10px;text-align:center;font-size:0.72rem;font-weight:700;color:#1d1d1f;border-bottom:1px solid #e8e8ed;border-left:2px solid #c7c7cc;' + (cur ? 'background:#fff7ed;' : '') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.15);' + (cur ? 'background:#b45309;' : 'background:#1d1d1f;') + '">' + y.label + '</th>';
     });
-    html += '</tr>';
+    hdr1 += '</tr>';
 
-    // Row 2: BOY / MOY / EOY / Goal sub-headers
-    html += '<tr style="background:#fafafa;">';
+    // Header row 2 — BOY / MOY / EOY / Goal
+    var hdr2 = '<tr>';
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        var bg = cur ? 'background:#fff7ed;' : 'background:#fafafa;';
-        html += '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;border-left:2px solid #c7c7cc;' + bg + '">BOY</th>'
-             + '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;' + bg + '">MOY</th>'
-             + '<th style="padding:5px 7px;text-align:center;font-size:0.64rem;font-weight:600;color:#64748b;border-bottom:2px solid #d1d5db;' + bg + '">EOY</th>'
-             + '<th style="padding:5px 6px;text-align:center;font-size:0.64rem;font-weight:600;color:#94a3b8;border-bottom:2px solid #d1d5db;' + bg + '">Goal</th>';
+        var bg = cur ? 'background:#92400e;' : 'background:#3a3a3c;';
+        hdr2 += '<th style="text-align:center;font-size:0.65rem;font-weight:600;border-left:2px solid rgba(255,255,255,0.15);' + bg + '">BOY</th>'
+             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">MOY</th>'
+             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">EOY</th>'
+             + '<th style="text-align:center;font-size:0.65rem;font-weight:600;' + bg + '">Goal</th>';
     });
-    html += '</tr></thead><tbody>';
+    hdr2 += '</tr>';
 
     // Group by AL
     var alGroups = {}, alOrder = [];
@@ -10159,37 +10173,33 @@ function doRenderBenchOverview(el) {
         alGroups[k].push(s);
     });
 
+    var bodyRows = '';
     alOrder.forEach(function(al) {
-        var colCount = 4 + BENCH_LONG_YEARS.length * 4;
-        html += '<tr><td colspan="' + colCount + '" style="padding:5px 12px;font-size:0.7rem;font-weight:700;color:#fff;background:#3a3a3c;letter-spacing:0.5px;text-transform:uppercase;">AL ' + al.replace(/</g,'&lt;') + '</td></tr>';
-
+        bodyRows += '<tr><td colspan="' + colCount + '" style="padding:6px 14px;font-size:0.7rem;font-weight:700;color:#fff;background:#3a3a3c;letter-spacing:0.6px;text-transform:uppercase;border-bottom:none;">AL ' + al.replace(/</g,'&lt;') + '</td></tr>';
         alGroups[al].forEach(function(s, si) {
             var rb = si % 2 === 0 ? '#fff' : '#fafafa';
-            html += '<tr style="background:' + rb + ';">'
-                + '<td style="padding:6px 12px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;font-weight:500;position:sticky;left:0;background:' + rb + ';z-index:1;">' + s.name.replace(/</g,'&lt;') + '</td>'
-                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.al||'—') + '</td>'
-                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.gle||'—') + '</td>'
-                + '<td style="padding:6px 8px;text-align:center;font-size:0.78rem;color:#64748b;">' + (s.group||'—') + '</td>';
+            bodyRows += '<tr>'
+                + '<td style="padding:7px 14px;font-size:0.82rem;color:#1d1d1f;white-space:nowrap;font-weight:500;position:sticky;left:0;background:' + rb + ';z-index:1;">' + s.name.replace(/</g,'&lt;') + '</td>'
+                + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.al||'—') + '</td>'
+                + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.gle||'—') + '</td>'
+                + '<td style="padding:7px 8px;text-align:center;font-size:0.8rem;color:#64748b;">' + (s.group||'—') + '</td>';
             BENCH_LONG_YEARS.forEach(function(y) {
                 var yd = s.years[y.key];
                 var cur = y.key === '2025-26';
-                var bg = cur ? 'background:#fffbf5;' : '';
-                html += numCell(yd.boy,  null,    'border-left:2px solid #c7c7cc;' + bg)
-                     + numCell(yd.moy,  null,    bg)
-                     + numCell(yd.eoy,  yd.goal, bg)
-                     + goalCell(yd.goal, bg);
+                bodyRows += numCell(yd.boy, null,    true,  cur)
+                          + numCell(yd.moy, null,    false, cur)
+                          + numCell(yd.eoy, yd.goal, false, cur)
+                          + goalBarCell(yd,           false, cur);
             });
-            html += '</tr>';
+            bodyRows += '</tr>';
         });
     });
 
-    html += '</tbody></table></div>';
-    html += '<div style="padding:0 1.25rem 1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.7rem;color:#64748b;">'
-        + '<span style="font-weight:600;color:#1d1d1f;">EOY color:</span>'
-        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#d1fae5;vertical-align:middle;margin-right:3px;"></span>Met goal</span>'
-        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fef9c3;vertical-align:middle;margin-right:3px;"></span>Within 0.5 of goal</span>'
-        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fee2e2;vertical-align:middle;margin-right:3px;"></span>More than 0.5 below goal</span>'
-        + '</div>';
+    var html = '<div class="progress-table-wrapper" style="margin:1.25rem;">'
+        + '<table style="border-collapse:collapse;width:max-content;min-width:100%;">'
+        + '<thead>' + hdr1 + hdr2 + '</thead>'
+        + '<tbody>' + bodyRows + '</tbody>'
+        + '</table></div>';
 
     el.innerHTML = html;
 }
