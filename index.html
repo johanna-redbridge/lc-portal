@@ -9183,8 +9183,10 @@ var MAP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrWKRzTAYJ5
 var mapData = null;
 var mapMathALFilter = 'all';
 var mapElaALFilter  = 'all';
-var mapMathView     = 'class';
-var mapElaView      = 'class';
+var mapMathView              = 'class';
+var mapElaView               = 'class';
+var mapMathSelectedStudent   = '';
+var mapElaSelectedStudent    = '';
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -9377,71 +9379,65 @@ function renderMapMathStudentGraphs() {
     if (mapMathALFilter !== 'all') all = all.filter(function(s) { return s.al === mapMathALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
+    // Keep selected student valid across AL filter changes
+    if (!mapMathSelectedStudent || !all.find(function(s) { return s.name === mapMathSelectedStudent; })) {
+        mapMathSelectedStudent = all[0].name;
+    }
+
     var mp = mapData.mathPeriods;
+    var s = all.find(function(s) { return s.name === mapMathSelectedStudent; }) || all[0];
 
-    var html = '<div class="map-student-grid">';
-    all.forEach(function(s) {
-        var pts = [];
-        for (var j = 0; j < MAP_MATH_COUNT; j++) {
-            if (s.mathScores[j] !== '' && mp[j]) {
-                pts.push({ label: mp[j], score: parseFloat(s.mathScores[j]), pct: parseFloat(s.mathPcts[j]) || 0 });
-            }
-        }
+    var html = '<div style="padding:1rem 1.25rem 1.5rem;">';
 
-        var latest = pts.length ? pts[pts.length - 1] : null;
-        var latestColor = latest ? pctColor(latest.pct) : '#aeaeb2';
-
-        var pairs = mapGrowthPairs(mp).filter(function(p) {
-            return s.mathScores[p.boyIdx] !== '' && s.mathScores[p.eoyIdx] !== '';
-        });
-        var growthHtml = '';
-        pairs.forEach(function(p) {
-            var gain = parseFloat(s.mathScores[p.eoyIdx]) - parseFloat(s.mathScores[p.boyIdx]);
-            var gainStr = (gain >= 0 ? '+' : '') + Math.round(gain);
-            var col = gain >= 5 ? '#27ae60' : gain >= 0 ? '#e07b00' : '#e74c3c';
-            growthHtml += '<span style="font-size:0.68rem;background:#f5f5f7;padding:2px 7px;border-radius:5px;white-space:nowrap;">'
-                + '<span style="color:#86868b;">' + (p.year || 'BOY→EOY') + ': </span>'
-                + '<span style="color:' + col + ';font-weight:700;">' + gainStr + ' pts</span>'
-                + '</span>';
-        });
-
-        html += '<div class="map-student-card">';
-        html += '<div class="map-student-card-header">'
-            + '<div>'
-            + '<div class="map-student-name">' + s.name.replace(/</g,'&lt;') + '</div>'
-            + '<div class="map-student-meta">AL' + s.al + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
+    // Search bar
+    html += '<div style="position:relative;max-width:380px;margin-bottom:1.25rem;">'
+        + '<input id="map-math-student-search" type="text" value="' + s.name.replace(/"/g,'&quot;') + '" '
+        + 'placeholder="Search student…" autocomplete="off" '
+        + 'style="width:100%;padding:0.5rem 2rem 0.5rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;color:#1d1d1f;background:#fff;outline:none;box-sizing:border-box;" '
+        + 'oninput="mapMathSearchInput(this.value)" onfocus="mapMathShowDropdown()" onblur="setTimeout(function(){mapMathHideDropdown();},160)"/>'
+        + '<span style="position:absolute;right:0.65rem;top:50%;transform:translateY(-50%);color:#aeaeb2;font-size:0.65rem;pointer-events:none;">▼</span>'
+        + '<div id="map-math-dropdown" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1.5px solid #d2d2d7;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,0.1);max-height:220px;overflow-y:auto;z-index:300;">';
+    all.forEach(function(st) {
+        var active = st.name === mapMathSelectedStudent;
+        html += '<div class="map-math-dd-item" data-name="' + st.name.replace(/"/g,'&quot;') + '" '
+            + 'onmousedown="mapMathSelectStudent(\'' + st.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" '
+            + 'style="padding:0.42rem 0.75rem;font-size:0.82rem;cursor:pointer;' + (active ? 'background:#fff7f0;font-weight:600;color:#FF8200;' : 'color:#1d1d1f;') + '">'
+            + st.name.replace(/</g,'&lt;')
+            + '<span style="color:#aeaeb2;font-size:0.68rem;margin-left:6px;font-weight:400;">AL' + st.al + '</span>'
             + '</div>';
-        if (latest) {
-            html += '<div style="text-align:right;">'
-                + '<div style="font-size:1.15rem;font-weight:800;color:' + latestColor + ';">' + Math.round(latest.score) + '</div>'
-                + '<div style="font-size:0.62rem;color:#86868b;white-space:nowrap;">Latest RIT</div>'
-                + '</div>';
-        }
-        html += '</div>';
-
-        if (!pts.length) {
-            html += '<div style="color:#aeaeb2;font-size:0.8rem;padding:8px 0;">No data available</div>';
-        } else if (pts.length === 1) {
-            html += mapSinglePointChart(pts[0]);
-        } else {
-            html += mapLineChart(pts);
-        }
-
-        if (latest) {
-            html += '<div style="display:flex;align-items:center;gap:6px;margin-top:10px;">'
-                + '<span style="font-size:0.67rem;color:#86868b;min-width:54px;">%ile rank</span>'
-                + '<div style="flex:1;height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
-                + '<div style="width:' + Math.min(latest.pct, 100) + '%;height:100%;background:' + latestColor + ';border-radius:4px;"></div></div>'
-                + '<span style="font-size:0.72rem;font-weight:700;min-width:26px;color:' + latestColor + ';">' + Math.round(latest.pct) + '</span>'
-                + '</div>';
-        }
-        if (growthHtml) {
-            html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">' + growthHtml + '</div>';
-        }
-        html += '</div>';
     });
+    html += '</div></div>';
+
+    html += '<div style="max-width:560px;">' + buildMapStudentCard(s, mp, 'math') + '</div>';
     html += '</div>';
     el.innerHTML = html;
+}
+
+function mapMathSelectStudent(name) {
+    mapMathSelectedStudent = name;
+    renderMapMathStudentGraphs();
+}
+
+function mapMathSearchInput(val) {
+    var lower = val.toLowerCase();
+    var dropdown = document.getElementById('map-math-dropdown');
+    if (!dropdown) return;
+    dropdown.style.display = '';
+    dropdown.querySelectorAll('.map-math-dd-item').forEach(function(item) {
+        item.style.display = (item.dataset.name || '').toLowerCase().indexOf(lower) >= 0 ? '' : 'none';
+    });
+}
+
+function mapMathShowDropdown() {
+    var dropdown = document.getElementById('map-math-dropdown');
+    if (!dropdown) return;
+    dropdown.querySelectorAll('.map-math-dd-item').forEach(function(item) { item.style.display = ''; });
+    dropdown.style.display = '';
+}
+
+function mapMathHideDropdown() {
+    var dropdown = document.getElementById('map-math-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
 }
 
 function mapLineChart(pts) {
@@ -9581,71 +9577,131 @@ function renderMapElaStudentGraphs() {
     if (mapElaALFilter !== 'all') all = all.filter(function(s) { return s.al === mapElaALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
+    if (!mapElaSelectedStudent || !all.find(function(s) { return s.name === mapElaSelectedStudent; })) {
+        mapElaSelectedStudent = all[0].name;
+    }
+
     var ep = mapData.elaPeriods;
+    var s = all.find(function(s) { return s.name === mapElaSelectedStudent; }) || all[0];
 
-    var html = '<div class="map-student-grid">';
-    all.forEach(function(s) {
-        var pts = [];
-        for (var j = 0; j < MAP_ELA_COUNT; j++) {
-            if (s.elaScores[j] !== '' && ep[j]) {
-                pts.push({ label: ep[j], score: parseFloat(s.elaScores[j]), pct: parseFloat(s.elaPcts[j]) || 0 });
-            }
-        }
+    var html = '<div style="padding:1rem 1.25rem 1.5rem;">';
 
-        var latest = pts.length ? pts[pts.length - 1] : null;
-        var latestColor = latest ? pctColor(latest.pct) : '#aeaeb2';
-
-        var pairs = mapGrowthPairs(ep).filter(function(p) {
-            return s.elaScores[p.boyIdx] !== '' && s.elaScores[p.eoyIdx] !== '';
-        });
-        var growthHtml = '';
-        pairs.forEach(function(p) {
-            var gain = parseFloat(s.elaScores[p.eoyIdx]) - parseFloat(s.elaScores[p.boyIdx]);
-            var gainStr = (gain >= 0 ? '+' : '') + Math.round(gain);
-            var col = gain >= 5 ? '#27ae60' : gain >= 0 ? '#e07b00' : '#e74c3c';
-            growthHtml += '<span style="font-size:0.68rem;background:#f5f5f7;padding:2px 7px;border-radius:5px;white-space:nowrap;">'
-                + '<span style="color:#86868b;">' + (p.year || 'BOY→EOY') + ': </span>'
-                + '<span style="color:' + col + ';font-weight:700;">' + gainStr + ' pts</span>'
-                + '</span>';
-        });
-
-        html += '<div class="map-student-card">';
-        html += '<div class="map-student-card-header">'
-            + '<div>'
-            + '<div class="map-student-name">' + s.name.replace(/</g,'&lt;') + '</div>'
-            + '<div class="map-student-meta">AL' + s.al + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
+    // Search bar
+    html += '<div style="position:relative;max-width:380px;margin-bottom:1.25rem;">'
+        + '<input id="map-ela-student-search" type="text" value="' + s.name.replace(/"/g,'&quot;') + '" '
+        + 'placeholder="Search student…" autocomplete="off" '
+        + 'style="width:100%;padding:0.5rem 2rem 0.5rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;color:#1d1d1f;background:#fff;outline:none;box-sizing:border-box;" '
+        + 'oninput="mapElaSearchInput(this.value)" onfocus="mapElaShowDropdown()" onblur="setTimeout(function(){mapElaHideDropdown();},160)"/>'
+        + '<span style="position:absolute;right:0.65rem;top:50%;transform:translateY(-50%);color:#aeaeb2;font-size:0.65rem;pointer-events:none;">▼</span>'
+        + '<div id="map-ela-dropdown" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1.5px solid #d2d2d7;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,0.1);max-height:220px;overflow-y:auto;z-index:300;">';
+    all.forEach(function(st) {
+        var active = st.name === mapElaSelectedStudent;
+        html += '<div class="map-ela-dd-item" data-name="' + st.name.replace(/"/g,'&quot;') + '" '
+            + 'onmousedown="mapElaSelectStudent(\'' + st.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" '
+            + 'style="padding:0.42rem 0.75rem;font-size:0.82rem;cursor:pointer;' + (active ? 'background:#fff7f0;font-weight:600;color:#FF8200;' : 'color:#1d1d1f;') + '">'
+            + st.name.replace(/</g,'&lt;')
+            + '<span style="color:#aeaeb2;font-size:0.68rem;margin-left:6px;font-weight:400;">AL' + st.al + '</span>'
             + '</div>';
-        if (latest) {
-            html += '<div style="text-align:right;">'
-                + '<div style="font-size:1.15rem;font-weight:800;color:' + latestColor + ';">' + Math.round(latest.score) + '</div>'
-                + '<div style="font-size:0.62rem;color:#86868b;white-space:nowrap;">Latest RIT</div>'
-                + '</div>';
-        }
-        html += '</div>';
-
-        if (!pts.length) {
-            html += '<div style="color:#aeaeb2;font-size:0.8rem;padding:8px 0;">No data available</div>';
-        } else if (pts.length === 1) {
-            html += mapSinglePointChart(pts[0]);
-        } else {
-            html += mapLineChart(pts);
-        }
-
-        if (latest) {
-            html += '<div style="display:flex;align-items:center;gap:6px;margin-top:10px;">'
-                + '<span style="font-size:0.67rem;color:#86868b;min-width:54px;">%ile rank</span>'
-                + '<div style="flex:1;height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
-                + '<div style="width:' + Math.min(latest.pct, 100) + '%;height:100%;background:' + latestColor + ';border-radius:4px;"></div></div>'
-                + '<span style="font-size:0.72rem;font-weight:700;min-width:26px;color:' + latestColor + ';">' + Math.round(latest.pct) + '</span>'
-                + '</div>';
-        }
-        if (growthHtml) {
-            html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">' + growthHtml + '</div>';
-        }
-        html += '</div>';
     });
+    html += '</div></div>';
+
+    html += '<div style="max-width:560px;">' + buildMapStudentCard(s, ep, 'ela') + '</div>';
     html += '</div>';
     el.innerHTML = html;
+}
+
+function mapElaSelectStudent(name) {
+    mapElaSelectedStudent = name;
+    renderMapElaStudentGraphs();
+}
+
+function mapElaSearchInput(val) {
+    var lower = val.toLowerCase();
+    var dropdown = document.getElementById('map-ela-dropdown');
+    if (!dropdown) return;
+    dropdown.style.display = '';
+    dropdown.querySelectorAll('.map-ela-dd-item').forEach(function(item) {
+        item.style.display = (item.dataset.name || '').toLowerCase().indexOf(lower) >= 0 ? '' : 'none';
+    });
+}
+
+function mapElaShowDropdown() {
+    var dropdown = document.getElementById('map-ela-dropdown');
+    if (!dropdown) return;
+    dropdown.querySelectorAll('.map-ela-dd-item').forEach(function(item) { item.style.display = ''; });
+    dropdown.style.display = '';
+}
+
+function mapElaHideDropdown() {
+    var dropdown = document.getElementById('map-ela-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+}
+
+/* ── Shared student card builder (math + ELA) ─────────────────────────────── */
+function buildMapStudentCard(s, periods, subject) {
+    var scores  = subject === 'ela' ? s.elaScores  : s.mathScores;
+    var pcts    = subject === 'ela' ? s.elaPcts    : s.mathPcts;
+    var count   = subject === 'ela' ? MAP_ELA_COUNT : MAP_MATH_COUNT;
+
+    var pts = [];
+    for (var j = 0; j < count; j++) {
+        if (scores[j] !== '' && periods[j]) {
+            pts.push({ label: periods[j], score: parseFloat(scores[j]), pct: parseFloat(pcts[j]) || 0 });
+        }
+    }
+
+    var latest = pts.length ? pts[pts.length - 1] : null;
+    var latestColor = latest ? pctColor(latest.pct) : '#aeaeb2';
+
+    var pairs = mapGrowthPairs(periods).filter(function(p) {
+        return scores[p.boyIdx] !== '' && scores[p.eoyIdx] !== '';
+    });
+    var growthHtml = '';
+    pairs.forEach(function(p) {
+        var gain = parseFloat(scores[p.eoyIdx]) - parseFloat(scores[p.boyIdx]);
+        var gainStr = (gain >= 0 ? '+' : '') + Math.round(gain);
+        var col = gain >= 5 ? '#27ae60' : gain >= 0 ? '#e07b00' : '#e74c3c';
+        growthHtml += '<span style="font-size:0.68rem;background:#f5f5f7;padding:2px 7px;border-radius:5px;white-space:nowrap;">'
+            + '<span style="color:#86868b;">' + (p.year || 'BOY→EOY') + ': </span>'
+            + '<span style="color:' + col + ';font-weight:700;">' + gainStr + ' pts</span>'
+            + '</span>';
+    });
+
+    var html = '<div class="map-student-card">';
+    html += '<div class="map-student-card-header">'
+        + '<div>'
+        + '<div class="map-student-name">' + s.name.replace(/</g,'&lt;') + '</div>'
+        + '<div class="map-student-meta">AL' + s.al + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
+        + '</div>';
+    if (latest) {
+        html += '<div style="text-align:right;">'
+            + '<div style="font-size:1.15rem;font-weight:800;color:' + latestColor + ';">' + Math.round(latest.score) + '</div>'
+            + '<div style="font-size:0.62rem;color:#86868b;white-space:nowrap;">Latest RIT</div>'
+            + '</div>';
+    }
+    html += '</div>';
+
+    if (!pts.length) {
+        html += '<div style="color:#aeaeb2;font-size:0.8rem;padding:8px 0;">No data available</div>';
+    } else if (pts.length === 1) {
+        html += mapSinglePointChart(pts[0]);
+    } else {
+        html += mapLineChart(pts);
+    }
+
+    if (latest) {
+        html += '<div style="display:flex;align-items:center;gap:6px;margin-top:10px;">'
+            + '<span style="font-size:0.67rem;color:#86868b;min-width:54px;">%ile rank</span>'
+            + '<div style="flex:1;height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
+            + '<div style="width:' + Math.min(latest.pct, 100) + '%;height:100%;background:' + latestColor + ';border-radius:4px;"></div></div>'
+            + '<span style="font-size:0.72rem;font-weight:700;min-width:26px;color:' + latestColor + ';">' + Math.round(latest.pct) + '</span>'
+            + '</div>';
+    }
+    if (growthHtml) {
+        html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">' + growthHtml + '</div>';
+    }
+    html += '</div>';
+    return html;
 }
 
 function loadMapData(onDone) {
