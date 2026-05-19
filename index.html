@@ -301,6 +301,14 @@
             border-radius: 16px;
             border: 1px solid #f0f0f0;
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+        .progress-table-wrapper table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
         }
 
         table {
@@ -897,10 +905,10 @@
         .map-student-name { font-size: 0.88rem; font-weight: 700; color: #1d1d1f; }
         .map-student-meta { font-size: 0.68rem; color: #86868b; margin-top: 2px; }
         /* ── CORE Assessment ── */
-        .core-table-wrap { overflow-x: auto; }
+        .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; }
         .core-table { border-collapse: collapse; font-size: 0.75rem; white-space: nowrap; }
         .core-table th { background: #5c5b5a; color: #fff; padding: 0.35rem 0.45rem; text-align: center; font-weight: 600; border: 1px solid #4a4948; position: sticky; top: 0; z-index: 1; vertical-align: bottom; line-height: 1.3; }
-        .core-table th.core-name-col { position: sticky; left: 0; z-index: 2; text-align: left; min-width: 140px; background: #5c5b5a; }
+        .core-table th.core-name-col { position: sticky; top: 0; left: 0; z-index: 3; text-align: left; min-width: 140px; background: #5c5b5a; }
         .core-table td { padding: 0.2rem 0.2rem; border: 1px solid #e8e8ed; text-align: center; vertical-align: middle; }
         .core-table td.core-name-col { position: sticky; left: 0; background: #fff; text-align: left; font-weight: 500; z-index: 1; padding-left: 0.55rem; padding-right: 0.55rem; font-size: 0.78rem; }
         .core-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; padding: 0.15rem 0.28rem; min-width: 2.7rem; font-size: 0.69rem; font-weight: 600; line-height: 1.2; }
@@ -934,9 +942,9 @@
         #wd-root .wd-filter-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
         #wd-root .wd-filter-bar label { font-weight:700; font-size:.7rem; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
         #wd-root .wd-filter-bar select { padding:5px 10px; border-radius:8px; border:1px solid #d1d1d6; background:#fff; font-family:inherit; font-size:.8rem; color:#1a1a2e; cursor:pointer; }
-        #wd-root .wd-tbl-wrap { overflow-x:auto; }
+        #wd-root .wd-tbl-wrap { overflow-x:auto; overflow-y:auto; max-height:65vh; }
         #wd-root table { width:100%; border-collapse:collapse; font-size:.8rem; }
-        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#64748b; border-bottom:2px solid #e2e8f0; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; }
+        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#64748b; border-bottom:2px solid #e2e8f0; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; position:sticky; top:0; z-index:5; background:#fff; }
         #wd-root thead th:hover { color:#fff; background:#3a3a3c; }
         #wd-root thead th.sort-active { color:#fff; background:#1d1d1f; }
         #wd-root thead th.center { text-align:center; }
@@ -8128,11 +8136,11 @@ function xrefStudentHTML(){
     html += '</div>'; // end padding wrapper
 
     // Table
-    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
     ['Standard','Description','Credit','Content Area','Stage','Status','Level Match'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#f9fafb;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -8195,11 +8203,11 @@ function xrefClassHTML(){
     var html = '<div style="padding:1rem 1.25rem 0;">';
     html += '<div style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;">Showing '+creditNames.length+' credits · '+total+' students total. Sorted by % earned.</div>';
     html += '</div>';
-    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
     ['Credit','Content Area','Stage','Earned','In Progress','Not Started','Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#f9fafb;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
     creditNames.forEach(function(cn, idx){
@@ -8289,11 +8297,11 @@ function xrefStandardsHTML(){
     html += '<span style="padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#d1fae5;color:#065f46;">'+mappedCount+' linked to a credit</span>';
     html += '<span style="padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fee2e2;color:#991b1b;">'+unmappedCount+' not yet linked</span>';
     html += '</div>';
-    html += '<div style="overflow-x:auto;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="background:#5c5b5a;">';
     ['Standard Code','Standard Text','Credits Addressing It','Students Earned','Class Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#ffffff;font-weight:600;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#ffffff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
     stdCodes.forEach(function(code, idx){
@@ -9898,31 +9906,31 @@ function renderFactFluencyTable() {
         return filtered.some(function(s) { return s.facts[oi] && s.facts[oi].count !== ''; });
     });
 
-    var html = '<div style="overflow-x:auto;">';
+    var html = '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
 
     // Header
     html += '<thead><tr style="background:#f5f5f7;">';
-    html += '<th style="padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;">Student</th>';
-    html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">AL</th>';
-    html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">GLE</th>';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;">Student</th>';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">AL</th>';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">GLE</th>';
     if (ffGroupFilter === 'all') {
-        html += '<th style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">Group</th>';
+        html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">Group</th>';
     }
     activeOps.forEach(function(op) {
         var short = ffShortLabel(op.label);
         var tip   = op.label + (op.max ? ' (up to ' + op.max + ')' : '');
-        html += '<th colspan="2" style="padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#86868b;border-bottom:2px solid #e8e8ed;border-left:1px solid #e8e8ed;white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
+        html += '<th colspan="2" style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#86868b;border-bottom:2px solid #e8e8ed;border-left:1px solid #e8e8ed;white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
     });
     html += '</tr>';
 
     // Sub-header: # / %
     html += '<tr style="background:#f5f5f7;">';
-    html += '<th colspan="' + (ffGroupFilter==='all'?4:3) + '" style="border-bottom:1px solid #e8e8ed;"></th>';
+    html += '<th colspan="' + (ffGroupFilter==='all'?4:3) + '" style="position:sticky;top:32px;z-index:11;background:#f5f5f7;border-bottom:1px solid #e8e8ed;"></th>';
     activeOps.forEach(function(op) {
         var maxLbl = op.max ? '/' + op.max : '';
-        html += '<th style="padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;border-left:1px solid #e8e8ed;">#' + maxLbl + '</th>';
-        html += '<th style="padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;">%</th>';
+        html += '<th style="position:sticky;top:32px;z-index:11;background:#f5f5f7;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;border-left:1px solid #e8e8ed;">#' + maxLbl + '</th>';
+        html += '<th style="position:sticky;top:32px;z-index:11;background:#f5f5f7;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;">%</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -10469,7 +10477,7 @@ function doRenderBenchOverview(el) {
         return '<div style="font-size:0.55rem;margin-top:1px;">' + (benchOverviewSortDir === 'asc' ? '▲' : '▼') + '</div>';
     }
     function sortTh(label, c) {
-        return '<th rowspan="2" onclick="setBenchOverviewSort(\'' + c + '\')" style="text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
+        return '<th rowspan="2" onclick="setBenchOverviewSort(\'' + c + '\')" style="position:sticky;top:0;z-index:12;text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
             + label + arrow(c) + '</th>';
     }
 
@@ -10518,11 +10526,11 @@ function doRenderBenchOverview(el) {
 
     // Header row 1 — fixed cols + year group labels
     var hdr1 = '<tr>'
-        + '<th rowspan="2" style="text-align:left;position:sticky;left:0;z-index:3;background:#5c5b5a;' + TH + '">Student</th>'
+        + '<th rowspan="2" style="text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student</th>'
         + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
@@ -10531,7 +10539,7 @@ function doRenderBenchOverview(el) {
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
         var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
-        var sub = 'text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
+        var sub = 'position:sticky;top:20px;z-index:11;text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
              + '<th style="' + sub + bg + '">EOY</th>'
@@ -11171,15 +11179,15 @@ function renderLexiaStds() {
 
         html += '<div style="margin-bottom:2rem;">';
         html += '<h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;margin:0 0 0.75rem 0;">' + gradeName + '</h3>';
-        html += '<div style="overflow-x:auto;">';
+        html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;">';
         html += '<table style="border-collapse:collapse;font-size:0.72rem;min-width:max-content;">';
 
         // Header row: standard codes (strip CA-CCSS. prefix)
         html += '<thead><tr>';
-        html += '<th style="position:sticky;left:0;background:#f5f5f7;z-index:2;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;color:#1d1d1f;">Student</th>';
+        html += '<th style="position:sticky;top:0;left:0;background:#f5f5f7;z-index:12;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;color:#1d1d1f;">Student</th>';
         stds.forEach(function(s) {
             var dispCode = s.code.replace(/^CA-CCSS\./i, '');
-            html += '<th style="padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + dispCode + '</th>';
+            html += '<th style="position:sticky;top:0;z-index:10;padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + dispCode + '</th>';
         });
         html += '</tr></thead>';
 
@@ -12037,7 +12045,7 @@ function doRenderWbOverview(el) {
         return '<div style="font-size:0.55rem;margin-top:1px;">' + (wbOverviewSortDir === 'asc' ? '▲' : '▼') + '</div>';
     }
     function sortTh(label, c) {
-        return '<th rowspan="2" onclick="setWbOverviewSort(\'' + c + '\')" style="text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
+        return '<th rowspan="2" onclick="setWbOverviewSort(\'' + c + '\')" style="position:sticky;top:0;z-index:12;text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
             + label + arrow(c) + '</th>';
     }
 
@@ -12081,11 +12089,11 @@ function doRenderWbOverview(el) {
 
     var TH = 'padding:4px 3px;font-size:0.65rem;white-space:nowrap;';
     var hdr1 = '<tr>'
-        + '<th rowspan="2" style="text-align:left;position:sticky;left:0;z-index:3;background:#5c5b5a;' + TH + '">Student</th>'
+        + '<th rowspan="2" style="text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student</th>'
         + sortTh('AL', 'al') + sortTh('GLE', 'gle');
     WB_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
@@ -12093,7 +12101,7 @@ function doRenderWbOverview(el) {
     WB_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
         var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
-        var sub = 'text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
+        var sub = 'position:sticky;top:20px;z-index:11;text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
              + '<th style="' + sub + bg + '">EOY</th>'
