@@ -11224,33 +11224,53 @@ function renderLexiaStds() {
     el.innerHTML = html;
 }
 
+function lexiaFetch(url, ms) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+    var p = ctrl ? fetch(url, { signal: ctrl.signal }) : fetch(url);
+    return p.then(function(r) { clearTimeout(timer); return r; })
+            .catch(function(e) { clearTimeout(timer); throw e; });
+}
+
 function renderLexia() {
     var loaded = 0;
-    var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0) + (!lexiaStdsData ? 1 : 0);
+    // Only count perf + prog for the progress view; stds loads independently
+    var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0);
     var pe = document.getElementById('lexia-perf');
     var pr = document.getElementById('lexia-prog');
     var st = document.getElementById('lexia-stds');
-    if (total === 0) { renderLexiaCombined(); if (lexiaView === 'standards') renderLexiaStds(); return; }
+    if (total === 0 && lexiaPerfData !== null && lexiaProgData !== null) {
+        renderLexiaCombined();
+        if (lexiaView === 'standards') renderLexiaStds();
+        return;
+    }
     if (pe) pe.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading…</p>';
     if (pr) pr.innerHTML = '';
     if (st) st.innerHTML = '';
 
-    function onDone() { if (++loaded >= total) { renderLexiaCombined(); if (lexiaView === 'standards') renderLexiaStds(); } }
+    function onDone() {
+        if (++loaded >= total) {
+            renderLexiaCombined();
+            if (lexiaView === 'standards') renderLexiaStds();
+        }
+    }
 
     if (!lexiaPerfData) {
-        fetch(LEXIA_PERF_URL).then(function(r){return r.text();}).then(function(t){
+        lexiaFetch(LEXIA_PERF_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
             lexiaPerfData = parsePerformanceCsv(t); onDone();
         }).catch(function(){ lexiaPerfData = []; onDone(); });
     }
     if (!lexiaProgData) {
-        fetch(LEXIA_PROG_URL).then(function(r){return r.text();}).then(function(t){
+        lexiaFetch(LEXIA_PROG_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
             lexiaProgData = parseProgressCsv(t); onDone();
         }).catch(function(){ lexiaProgData = []; onDone(); });
     }
+    // Load stds in background — doesn't block progress view
     if (!lexiaStdsData) {
-        fetch(LEXIA_STDS_URL).then(function(r){return r.text();}).then(function(t){
-            lexiaStdsData = parseStandardsCsv(t); onDone();
-        }).catch(function(){ lexiaStdsData = { grades: [], standards: [], students: [] }; onDone(); });
+        lexiaFetch(LEXIA_STDS_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
+            lexiaStdsData = parseStandardsCsv(t);
+            if (lexiaView === 'standards') renderLexiaStds();
+        }).catch(function(){ lexiaStdsData = { grades: [], standards: [], students: [] }; });
     }
 }
 
