@@ -11827,94 +11827,74 @@ function doRenderSurvey() {
 
     var n = filtered.length;
 
-    // Summary card
+    // Summary cards
     var allScores = [];
     SURVEY_QUESTIONS.forEach(function(q) {
         filtered.forEach(function(s) { if (s.scores[q.idx] !== null) allScores.push(s.scores[q.idx]); });
     });
     var overallAvg = allScores.length ? (allScores.reduce(function(a,b){return a+b;},0) / allScores.length) : 0;
 
-    var html = '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;">'
-        + '<div style="flex:1;min-width:120px;background:#f0f9ff;border-radius:10px;padding:0.7rem 1rem;">'
-        + '<div style="font-size:1.5rem;font-weight:700;color:#0369a1;">' + n + '</div>'
-        + '<div style="font-size:0.72rem;color:#0369a1;opacity:0.85;">Responses</div></div>'
-        + '<div style="flex:1;min-width:120px;background:#f0fdf4;border-radius:10px;padding:0.7rem 1rem;">'
-        + '<div style="font-size:1.5rem;font-weight:700;color:#15803d;">' + overallAvg.toFixed(1) + '<span style="font-size:0.85rem;opacity:0.6;">/5</span></div>'
-        + '<div style="font-size:0.72rem;color:#15803d;opacity:0.85;">Overall Average</div></div>'
+    var html = '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.75rem;">'
+        + '<div style="flex:1;min-width:120px;background:#fff8fc;border:1px solid #ffcbea;border-radius:10px;padding:0.7rem 1rem;">'
+        + '<div style="font-size:1.5rem;font-weight:700;color:#be185d;">' + n + '</div>'
+        + '<div style="font-size:0.72rem;color:#be185d;opacity:0.85;">Responses</div></div>'
+        + '<div style="flex:1;min-width:120px;background:#fff8fc;border:1px solid #ffcbea;border-radius:10px;padding:0.7rem 1rem;">'
+        + '<div style="font-size:1.5rem;font-weight:700;color:#be185d;">' + overallAvg.toFixed(1) + '<span style="font-size:0.85rem;opacity:0.55;">/5</span></div>'
+        + '<div style="font-size:0.72rem;color:#be185d;opacity:0.85;">Overall Average</div></div>'
         + '</div>';
 
-    // Legend
-    html += '<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;">'
-        + '<span style="font-size:0.68rem;color:#6b7280;font-weight:600;">Scale:</span>';
-    [1,2,3,4,5].forEach(function(v,i) {
-        html += '<span style="display:flex;align-items:center;gap:3px;font-size:0.68rem;color:#374151;">'
-            + '<span style="width:12px;height:12px;border-radius:3px;background:' + SURVEY_RATING_COLORS[i] + ';display:inline-block;"></span>'
-            + v + '</span>';
-    });
-    html += '</div>';
+    var CHART_H = 80; // px — max bar height
 
-    // Render a group of questions
-    function renderGroup(groupKey, groupLabel) {
-        var qs = SURVEY_QUESTIONS.filter(function(q){ return q.group === groupKey; });
-        var s = '<div style="margin-bottom:2rem;">'
-            + '<div style="font-size:0.85rem;font-weight:700;color:#1d1d1f;margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:2px solid #e8e8ed;">'
-            + groupLabel + '</div>';
+    // Build one question card with vertical bars
+    function questionCard(q) {
+        var counts = [0,0,0,0,0];
+        var vals = [];
+        filtered.forEach(function(s) {
+            var v = s.scores[q.idx];
+            if (v !== null) { counts[v-1]++; vals.push(v); }
+        });
+        var total = vals.length;
+        var avg = total ? (vals.reduce(function(a,b){return a+b;},0) / total) : null;
+        var maxCount = Math.max.apply(null, counts) || 1;
 
-        qs.forEach(function(q) {
-            // Count distribution
-            var counts = [0,0,0,0,0];
-            var vals = [];
-            filtered.forEach(function(s) {
-                var v = s.scores[q.idx];
-                if (v !== null) { counts[v-1]++; vals.push(v); }
-            });
-            var total = vals.length;
-            var avg = total ? (vals.reduce(function(a,b){return a+b;},0) / total) : null;
+        var card = '<div style="background:#fff;border:1px solid #e8e8ed;border-radius:10px;padding:0.85rem 0.75rem 0.65rem;display:flex;flex-direction:column;">'
+            // question text
+            + '<div style="font-size:0.72rem;font-weight:500;color:#374151;margin-bottom:0.75rem;line-height:1.35;min-height:2.8em;">'
+            + q.text.replace(/</g,'&lt;') + '</div>'
+            // bar chart area
+            + '<div style="display:flex;align-items:flex-end;justify-content:space-around;height:' + CHART_H + 'px;gap:4px;padding:0 4px;">';
 
-            s += '<div style="margin-bottom:1rem;">'
-                + '<div style="font-size:0.75rem;color:#374151;margin-bottom:5px;font-weight:500;">' + q.text.replace(/</g,'&lt;') + '</div>'
-                + '<div style="display:flex;align-items:center;gap:8px;">';
-
-            // Stacked bar
-            s += '<div style="flex:1;height:28px;display:flex;border-radius:6px;overflow:hidden;background:#f3f4f6;">';
-            if (total === 0) {
-                s += '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#aeaeb2;">No data</div>';
-            } else {
-                counts.forEach(function(c, i) {
-                    if (c === 0) return;
-                    var pct = (c / total * 100).toFixed(1);
-                    s += '<div style="width:' + pct + '%;background:' + SURVEY_RATING_COLORS[i] + ';display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:' + (c > 0 ? '18px' : '0') + ';">'
-                        + '<span style="font-size:0.62rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.35);white-space:nowrap;">' + c + '</span>'
-                        + '</div>';
-                });
-            }
-            s += '</div>';
-
-            // Average badge
-            if (avg !== null) {
-                var avgColor = avg >= 4 ? '#15803d' : avg >= 3 ? '#854d0e' : '#991b1b';
-                var avgBg    = avg >= 4 ? '#dcfce7' : avg >= 3 ? '#fef9c3' : '#fee2e2';
-                s += '<div style="min-width:42px;text-align:center;padding:3px 7px;border-radius:7px;background:' + avgBg + ';font-size:0.75rem;font-weight:700;color:' + avgColor + ';">'
-                    + avg.toFixed(1) + '</div>';
-            }
-
-            s += '</div>';
-
-            // Rating labels below bar
-            s += '<div style="display:flex;margin-top:2px;font-size:0.58rem;color:#9ca3af;">';
-            counts.forEach(function(c, i) {
-                var pct = total > 0 ? (c / total * 100).toFixed(0) : 0;
-                s += '<div style="flex:1;text-align:center;">'
-                    + '<span style="color:' + SURVEY_RATING_COLORS[i] + ';font-weight:600;">' + (i+1) + '</span>'
-                    + (c > 0 ? ' · ' + pct + '%' : '') + '</div>';
-            });
-            s += '</div>';
-
-            s += '</div>'; // end question
+        counts.forEach(function(c, i) {
+            var barH = total === 0 ? 0 : Math.max(c > 0 ? 6 : 0, Math.round(c / maxCount * CHART_H));
+            card += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">'
+                // count label above bar
+                + '<div style="font-size:0.62rem;font-weight:700;color:#be185d;line-height:1;">' + (c > 0 ? c : '') + '</div>'
+                // bar itself
+                + '<div style="width:100%;background:#ffbbe4;border-radius:4px 4px 0 0;height:' + barH + 'px;"></div>'
+                // rating label below
+                + '<div style="font-size:0.65rem;color:#9ca3af;font-weight:600;margin-top:2px;">' + (i+1) + '</div>'
+                + '</div>';
         });
 
-        s += '</div>'; // end group
-        return s;
+        card += '</div>'; // end bar area
+
+        // Average
+        card += '<div style="text-align:center;margin-top:0.5rem;font-size:0.7rem;color:#6b7280;">'
+            + 'avg <strong style="color:#be185d;">' + (avg !== null ? avg.toFixed(1) : '—') + '</strong></div>';
+
+        card += '</div>'; // end card
+        return card;
+    }
+
+    // Render a group section
+    function renderGroup(groupKey, groupLabel) {
+        var qs = SURVEY_QUESTIONS.filter(function(q){ return q.group === groupKey; });
+        return '<div style="margin-bottom:2.25rem;">'
+            + '<div style="font-size:0.85rem;font-weight:700;color:#1d1d1f;margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:2px solid #ffd8ef;">'
+            + groupLabel + '</div>'
+            + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;">'
+            + qs.map(questionCard).join('')
+            + '</div></div>';
     }
 
     html += renderGroup('experience', 'Writing Experience');
