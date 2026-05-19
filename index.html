@@ -12039,10 +12039,10 @@ function doRenderWbOverview(el) {
     function goalBarCell(yd, borderLeft, curYear) {
         var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
         var bg = curYear ? 'background:#fffbf5;' : '';
-        if (yd.growthGoal === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        if (yd.eoyGle === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
         var score = yd.eof !== null ? yd.eof : (yd.moy !== null ? yd.moy : yd.boy);
         if (score === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.62rem;' + PH + bl + bg + '">—</td>';
-        var pct = Math.min(100, Math.round(score / yd.growthGoal * 100));
+        var pct = Math.min(100, Math.round(score / yd.eoyGle * 100));
         var barCol = pctColor(pct);
         return '<td style="padding:3px 5px;' + bl + bg + '">'
             + '<div style="height:5px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
@@ -12055,12 +12055,8 @@ function doRenderWbOverview(el) {
     var colgroup = '<colgroup>'
         + '<col style="width:14%">'
         + '<col style="width:3%"><col style="width:3%">';
-    WB_LONG_YEARS.forEach(function(y) {
-        if (y.growthGoal !== null) {
-            colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
-        } else {
-            colgroup += '<col style="width:4%"><col style="width:4%"><col style="width:4%">';
-        }
+    WB_LONG_YEARS.forEach(function() {
+        colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
     });
     colgroup += '</colgroup>';
 
@@ -12070,8 +12066,7 @@ function doRenderWbOverview(el) {
         + sortTh('AL', 'al') + sortTh('GLE', 'gle');
     WB_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        var cols = y.growthGoal !== null ? 4 : 3;
-        hdr1 += '<th colspan="' + cols + '" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
@@ -12082,10 +12077,8 @@ function doRenderWbOverview(el) {
         var sub = 'text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
-             + '<th style="' + sub + bg + '">EOY</th>';
-        if (y.growthGoal !== null) {
-            hdr2 += '<th style="' + sub + bg + '">Goal</th>';
-        }
+             + '<th style="' + sub + bg + '">EOY</th>'
+             + '<th style="' + sub + bg + '">Goal</th>';
     });
     hdr2 += '</tr>';
 
@@ -12099,13 +12092,10 @@ function doRenderWbOverview(el) {
         WB_LONG_YEARS.forEach(function(y) {
             var yd  = s.years[y.key];
             var cur = y.key === '2025-26';
-            var goal = yd.growthGoal;
-            bodyRows += scoreCell(yd.boy, null, true,  cur)
-                      + scoreCell(yd.moy, null, false, cur)
-                      + scoreCell(yd.eof, goal, false, cur);
-            if (y.growthGoal !== null) {
-                bodyRows += goalBarCell(yd, false, cur);
-            }
+            bodyRows += scoreCell(yd.boy, null,     true,  cur)
+                      + scoreCell(yd.moy, null,     false, cur)
+                      + scoreCell(yd.eof, yd.eoyGle, false, cur)
+                      + goalBarCell(yd,              false, cur);
         });
         bodyRows += '</tr>';
     });
