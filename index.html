@@ -7292,11 +7292,11 @@ function getMapMathRit(studentName) {
     if(!match) mapData.students.forEach(function(s){ if(!match && xrefNorm(s.name)===normTarget) match=s; });
     if(!match) mapData.students.forEach(function(s){ if(!match && (s.name.split(/\s+/)[0]||'').toLowerCase()===firstTarget) match=s; });
     if(!match) return null;
-    var lastScore=null, lastPeriod='';
+    var lastScore=null, lastPct=null, lastPeriod='';
     match.mathScores.forEach(function(score,i){
-        if(score && score!=='---' && score!=='') { lastScore=score; lastPeriod=mapData.mathPeriods[i]||''; }
+        if(score && score!=='---' && score!=='') { lastScore=score; lastPct=match.mathPcts[i]||null; lastPeriod=mapData.mathPeriods[i]||''; }
     });
-    return lastScore ? {score:lastScore, period:lastPeriod} : null;
+    return lastScore ? {score:lastScore, pct:lastPct, period:lastPeriod} : null;
 }
 
 // Strip CA-CCSS. prefix and remove dots before lowercase letter suffixes
@@ -7937,7 +7937,7 @@ function xrefCompDetailHTML(){
     headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
     headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
     var mapRit = getMapMathRit(xrefStudent);
-    if(mapRit) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fef3c7;color:#b45309;" title="MAP Math RIT ('+mapRit.period+')">MAP Math: '+mapRit.score+'</span>';
+    if(mapRit) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fef3c7;color:#b45309;" title="MAP Math RIT ('+mapRit.period+')">MAP Math: '+mapRit.score+(mapRit.pct ? ' <span style="font-weight:400;opacity:0.75;">('+mapRit.pct+'%ile)</span>' : '')+'</span>';
     headerHtml += '</div>';
 
     // Summary cards
