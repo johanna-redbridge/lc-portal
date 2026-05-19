@@ -1372,6 +1372,7 @@
                     <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="benchmark-analytics" onclick="switchWritingSubtab('benchmark-analytics')">Writing Benchmark Analytics</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
+                    <button class="toggle-btn writing-sub-btn" data-wsub="survey" onclick="switchWritingSubtab('survey')">Writing Survey</button>
                 </div>
             </div>
 
@@ -1406,6 +1407,17 @@
                         <div id="wd-view-category" style="display:none;"></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Writing Survey panel -->
+            <div id="writing-panel-survey" style="display:none;">
+                <div id="survey-filter-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                    <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">AL</span>
+                    <div id="survey-al-btns" class="toggle-group">
+                        <button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL('all')">All</button>
+                    </div>
+                </div>
+                <div id="survey-content" style="padding:1.25rem;"></div>
             </div>
 
             <!-- Writing Benchmark (new data panel) -->
@@ -6872,12 +6884,13 @@ function switchWritingSubtab(sub) {
     document.querySelectorAll('.writing-sub-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.wsub === sub);
     });
-    ['benchmark-analytics', 'writing-benchmark', 'wb'].forEach(function(n) {
+    ['benchmark-analytics', 'writing-benchmark', 'wb', 'survey'].forEach(function(n) {
         var p = document.getElementById('writing-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
     if (sub === 'writing-benchmark') initWbRubrics();
     if (sub === 'wb') renderWb();
+    if (sub === 'survey') renderSurvey();
 }
 
 var wbRubric = 'ls';
@@ -11712,6 +11725,203 @@ function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
 
 return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth };
 })();
+
+/* ═══════════════════════════════════════════════════════════════
+   Writing Survey
+   ═══════════════════════════════════════════════════════════════ */
+var SURVEY_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRvHK9AkrDnKEethBeGhwVpMATvsI3rcqD_w1-wqCKK-cnE0UNmUXfHMiwTVToql1EnYWU_NUiGYp9/pub?gid=1005065688&single=true&output=csv';
+var surveyData = null;
+var surveyALFilter = 'all';
+
+var SURVEY_QUESTIONS = [
+    // Writing Experience
+    { idx: 3,  text: 'I enjoy writing class.',                                           group: 'experience' },
+    { idx: 4,  text: 'I feel confident when I write.',                                   group: 'experience' },
+    { idx: 5,  text: 'Writing feels important to me.',                                   group: 'experience' },
+    { idx: 6,  text: 'I feel motivated during writing class.',                           group: 'experience' },
+    { idx: 7,  text: 'I feel challenged in a "just right" way with my writing.',         group: 'experience' },
+    // Motivation factors
+    { idx: 10, text: 'Choosing my own topic',                                            group: 'motivation' },
+    { idx: 11, text: 'Setting my own writing goals',                                     group: 'motivation' },
+    { idx: 12, text: 'Getting helpful feedback',                                         group: 'motivation' },
+    { idx: 13, text: 'Publishing or sharing my writing within school',                   group: 'motivation' },
+    { idx: 14, text: 'Publishing or sharing my writing outside of school',               group: 'motivation' },
+    { idx: 15, text: 'Having choice in the format of my writing (book, letter, article…)', group: 'motivation' },
+    { idx: 16, text: 'Being playful with writing',                                       group: 'motivation' },
+    { idx: 17, text: 'Having writing celebrations at school',                            group: 'motivation' },
+    { idx: 18, text: 'Participating in writing competitions',                            group: 'motivation' }
+];
+
+var SURVEY_RATING_COLORS = ['#ef4444','#f97316','#eab308','#84cc16','#22c55e'];
+var SURVEY_RATING_LIGHT  = ['#fee2e2','#ffedd5','#fef9c3','#ecfccb','#dcfce7'];
+
+function parseSurveyCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 2) return [];
+    var students = [];
+    for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1] || '').trim();
+        if (!name) continue;
+        var al = (r[2] || '').trim();
+        var scores = {};
+        SURVEY_QUESTIONS.forEach(function(q) {
+            var v = parseInt(r[q.idx]);
+            scores[q.idx] = (isNaN(v) || v < 1 || v > 5) ? null : v;
+        });
+        students.push({ name: name, al: al, scores: scores });
+    }
+    return students;
+}
+
+function setSurveyAL(al) {
+    surveyALFilter = al;
+    document.querySelectorAll('.survey-al-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.al === al);
+    });
+    doRenderSurvey();
+}
+
+function renderSurvey() {
+    var el = document.getElementById('survey-content');
+    if (!el) return;
+    if (surveyData) { buildSurveyALButtons(); doRenderSurvey(); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading survey data…</p>';
+    fetch(SURVEY_URL).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+    }).then(function(text) {
+        surveyData = parseSurveyCsv(text);
+        buildSurveyALButtons();
+        doRenderSurvey();
+    }).catch(function(e) {
+        el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load survey: ' + (e && e.message ? e.message : e) + '</p>';
+    });
+}
+
+function buildSurveyALButtons() {
+    var bar = document.getElementById('survey-al-btns');
+    if (!bar || !surveyData) return;
+    var levels = [];
+    surveyData.forEach(function(s) { if (s.al && levels.indexOf(s.al) === -1) levels.push(s.al); });
+    levels.sort();
+    var html = '<button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL(\'all\')">All</button>';
+    levels.forEach(function(al) {
+        html += '<button class="toggle-btn survey-al-btn" data-al="' + al + '" onclick="setSurveyAL(\'' + al + '\')">' + al + '</button>';
+    });
+    bar.innerHTML = html;
+}
+
+function doRenderSurvey() {
+    var el = document.getElementById('survey-content');
+    if (!el || !surveyData) return;
+
+    var filtered = surveyALFilter === 'all'
+        ? surveyData
+        : surveyData.filter(function(s) { return s.al === surveyALFilter; });
+
+    if (!filtered.length) {
+        el.innerHTML = '<p style="padding:2rem;color:#aeaeb2;text-align:center;">No responses for this filter.</p>';
+        return;
+    }
+
+    var n = filtered.length;
+
+    // Summary card
+    var allScores = [];
+    SURVEY_QUESTIONS.forEach(function(q) {
+        filtered.forEach(function(s) { if (s.scores[q.idx] !== null) allScores.push(s.scores[q.idx]); });
+    });
+    var overallAvg = allScores.length ? (allScores.reduce(function(a,b){return a+b;},0) / allScores.length) : 0;
+
+    var html = '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;">'
+        + '<div style="flex:1;min-width:120px;background:#f0f9ff;border-radius:10px;padding:0.7rem 1rem;">'
+        + '<div style="font-size:1.5rem;font-weight:700;color:#0369a1;">' + n + '</div>'
+        + '<div style="font-size:0.72rem;color:#0369a1;opacity:0.85;">Responses</div></div>'
+        + '<div style="flex:1;min-width:120px;background:#f0fdf4;border-radius:10px;padding:0.7rem 1rem;">'
+        + '<div style="font-size:1.5rem;font-weight:700;color:#15803d;">' + overallAvg.toFixed(1) + '<span style="font-size:0.85rem;opacity:0.6;">/5</span></div>'
+        + '<div style="font-size:0.72rem;color:#15803d;opacity:0.85;">Overall Average</div></div>'
+        + '</div>';
+
+    // Legend
+    html += '<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;">'
+        + '<span style="font-size:0.68rem;color:#6b7280;font-weight:600;">Scale:</span>';
+    [1,2,3,4,5].forEach(function(v,i) {
+        html += '<span style="display:flex;align-items:center;gap:3px;font-size:0.68rem;color:#374151;">'
+            + '<span style="width:12px;height:12px;border-radius:3px;background:' + SURVEY_RATING_COLORS[i] + ';display:inline-block;"></span>'
+            + v + '</span>';
+    });
+    html += '</div>';
+
+    // Render a group of questions
+    function renderGroup(groupKey, groupLabel) {
+        var qs = SURVEY_QUESTIONS.filter(function(q){ return q.group === groupKey; });
+        var s = '<div style="margin-bottom:2rem;">'
+            + '<div style="font-size:0.85rem;font-weight:700;color:#1d1d1f;margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:2px solid #e8e8ed;">'
+            + groupLabel + '</div>';
+
+        qs.forEach(function(q) {
+            // Count distribution
+            var counts = [0,0,0,0,0];
+            var vals = [];
+            filtered.forEach(function(s) {
+                var v = s.scores[q.idx];
+                if (v !== null) { counts[v-1]++; vals.push(v); }
+            });
+            var total = vals.length;
+            var avg = total ? (vals.reduce(function(a,b){return a+b;},0) / total) : null;
+
+            s += '<div style="margin-bottom:1rem;">'
+                + '<div style="font-size:0.75rem;color:#374151;margin-bottom:5px;font-weight:500;">' + q.text.replace(/</g,'&lt;') + '</div>'
+                + '<div style="display:flex;align-items:center;gap:8px;">';
+
+            // Stacked bar
+            s += '<div style="flex:1;height:28px;display:flex;border-radius:6px;overflow:hidden;background:#f3f4f6;">';
+            if (total === 0) {
+                s += '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#aeaeb2;">No data</div>';
+            } else {
+                counts.forEach(function(c, i) {
+                    if (c === 0) return;
+                    var pct = (c / total * 100).toFixed(1);
+                    s += '<div style="width:' + pct + '%;background:' + SURVEY_RATING_COLORS[i] + ';display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:' + (c > 0 ? '18px' : '0') + ';">'
+                        + '<span style="font-size:0.62rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.35);white-space:nowrap;">' + c + '</span>'
+                        + '</div>';
+                });
+            }
+            s += '</div>';
+
+            // Average badge
+            if (avg !== null) {
+                var avgColor = avg >= 4 ? '#15803d' : avg >= 3 ? '#854d0e' : '#991b1b';
+                var avgBg    = avg >= 4 ? '#dcfce7' : avg >= 3 ? '#fef9c3' : '#fee2e2';
+                s += '<div style="min-width:42px;text-align:center;padding:3px 7px;border-radius:7px;background:' + avgBg + ';font-size:0.75rem;font-weight:700;color:' + avgColor + ';">'
+                    + avg.toFixed(1) + '</div>';
+            }
+
+            s += '</div>';
+
+            // Rating labels below bar
+            s += '<div style="display:flex;margin-top:2px;font-size:0.58rem;color:#9ca3af;">';
+            counts.forEach(function(c, i) {
+                var pct = total > 0 ? (c / total * 100).toFixed(0) : 0;
+                s += '<div style="flex:1;text-align:center;">'
+                    + '<span style="color:' + SURVEY_RATING_COLORS[i] + ';font-weight:600;">' + (i+1) + '</span>'
+                    + (c > 0 ? ' · ' + pct + '%' : '') + '</div>';
+            });
+            s += '</div>';
+
+            s += '</div>'; // end question
+        });
+
+        s += '</div>'; // end group
+        return s;
+    }
+
+    html += renderGroup('experience', 'Writing Experience');
+    html += renderGroup('motivation', 'What Motivates Me in Writing');
+
+    el.innerHTML = html;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    Writing Benchmark — Longitudinal Overview
