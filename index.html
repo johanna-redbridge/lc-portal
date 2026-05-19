@@ -7470,8 +7470,9 @@ function xrefReadDetailHTML(){
     xrefCCSCRows.forEach(function(r){
         if(r.area !== 'Reading' && r.area !== 'Writing') return;
         if(!r.credit) return;
-        if(!stdCredits[r.code]) stdCredits[r.code]=[];
-        stdCredits[r.code].push(r);
+        var nc = normCcssCode(r.code);
+        if(!stdCredits[nc]) stdCredits[nc]=[];
+        stdCredits[nc].push(r);
     });
 
     // Build Lexia score lookup: normalized code → pct
@@ -7840,8 +7841,9 @@ function xrefCompDetailHTML(){
     var stdCredits = {};
     xrefCCSCRows.forEach(function(r){
         if(!r.credit) return;
-        if(!stdCredits[r.code]) stdCredits[r.code]=[];
-        stdCredits[r.code].push(r);
+        var nc = normCcssCode(r.code);
+        if(!stdCredits[nc]) stdCredits[nc]=[];
+        stdCredits[nc].push(r);
     });
 
     // Build short-code → full-code map from XREF_ALL_CCSS
