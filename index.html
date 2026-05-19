@@ -1160,7 +1160,7 @@
     <div class="view-container" style="padding:0;">
         <div class="data-subtab-nav" style="justify-content:flex-start;">
             <button class="data-subtab-btn active" data-subtab="reading" onclick="switchDataSubtab('reading')">Reading Dashboard</button>
-            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Math Dashboard</button>
+            <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Computation Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
             <button class="data-subtab-btn" data-subtab="xref" onclick="switchDataSubtab('xref')">Cross Reference</button>
         </div>
@@ -1262,10 +1262,10 @@
             </div>
         </div>
 
-        <!-- ── Math Dashboard ── -->
+        <!-- ── Computation Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
             <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
-                <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Benchmark</button>
+                <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
                 <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
@@ -1275,7 +1275,7 @@
                 <!-- Benchmark view toggle bar -->
                 <div id="bench-view-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
                     <div class="toggle-group">
-                        <button class="toggle-btn bench-view-btn active" data-view="overview" onclick="setBenchView('overview')">Overview</button>
+                        <button class="toggle-btn bench-view-btn active" data-view="overview" onclick="setBenchView('overview')">Overview Growth</button>
                         <button class="toggle-btn bench-view-btn" data-view="drilldown" onclick="setBenchView('drilldown')">Drilldown</button>
                         <button class="toggle-btn bench-view-btn" data-view="student-growth" onclick="setBenchView('student-growth')">Student Growth</button>
                     </div>
@@ -1369,8 +1369,9 @@
             <!-- Writing sub-tab bar -->
             <div style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
                 <div class="toggle-group">
-                    <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Evaluation</button>
+                    <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="benchmark-analytics" onclick="switchWritingSubtab('benchmark-analytics')">Writing Benchmark Analytics</button>
+                    <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
                 </div>
             </div>
 
@@ -1405,6 +1406,23 @@
                         <div id="wd-view-category" style="display:none;"></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Writing Benchmark (new data panel) -->
+            <div id="writing-panel-wb" style="display:none;">
+                <!-- view toggle bar -->
+                <div id="wb-view-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
+                    <div class="toggle-group">
+                        <button class="toggle-btn wb-view-btn active" data-view="overview" onclick="setWbView('overview')">Overview Growth</button>
+                        <button class="toggle-btn wb-view-btn" data-view="student-growth" onclick="setWbView('student-growth')">Student Growth</button>
+                        <button class="toggle-btn wb-view-btn" data-view="drilldown" onclick="setWbView('drilldown')">Drilldown</button>
+                        <button class="toggle-btn wb-view-btn" data-view="analytics" onclick="setWbView('analytics')">Analytics</button>
+                    </div>
+                </div>
+                <div id="wb-filters" style="display:none;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
+                    <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
+                </div>
+                <div id="wb-content"></div>
             </div>
 
             <!-- Writing Benchmark panel -->
@@ -6854,11 +6872,12 @@ function switchWritingSubtab(sub) {
     document.querySelectorAll('.writing-sub-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.wsub === sub);
     });
-    ['benchmark-analytics', 'writing-benchmark'].forEach(function(n) {
+    ['benchmark-analytics', 'writing-benchmark', 'wb'].forEach(function(n) {
         var p = document.getElementById('writing-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
     if (sub === 'writing-benchmark') initWbRubrics();
+    if (sub === 'wb') renderWb();
 }
 
 var wbRubric = 'ls';
@@ -11693,6 +11712,239 @@ function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
 
 return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth };
 })();
+
+/* ═══════════════════════════════════════════════════════════════
+   Writing Benchmark — Longitudinal Overview
+   ═══════════════════════════════════════════════════════════════ */
+var WB_LONG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1136667408&single=true&output=csv';
+var wbLongData  = null;
+var wbViewMode  = 'overview';
+
+// Column map (0-indexed): rows 0=date-headers, 1=sub-headers, 2+=data
+var WB_LONG_YEARS = [
+    { key: '2021-22', label: '21-22', boy: 7,  moy: 8,  eof: 9,  boyGle: 10, eoyGle: 11, growthGoal: null },
+    { key: '2022-23', label: '22-23', boy: 12, moy: 13, eof: 14, boyGle: 15, eoyGle: 16, growthGoal: null },
+    { key: '2023-24', label: '23-24', boy: 17, moy: 18, eof: 19, boyGle: 20, eoyGle: 21, growthGoal: null },
+    { key: '2024-25', label: '24-25', boy: 22, moy: 23, eof: 24, boyGle: 25, eoyGle: 26, growthGoal: null },
+    { key: '2025-26', label: '25-26', boy: 27, moy: 28, eof: 30, boyGle: 31, eoyGle: 32, growthGoal: 33 }
+];
+
+function parseWbLongCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 3) return [];
+    function pn(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+    var students = [];
+    for (var i = 2; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1] || '').trim();
+        if (!name) continue;
+        var years = {};
+        WB_LONG_YEARS.forEach(function(y) {
+            years[y.key] = {
+                boy:        pn(r[y.boy]),
+                moy:        pn(r[y.moy]),
+                eof:        pn(r[y.eof]),
+                boyGle:     pn(r[y.boyGle]),
+                eoyGle:     pn(r[y.eoyGle]),
+                growthGoal: y.growthGoal !== null ? pn(r[y.growthGoal]) : null
+            };
+        });
+        students.push({
+            id:   (r[0] || '').trim(),
+            name: name,
+            al:   (r[2] || '').trim(),
+            gle:  (r[3] || '').trim(),
+            years: years
+        });
+    }
+    return students;
+}
+
+function setWbView(view) {
+    wbViewMode = view;
+    document.querySelectorAll('.wb-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === view);
+    });
+    renderWb();
+}
+
+function renderWb() {
+    var contentEl = document.getElementById('wb-content');
+    if (!contentEl) return;
+    if (wbViewMode === 'overview')      { renderWbOverview(); return; }
+    if (wbViewMode === 'student-growth'){ renderWbStudentGrowth(); return; }
+    if (wbViewMode === 'drilldown')     { renderWbDrilldown(); return; }
+    if (wbViewMode === 'analytics')     { renderWbAnalytics(); return; }
+}
+
+function renderWbOverview() {
+    var el = document.getElementById('wb-content');
+    if (!el) return;
+    if (wbLongData) { doRenderWbOverview(el); return; }
+    el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">Loading overview…</p>';
+    fetch(WB_LONG_URL).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+    }).then(function(text) {
+        wbLongData = parseWbLongCsv(text);
+        doRenderWbOverview(el);
+    }).catch(function(e) {
+        console.error('WB overview error:', e);
+        el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load data: ' + (e && e.message ? e.message : e) + '</p>';
+    });
+}
+
+var wbOverviewSortCol = 'al';
+var wbOverviewSortDir = 'asc';
+
+function setWbOverviewSort(col) {
+    if (wbOverviewSortCol === col) {
+        wbOverviewSortDir = wbOverviewSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        wbOverviewSortCol = col;
+        wbOverviewSortDir = 'asc';
+    }
+    var el = document.getElementById('wb-content');
+    if (el && wbLongData) doRenderWbOverview(el);
+}
+
+function doRenderWbOverview(el) {
+    var students = wbLongData || [];
+    if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+
+    var col = wbOverviewSortCol, dir = wbOverviewSortDir === 'asc' ? 1 : -1;
+    var sorted = students.slice().sort(function(a, b) {
+        var av, bv;
+        if      (col === 'al')  { av = parseInt(a.al)  || 99; bv = parseInt(b.al)  || 99; }
+        else if (col === 'gle') { av = parseFloat(a.gle) || 99; bv = parseFloat(b.gle) || 99; }
+        else                    { return dir * a.name.localeCompare(b.name); }
+        return av !== bv ? dir * (av - bv) : a.name.localeCompare(b.name);
+    });
+
+    var PH = 'padding:3px 4px;';
+
+    function arrow(c) {
+        if (wbOverviewSortCol !== c) return '<div style="font-size:0.5rem;opacity:0.3;margin-top:1px;">↕</div>';
+        return '<div style="font-size:0.55rem;margin-top:1px;">' + (wbOverviewSortDir === 'asc' ? '▲' : '▼') + '</div>';
+    }
+    function sortTh(label, c) {
+        return '<th rowspan="2" onclick="setWbOverviewSort(\'' + c + '\')" style="text-align:center;cursor:pointer;user-select:none;background:#5c5b5a;padding:4px 3px;font-size:0.68rem;white-space:nowrap;">'
+            + label + arrow(c) + '</th>';
+    }
+
+    function scoreCell(v, goal, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (v === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.68rem;' + PH + bl + bg + '">–</td>';
+        var colStyle = bg;
+        if (goal !== null) {
+            var d = v - goal;
+            if      (d >= 0)    colStyle = 'background:#d1fae5;color:#065f46;';
+            else if (d >= -0.5) colStyle = 'background:#fef9c3;color:#854d0e;';
+            else                colStyle = 'background:#fee2e2;color:#991b1b;';
+        }
+        return '<td style="text-align:center;font-size:0.72rem;font-weight:500;' + PH + bl + colStyle + '">' + v.toFixed(2) + '</td>';
+    }
+
+    function goalBarCell(yd, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (yd.growthGoal === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        var score = yd.eof !== null ? yd.eof : (yd.moy !== null ? yd.moy : yd.boy);
+        if (score === null) return '<td style="text-align:center;color:#aeaeb2;font-size:0.62rem;' + PH + bl + bg + '">—</td>';
+        var pct = Math.min(100, Math.round(score / yd.growthGoal * 100));
+        var barCol = pctColor(pct);
+        return '<td style="padding:3px 5px;' + bl + bg + '">'
+            + '<div style="height:5px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + barCol + ';border-radius:3px;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.62rem;font-weight:600;color:#3a3a3c;text-align:center;line-height:1;">' + pct + '%</div>'
+            + '</td>';
+    }
+
+    var colgroup = '<colgroup>'
+        + '<col style="width:14%">'
+        + '<col style="width:3%"><col style="width:3%">';
+    WB_LONG_YEARS.forEach(function(y) {
+        if (y.growthGoal !== null) {
+            colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
+        } else {
+            colgroup += '<col style="width:4%"><col style="width:4%"><col style="width:4%">';
+        }
+    });
+    colgroup += '</colgroup>';
+
+    var TH = 'padding:4px 3px;font-size:0.65rem;white-space:nowrap;';
+    var hdr1 = '<tr>'
+        + '<th rowspan="2" style="text-align:left;position:sticky;left:0;z-index:3;background:#5c5b5a;' + TH + '">Student</th>'
+        + sortTh('AL', 'al') + sortTh('GLE', 'gle');
+    WB_LONG_YEARS.forEach(function(y) {
+        var cur = y.key === '2025-26';
+        var cols = y.growthGoal !== null ? 4 : 3;
+        hdr1 += '<th colspan="' + cols + '" style="text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+    });
+    hdr1 += '</tr>';
+
+    var hdr2 = '<tr>';
+    WB_LONG_YEARS.forEach(function(y) {
+        var cur = y.key === '2025-26';
+        var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
+        var sub = 'text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
+        hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
+             + '<th style="' + sub + bg + '">MOY</th>'
+             + '<th style="' + sub + bg + '">EOF</th>';
+        if (y.growthGoal !== null) {
+            hdr2 += '<th style="' + sub + bg + '">Goal</th>';
+        }
+    });
+    hdr2 += '</tr>';
+
+    var bodyRows = '';
+    sorted.forEach(function(s, si) {
+        var rb = si % 2 === 0 ? '#fff' : '#fafafa';
+        bodyRows += '<tr>'
+            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + s.name.replace(/"/g, '&quot;') + '">' + s.name.replace(/</g, '&lt;') + '</td>'
+            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al  || '—') + '</td>'
+            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle || '—') + '</td>';
+        WB_LONG_YEARS.forEach(function(y) {
+            var yd  = s.years[y.key];
+            var cur = y.key === '2025-26';
+            var goal = yd.growthGoal;
+            bodyRows += scoreCell(yd.boy, null, true,  cur)
+                      + scoreCell(yd.moy, null, false, cur)
+                      + scoreCell(yd.eof, goal, false, cur);
+            if (y.growthGoal !== null) {
+                bodyRows += goalBarCell(yd, false, cur);
+            }
+        });
+        bodyRows += '</tr>';
+    });
+
+    el.innerHTML = '<div class="progress-table-wrapper" style="margin:1.25rem;">'
+        + '<table style="border-collapse:collapse;width:100%;table-layout:fixed;">'
+        + colgroup
+        + '<thead>' + hdr1 + hdr2 + '</thead>'
+        + '<tbody>' + bodyRows + '</tbody>'
+        + '</table></div>';
+}
+
+function renderWbStudentGrowth() {
+    var el = document.getElementById('wb-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Student Growth view coming soon.</p>';
+}
+
+function renderWbDrilldown() {
+    var el = document.getElementById('wb-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Drilldown view coming soon.</p>';
+}
+
+function renderWbAnalytics() {
+    var el = document.getElementById('wb-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Analytics view coming soon.</p>';
+}
 
 function updateStickyOffsets() {
     var hdr = document.querySelector('header');
