@@ -10025,7 +10025,7 @@ function parseSTMathCsv(text) {
             var code = (r[c]||'').trim();
             if (!code) continue;
             if ((domainRow[c]||'').trim()) lastDomain = domainRow[c].trim();
-            standards.push({ code: code, domain: lastDomain, col: c });
+            standards.push({ code: normCcssCode(code), domain: lastDomain, col: c });
         }
 
         // Collect student rows until an empty row or next grade section
