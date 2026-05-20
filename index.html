@@ -7364,10 +7364,11 @@ function renderCompStudentOverview() {
             html += '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4.25rem;">';
             grp.items.forEach(function(it) {
                 var done = it.q.mastery[sel];
-                var bg = done ? pctColor(100) : '#e8e8ed';
-                var tc = done ? '#fff' : '#86868b';
-                var tip = (it.q.q || it.q.std || 'Q').replace(/"/g,'&quot;');
-                html += '<div title="'+tip+'" style="width:20px;height:20px;border-radius:4px;background:'+bg+';color:'+tc+';font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;">'+(done?'✓':'✗')+'</div>';
+                var bg = done ? '#34c759' : '#e8e8ed';
+                var tc = done ? '#fff' : '#aeaeb2';
+                var lbl = (it.q.q || it.q.std || '').replace(/"/g,'&quot;');
+                var tip = (it.q.std || it.q.q || '').replace(/"/g,'&quot;');
+                html += '<div title="'+tip+'" style="min-width:22px;height:20px;padding:0 3px;border-radius:4px;background:'+bg+';color:'+tc+';font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap;">'+lbl+'</div>';
             });
             html += '</div></div>';
         });
