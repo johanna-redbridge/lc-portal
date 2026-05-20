@@ -1283,6 +1283,7 @@
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
                 <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
+                <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1329,6 +1330,10 @@
             <div id="math-panel-stmath" style="display:none;">
                 <div id="stmath-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;"></div>
                 <div id="stmath-content"></div>
+            </div>
+            <!-- Student Overview -->
+            <div id="math-panel-student-overview" style="display:none;">
+                <div id="math-student-overview-content"></div>
             </div>
         </div>
 
@@ -7266,7 +7271,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['benchmark', 'map-math', 'fact-fluency', 'stmath'].forEach(function(n) {
+    ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -7274,11 +7279,203 @@ function switchMathSubtab(sub) {
 }
 
 function renderMathSubtab() {
-    if (mathSubtab === 'benchmark')    renderComp();
-    if (mathSubtab === 'map-math')     renderMapMath();
-    if (mathSubtab === 'fact-fluency') renderFactFluency();
-    if (mathSubtab === 'stmath')       renderSTMath();
+    if (mathSubtab === 'benchmark')        renderComp();
+    if (mathSubtab === 'map-math')         renderMapMath();
+    if (mathSubtab === 'fact-fluency')     renderFactFluency();
+    if (mathSubtab === 'stmath')           renderSTMath();
+    if (mathSubtab === 'student-overview') renderCompStudentOverview();
 }
+
+// ── Computation Student Overview ──────────────────────────────────────────────
+var compStudOverviewName = '';
+
+function renderCompStudentOverview() {
+    var el = document.getElementById('math-student-overview-content');
+    if (!el) return;
+
+    // Collect all student names across sources
+    var names = {};
+    if (compData) compData.students.forEach(function(s){ names[s.name] = true; });
+    if (mapData && mapData.students) mapData.students.forEach(function(s){ names[s.name] = true; });
+    if (factFluencyData) factFluencyData.students.forEach(function(s){ names[s.name] = true; });
+    if (benchLongData) benchLongData.forEach(function(s){ names[s.name] = true; });
+    if (stmathData) stmathData.forEach(function(sec){ sec.students.forEach(function(s){ names[s.name] = true; }); });
+
+    var nameList = Object.keys(names).sort();
+    if (!nameList.length) {
+        el.innerHTML = '<p style="padding:2rem;color:#aeaeb2;text-align:center;">No computation data loaded yet. Visit the other tabs first to load data.</p>';
+        return;
+    }
+    if (!compStudOverviewName || !names[compStudOverviewName]) compStudOverviewName = nameList[0];
+    var sel = compStudOverviewName;
+    var norm = xrefNorm(sel);
+
+    // ── selector bar ──
+    var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        + '<label style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Student</label>'
+        + '<select id="comp-stu-ov-sel" onchange="compStudOverviewName=this.value;renderCompStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
+        + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
+        + '</select></div>';
+
+    html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;">';
+
+    // ── 1. Computation Benchmark drilldown ──
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">Computation Benchmark</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (compData && compData.questions.length) {
+        // Group questions by GLE
+        var gleGroups = [], gleMap = {};
+        compData.questions.forEach(function(q, qi) {
+            var g = q.gle || '—';
+            if (!gleMap.hasOwnProperty(g)) { gleMap[g] = gleGroups.length; gleGroups.push({ gle: g, items: [] }); }
+            gleGroups[gleMap[g]].items.push({ q: q, qi: qi });
+        });
+        gleGroups.forEach(function(grp) {
+            var mastered = grp.items.filter(function(it){ return it.q.mastery[sel]; }).length;
+            var total = grp.items.length;
+            var pct = total ? Math.round(mastered/total*100) : 0;
+            var col = pctColor(pct);
+            html += '<div style="margin-bottom:1rem;">';
+            html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:6px;">';
+            html += '<span style="font-size:.72rem;font-weight:700;color:#5c5b5a;min-width:3.5rem;">GLE '+grp.gle+'</span>';
+            html += '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:10px;overflow:hidden;">';
+            html += '<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:4px;"></div></div>';
+            html += '<span style="font-size:.72rem;font-weight:600;color:#3a3a3c;min-width:3rem;text-align:right;">'+mastered+'/'+total+'</span>';
+            html += '</div>';
+            // Question chips
+            html += '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4.25rem;">';
+            grp.items.forEach(function(it) {
+                var done = it.q.mastery[sel];
+                var bg = done ? pctColor(100) : '#e8e8ed';
+                var tc = done ? '#fff' : '#86868b';
+                var tip = (it.q.q || it.q.std || 'Q').replace(/"/g,'&quot;');
+                html += '<div title="'+tip+'" style="width:20px;height:20px;border-radius:4px;background:'+bg+';color:'+tc+';font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;">'+(done?'✓':'✗')+'</div>';
+            });
+            html += '</div></div>';
+        });
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No benchmark data. Visit the Computation Benchmark tab to load data.</p>';
+    }
+    html += '</div></div>';
+
+    // ── 2. Longitudinal Growth + MAP Math (side by side) ──
+    html += '<div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">';
+
+    // Longitudinal benchmark growth
+    var longRec = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">Benchmark Growth Over Time</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (longRec) {
+        html += '<canvas id="comp-stu-bench-canvas" width="500" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No longitudinal benchmark data for this student.</p>';
+    }
+    html += '</div></div>';
+
+    // MAP Math
+    var mapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">MAP Math</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (mapRec) {
+        var mathPeriods = (mapData && mapData.mathPeriods) ? mapData.mathPeriods : [];
+        var validMath = mapRec.mathScores.map(function(s,i){ return { period: mathPeriods[i]||'P'+(i+1), score: parseFloat(s)||null, pct: parseFloat(mapRec.mathPcts[i])||null }; }).filter(function(x){ return x.score!==null; });
+        if (validMath.length) {
+            html += '<canvas id="comp-stu-map-canvas" width="500" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
+        } else {
+            html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP Math scores for this student.</p>';
+        }
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP Math data. Visit the MAP Math tab to load data.</p>';
+    }
+    html += '</div></div>';
+
+    html += '</div>'; // end side-by-side row
+
+    // ── 3. Fact Fluency + STMath (side by side) ──
+    html += '<div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">';
+
+    // Fact Fluency
+    var ffRec = factFluencyData ? factFluencyData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">Fact Fluency</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (ffRec && ffRec.facts && ffRec.facts.length) {
+        ffRec.facts.forEach(function(f) {
+            var pct = ffPctNum(f.pct);
+            var bg = pct !== null ? pctColor(pct) : '#f0f0f0';
+            html += '<div style="margin-bottom:0.6rem;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">';
+            html += '<span style="font-size:.7rem;font-weight:600;color:#3a3a3c;">'+f.label+'</span>';
+            html += '<span style="font-size:.68rem;color:#5c5b5a;font-weight:600;">'+(f.count||'—')+(f.max?'/'+f.max:'')+'&nbsp;<span style="color:#86868b;font-weight:400;">'+(pct!==null?pct+'%':'')+'</span></span>';
+            html += '</div>';
+            html += '<div style="background:#f0f0f0;border-radius:4px;height:10px;overflow:hidden;">';
+            html += '<div style="height:100%;width:'+(pct||0)+'%;background:'+bg+';border-radius:4px;"></div></div>';
+            html += '</div>';
+        });
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No Fact Fluency data. Visit the Fact Fluency tab to load data.</p>';
+    }
+    html += '</div></div>';
+
+    // STMath
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">STMath</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    var foundStmath = false;
+    if (stmathData) {
+        stmathData.forEach(function(sec) {
+            var stRec = sec.students.find(function(s){ return xrefNorm(s.name)===norm; });
+            if (!stRec) return;
+            foundStmath = true;
+            html += '<div style="margin-bottom:0.75rem;">';
+            html += '<div style="font-size:.68rem;font-weight:700;color:#5c5b5a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;">'+sec.grade+'</div>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:3px;">';
+            sec.standards.forEach(function(std) {
+                var val = stRec.scores[std.code] || '';
+                var bg = stmathCellBg(val) || '#e8e8ed';
+                var n = parseFloat((val||'').replace('%',''));
+                var tip = std.code+': '+(val||'—');
+                html += '<div title="'+tip+'" style="width:22px;height:22px;border-radius:4px;background:'+bg+';font-size:.55rem;font-weight:700;color:#3a3a3c;display:flex;align-items:center;justify-content:center;">'+(isNaN(n)?'—':Math.round(n))+'</div>';
+            });
+            html += '</div></div>';
+        });
+    }
+    if (!foundStmath) html += '<p style="color:#aeaeb2;font-size:.82rem;">No STMath data for this student. Visit the STMath tab to load data.</p>';
+    html += '</div></div>';
+
+    html += '</div>'; // end fact fluency + stmath row
+    html += '</div>'; // main body
+
+    el.innerHTML = html;
+
+    // ── Draw benchmark longitudinal canvas ──
+    if (longRec) {
+        var benchCanvas = document.getElementById('comp-stu-bench-canvas');
+        if (benchCanvas) {
+            var benchPts = [];
+            BENCH_LONG_YEARS.forEach(function(y) {
+                var d = longRec.years[y.key];
+                if (!d) return;
+                ['boy','moy','eoy'].forEach(function(k) {
+                    if (d[k] !== null) benchPts.push({ period: y.label+' '+k.toUpperCase(), score: d[k], pct: null });
+                });
+            });
+            if (benchPts.length) drawMapLineGraph(benchCanvas, benchPts);
+        }
+    }
+
+    // ── Draw MAP Math canvas ──
+    if (mapRec) {
+        var mathPeriods2 = (mapData && mapData.mathPeriods) ? mapData.mathPeriods : [];
+        var validMath2 = mapRec.mathScores.map(function(s,i){ return { period: mathPeriods2[i]||'P'+(i+1), score: parseFloat(s)||null, pct: parseFloat(mapRec.mathPcts[i])||null }; }).filter(function(x){ return x.score!==null; });
+        var mapCanvas2 = document.getElementById('comp-stu-map-canvas');
+        if (mapCanvas2 && validMath2.length) drawMapLineGraph(mapCanvas2, validMath2);
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function switchDataSubtab(name) {
     // Legacy redirects for old direct sub-tab names
