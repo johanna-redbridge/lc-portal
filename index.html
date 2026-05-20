@@ -7006,33 +7006,27 @@ function renderReadingStudentOverview() {
     html += '<div style="background:#5c5b5a;color:#fff;padding:0.5rem 1rem;font-weight:700;font-size:.82rem;">CORE Word Knowledge</div>';
     html += '<div style="padding:0.6rem 1rem;">';
     if (coreRec) {
-        var corePeriods = [{key:'fall',label:'BOY',col:'#3b82f6'},{key:'winter',label:'MOY',col:'#a78bfa'},{key:'spring',label:'EOY',col:'#34d399'}];
-        html += '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.5rem;">';
-        corePeriods.forEach(function(p){ html += '<span style="font-size:.62rem;color:'+p.col+';font-weight:700;">&#9632; '+p.label+'</span>'; });
-        html += '</div>';
-        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem 1rem;">';
+        var corePeriods = [{key:'fall',label:'BOY'},{key:'winter',label:'MOY'},{key:'spring',label:'EOY'}];
+        // Legend
+        html += '<div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;align-items:center;">';
+        corePeriods.forEach(function(p){ html += '<span style="font-size:.58rem;color:#86868b;font-weight:600;">'+p.label+'</span><div style="width:24px;height:5px;border-radius:2px;background:#e0e0e0;"></div>'; });
+        html += '<span style="font-size:.55rem;color:#aeaeb2;margin-left:4px;">colors = score %</span></div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;">';
         CORE_CATS.forEach(function(cat, ci) {
-            html += '<div>';
-            html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">';
-            html += '<span style="font-size:.63rem;font-weight:600;color:#3a3a3c;" title="'+cat.full+'">'+cat.abbr+'</span>';
-            html += '<span style="font-size:.58rem;color:#aeaeb2;">/'+cat.max+'</span>';
-            html += '</div>';
-            html += '<div style="display:flex;flex-direction:column;gap:1px;">';
+            html += '<div style="display:flex;align-items:center;gap:3px;">';
+            html += '<span style="font-size:.58rem;font-weight:600;color:#5c5b5a;min-width:2.6rem;flex-shrink:0;white-space:nowrap;" title="'+cat.full+'">'+cat.abbr+'</span>';
             corePeriods.forEach(function(p) {
                 var pd = coreRec[p.key];
                 var raw = pd ? pd.scores[ci] : null;
                 var n = raw === null || raw === undefined ? null : (coreRawIsMastered(raw) ? cat.max : parseInt(raw,10));
-                var pct = (n !== null && !isNaN(n)) ? Math.min(100, Math.round(n/cat.max*100)) : 0;
-                var disp = (n !== null && !isNaN(n)) ? n : (coreRawIsMastered(raw) ? '✓' : '—');
-                html += '<div style="display:flex;align-items:center;gap:3px;">';
-                html += '<div style="width:1.8rem;font-size:.55rem;color:#86868b;text-align:right;flex-shrink:0;">'+p.label+'</div>';
-                html += '<div style="flex:1;background:#f0f0f0;border-radius:3px;height:6px;overflow:hidden;">';
-                html += '<div style="height:100%;width:'+pct+'%;background:'+p.col+';border-radius:3px;"></div>';
-                html += '</div>';
-                html += '<div style="width:1.5rem;font-size:.58rem;color:#3a3a3c;font-weight:600;text-align:right;">'+disp+'</div>';
+                var pct = (n !== null && !isNaN(n)) ? Math.min(100, Math.round(n/cat.max*100)) : null;
+                var bg = pct !== null ? pctColor(pct) : '#f0f0f0';
+                var disp = n !== null && !isNaN(n) ? n : (coreRawIsMastered(raw) ? '✓' : '');
+                html += '<div style="flex:1;background:#f0f0f0;border-radius:2px;height:8px;overflow:hidden;" title="'+p.label+': '+(disp||'—')+'/'+cat.max+'">';
+                html += '<div style="height:100%;width:'+(pct||0)+'%;background:'+bg+';border-radius:2px;"></div>';
                 html += '</div>';
             });
-            html += '</div></div>';
+            html += '</div>';
         });
         html += '</div>';
     } else {
