@@ -9555,8 +9555,8 @@ function drawFpGrowthGraph(canvas, points, gle) {
         ctx.restore();
     }
 
-    // Connecting line (orange, skip null gaps)
-    ctx.strokeStyle = '#FF8200'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    // Connecting line
+    ctx.strokeStyle = '#FFC8BB'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     var inLine = false;
     points.forEach(function(p, i) {
         if (p.score === null) { if (inLine) { ctx.stroke(); inLine = false; } return; }
@@ -9565,13 +9565,14 @@ function drawFpGrowthGraph(canvas, points, gle) {
     });
     if (inLine) ctx.stroke();
 
-    // Data points
-    var SC = { boy:'#FF8200', moy:'#007aff', eoy:'#34c759' };
+    // Data points — BOY=light grey, MOY=medium grey, EOY=black
+    var SC = { boy:'#d1d1d6', moy:'#8e8e93', eoy:'#1c1c1e' };
     points.forEach(function(p, i) {
         if (p.score === null) return;
-        var x = xOf(i), y = yOf(p.score), c = SC[p.season] || '#FF8200';
-        ctx.beginPath(); ctx.arc(x, y, 7, 0, 2*Math.PI); ctx.fillStyle = '#fff'; ctx.fill();
-        ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI); ctx.fillStyle = c; ctx.fill();
+        var x = xOf(i), y = yOf(p.score), c = SC[p.season] || '#d1d1d6';
+        ctx.beginPath(); ctx.arc(x, y, 6, 0, 2*Math.PI);
+        ctx.fillStyle = c; ctx.fill();
+        ctx.strokeStyle = '#FFC8BB'; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(p.level.toUpperCase(), x, y - 11);
     });
