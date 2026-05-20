@@ -12157,8 +12157,10 @@ function renderCategoryView() {
     var sorted=sortRows(rows,sortState.catDive.col,sortState.catDive.dir,function(r,c){return{name:r.name,al:r.al,fallScore:r.fallScore,winterScore:r.winterScore,growth:r.growth}[c];});
     var clsFall=safeAvg(rows.map(function(r){return r.fallScore;})),clsWin=safeAvg(rows.map(function(r){return r.winterScore;})),clsGrow=growthDiff(clsFall,clsWin);
     var gc=growthColors(clsGrow,'half');
-    var html='<div class="wd-filter-bar">'
-        +'<label>Category</label><select id="wd-sel-cat">'+CATS.map(function(c,i){return'<option value="'+i+'"'+(i===catDiveIdx?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'
+    var html='<div class="wd-filter-bar" style="flex-wrap:wrap;gap:6px;padding-bottom:10px;">'
+        +'<div class="toggle-group" style="flex-wrap:wrap;gap:3px;">'
+        +CATS.map(function(c,i){return'<button class="toggle-btn'+(i===catDiveIdx?' active':'')+'" onclick="catDiveIdx='+i+';renderCategoryView();" style="font-size:0.72rem;padding:0.3rem 0.75rem;">'+c+'</button>';}).join('')
+        +'</div>'
         +'</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
         +'<div class="wd-cat-kpi"><div class="ck-label">BOY Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
@@ -12183,8 +12185,6 @@ function renderCategoryView() {
             +'<td class="center">'+diffBadge(r.fallScore,r.winterScore,'half')+'</td></tr>';}).join('')
         +'</tbody></table></div></div>';
     document.getElementById('wd-view-category').innerHTML=html;
-    var sc=document.getElementById('wd-sel-cat');
-    if (sc) sc.addEventListener('change',function(e){catDiveIdx=+e.target.value;renderCategoryView();});
     attachSortListeners('wd-tbl-catdive','catDive',renderCategoryView);
 }
 
