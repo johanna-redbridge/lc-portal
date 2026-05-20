@@ -1398,6 +1398,7 @@
                 <div id="wd-root">
                     <div id="wd-nav">
                         <div class="toggle-group">
+                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">All</button>
                             <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
                             <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
                             <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
@@ -12011,7 +12012,7 @@ function renderClassOverview() {
     var sortedRoster=sortRows(rosterData,sortState.roster.col,sortState.roster.dir,function(r,c){return{name:r.name,goal:r.goal,fallAvg:r.fallAvg,winterAvg:r.winterAvg,springAvg:r.springAvg,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
     var gcFW=growthColors(overallFW,'half'),gcWS=growthColors(overallWS,'half'),gcFS=growthColors(overallFS,'full');
     var html='<div class="wd-kpi-grid">'
-        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+students.length+'</div><div class="wd-kpi-sub">'+LEVELS[currentLevel].label+'</div></div>'
+        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+students.length+'</div><div class="wd-kpi-sub">'+currentLevelCfg().label+'</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">BOY→MOY Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">MOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">BOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
@@ -12038,7 +12039,7 @@ function renderClassOverview() {
         +'</div></div></div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-roster"><thead><tr>'
         +makeSortTh('Student','name','roster')
-        +(LEVELS[currentLevel].hasGoal?makeSortTh('Goal','goal','roster',true):'')
+        +(currentLevelCfg().hasGoal?makeSortTh('Goal','goal','roster',true):'')
         +makeSortTh('BOY','fallAvg','roster',true)+makeSortTh('MOY','winterAvg','roster',true)+makeSortTh('EOY','springAvg','roster',true)
         +makeSortTh(rosterGrowthCol==='fw'?'BOY→MOY':rosterGrowthCol==='ws'?'MOY→EOY':'BOY→EOY',rosterGrowthCol,'roster',true)
         +'</tr></thead><tbody>'
@@ -12046,7 +12047,7 @@ function renderClassOverview() {
             var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
             return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
                 +'<td><strong>'+s.name+'</strong></td>'
-                +(LEVELS[currentLevel].hasGoal?'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>':'')
+                +(currentLevelCfg().hasGoal?'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>':'')
                 +'<td class="center">'+scoreChip(s.fallAvg)+'</td>'
                 +'<td class="center">'+scoreChip(s.winterAvg)+'</td>'
                 +'<td class="center">'+scoreChip(s.springAvg)+'</td>'
@@ -12240,22 +12241,46 @@ function init() {
     initialized = true;
     loadLevel(currentLevel, function(students) {
         APP.students = students;
-        CATS = LEVELS[currentLevel].cats;
+        CATS = currentLevelCfg().cats;
         selectedStudent = students.length ? students[0].name : '';
         onReady();
     });
 }
+function currentLevelCfg() {
+    if (currentLevel === 'all') return { label: 'All LS', hasGoal: true, cats: WD_CATS_LOWER };
+    return currentLevelCfg() || { label: '—', hasGoal: false, cats: [] };
+}
 function setLevel(lvl) {
-    if (!(lvl in LEVELS)) return;
+    if (lvl !== 'all' && !(lvl in LEVELS)) return;
     currentLevel = lvl;
-    CATS = LEVELS[lvl].cats;
+    CATS = currentLevelCfg().cats;
     catDiveIdx = 0;
     document.querySelectorAll('#wd-nav .wd-nav-btn[data-level]').forEach(function(b){b.classList.toggle('active',b.dataset.level===lvl);});
-    loadLevel(lvl, function(students) {
-        APP.students = students;
-        selectedStudent = students.length ? students[0].name : '';
-        onReady();
-    });
+    if (lvl === 'all') {
+        var lsKeys = ['al1','al2','al34'], loaded = 0, combined = [];
+        var loadEl = document.getElementById('wd-loading'), mainEl = document.getElementById('wd-main');
+        if (loadEl) loadEl.style.display = '';
+        if (mainEl) mainEl.style.display = 'none';
+        lsKeys.forEach(function(key) {
+            loadLevel(key, function(students) {
+                combined = combined.concat(students);
+                loaded++;
+                if (loaded === lsKeys.length) {
+                    combined.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+                    levelCache['all'] = combined;
+                    APP.students = combined;
+                    selectedStudent = combined.length ? combined[0].name : '';
+                    onReady();
+                }
+            });
+        });
+    } else {
+        loadLevel(lvl, function(students) {
+            APP.students = students;
+            selectedStudent = students.length ? students[0].name : '';
+            onReady();
+        });
+    }
 }
 function setRosterGrowth(col) { rosterGrowthCol=col; renderClassOverview(); }
 function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
