@@ -7047,10 +7047,11 @@ function renderReadingStudentOverview() {
     }
     html += '</div></div>';
 
-    // ── 4. Lexia ──
+    // ── 4 & 5. Lexia + MAP ELA side by side ──
+    html += '<div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">';
     var lxPerf = lexiaPerfData ? lexiaPerfData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
     var lxProg = lexiaProgData ? lexiaProgData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
     html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">Lexia</div>';
     html += '<div style="padding:1rem 1.25rem;">';
     if (lxPerf || lxProg) {
@@ -7097,9 +7098,9 @@ function renderReadingStudentOverview() {
     }
     html += '</div></div>';
 
-    // ── 5. MAP ELA ──
+    // MAP ELA (right side)
     var mapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
     html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">MAP ELA</div>';
     html += '<div style="padding:1rem 1.25rem;">';
     if (mapRec) {
@@ -7118,6 +7119,7 @@ function renderReadingStudentOverview() {
         html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP data for this student. Visit the MAP ELA tab to load data.</p>';
     }
     html += '</div></div>';
+    html += '</div>'; // flex row (Lexia + MAP ELA)
 
     html += '</div>'; // stu-ov-body
 
