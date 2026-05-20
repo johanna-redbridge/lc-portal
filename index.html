@@ -7111,15 +7111,6 @@ function renderReadingStudentOverview() {
             var elaMax = Math.max.apply(null, validEla.map(function(x){return x.score;}));
             var elaRng = elaMax - elaMin || 10;
             html += '<canvas id="stu-ov-map-canvas" width="700" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
-            // Table of values below
-            html += '<div style="overflow-x:auto;margin-top:1rem;"><table style="width:100%;border-collapse:collapse;font-size:.75rem;">';
-            html += '<thead><tr style="background:#5c5b5a;">';
-            validEla.forEach(function(x){ html += '<th style="padding:5px 8px;color:#fff;font-weight:600;text-align:center;white-space:nowrap;">'+x.period+'</th>'; });
-            html += '</tr></thead><tbody><tr>';
-            validEla.forEach(function(x){ html += '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f0f0f0;font-weight:600;color:#3a3a3c;">'+x.score+'</td>'; });
-            html += '</tr><tr>';
-            validEla.forEach(function(x){ html += '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f0f0f0;color:#86868b;font-size:.7rem;">'+(x.pct!==null?x.pct+'%ile':'—')+'</td>'; });
-            html += '</tr></tbody></table></div>';
         } else {
             html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP ELA scores recorded for this student.</p>';
         }
