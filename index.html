@@ -308,7 +308,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: #fff;
+            background: #5c5b5a;
         }
 
         table {
@@ -905,7 +905,7 @@
         .map-student-name { font-size: 0.88rem; font-weight: 700; color: #1d1d1f; }
         .map-student-meta { font-size: 0.68rem; color: #86868b; margin-top: 2px; }
         /* ── CORE Assessment ── */
-        .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; }
+        .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 16px; border: 1px solid #f0f0f0; }
         .core-table { border-collapse: collapse; font-size: 0.75rem; white-space: nowrap; }
         .core-table th { background: #5c5b5a; color: #fff; padding: 0.35rem 0.45rem; text-align: center; font-weight: 600; border: 1px solid #4a4948; position: sticky; top: 0; z-index: 1; vertical-align: bottom; line-height: 1.3; }
         .core-table th.core-name-col { position: sticky; top: 0; left: 0; z-index: 3; text-align: left; min-width: 140px; background: #5c5b5a; }
@@ -942,11 +942,11 @@
         #wd-root .wd-filter-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
         #wd-root .wd-filter-bar label { font-weight:700; font-size:.7rem; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
         #wd-root .wd-filter-bar select { padding:5px 10px; border-radius:8px; border:1px solid #d1d1d6; background:#fff; font-family:inherit; font-size:.8rem; color:#1a1a2e; cursor:pointer; }
-        #wd-root .wd-tbl-wrap { overflow-x:auto; overflow-y:auto; max-height:65vh; }
+        #wd-root .wd-tbl-wrap { overflow-x:auto; overflow-y:auto; max-height:65vh; border-radius:16px; border:1px solid #f0f0f0; }
         #wd-root table { width:100%; border-collapse:collapse; font-size:.8rem; }
-        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#64748b; border-bottom:2px solid #e2e8f0; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; position:sticky; top:0; z-index:5; background:#fff; }
-        #wd-root thead th:hover { color:#fff; background:#3a3a3c; }
-        #wd-root thead th.sort-active { color:#fff; background:#1d1d1f; }
+        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#fff; border-bottom:1px solid #4a4948; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; position:sticky; top:0; z-index:5; background:#5c5b5a; }
+        #wd-root thead th:hover { color:#fff; background:#4a4948; }
+        #wd-root thead th.sort-active { color:#fff; background:#3a3a3c; }
         #wd-root thead th.center { text-align:center; }
         #wd-root tbody tr:hover td { background:#fff7f0 !important; }
         #wd-root tbody td { padding:6px 9px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
@@ -7566,7 +7566,8 @@ function xrefReadDetailHTML(){
         html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
         html += '</div>';
 
-        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
+        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;overflow:hidden;margin-bottom:1rem;">';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
         html += '<thead><tr style="background:#5c5b5a;">';
         ['CCSC Code','Description','Learning Credit','Credit Status','Lexia %'].forEach(function(h){
             html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
@@ -7619,7 +7620,7 @@ function xrefReadDetailHTML(){
             }
             html += '</td></tr>';
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
     });
     html += '</div>';
     return {header: headerHtml, body: html};
@@ -7982,7 +7983,8 @@ function xrefCompDetailHTML(){
         html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
         html += '</div>';
 
-        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
+        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;overflow:hidden;margin-bottom:1rem;">';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
         html += '<thead><tr style="background:#5c5b5a;">';
         ['CCSC Code','Description','Learning Credit','Credit Status','Benchmark Q#','Benchmark Status','STmath %'].forEach(function(h){
             html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
@@ -8081,7 +8083,7 @@ function xrefCompDetailHTML(){
             }
             html += '</td></tr>';
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
     });
     html += '</div>';
     return {header: headerHtml, body: html};
@@ -8158,11 +8160,11 @@ function xrefStudentHTML(){
     html += '</div>'; // end padding wrapper
 
     // Table
-    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    html += '<thead><tr style="background:#5c5b5a;">';
     ['Standard','Description','Credit','Content Area','Stage','Status','Level Match'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#f9fafb;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#fff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -8225,11 +8227,11 @@ function xrefClassHTML(){
     var html = '<div style="padding:1rem 1.25rem 0;">';
     html += '<div style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;">Showing '+creditNames.length+' credits · '+total+' students total. Sorted by % earned.</div>';
     html += '</div>';
-    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-    html += '<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">';
+    html += '<thead><tr style="background:#5c5b5a;">';
     ['Credit','Content Area','Stage','Earned','In Progress','Not Started','Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#374151;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#f9fafb;">'+h+'</th>';
+        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#fff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
     });
     html += '</tr></thead><tbody>';
     creditNames.forEach(function(cn, idx){
@@ -8319,7 +8321,7 @@ function xrefStandardsHTML(){
     html += '<span style="padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#d1fae5;color:#065f46;">'+mappedCount+' linked to a credit</span>';
     html += '<span style="padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fee2e2;color:#991b1b;">'+unmappedCount+' not yet linked</span>';
     html += '</div>';
-    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
+    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="background:#5c5b5a;">';
     ['Standard Code','Standard Text','Credits Addressing It','Students Earned','Class Coverage'].forEach(function(h){
@@ -8612,13 +8614,13 @@ function renderCore() {
     var isAll = (p === 'all');
     var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
-    html += '<th style="min-width:120px;font-size:0.65rem;white-space:normal;line-height:1.2;">EOY Goal<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">words known</span></th>';
-    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">% total</span></th>';
-    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
-    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:#86868b;font-size:0.6rem;">growth</span></th>';
-    if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:#aeaeb2;font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
+    html += '<th style="min-width:120px;font-size:0.65rem;white-space:normal;line-height:1.2;">EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">words known</span></th>';
+    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">% total</span></th>';
+    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
+    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
+    if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:rgba(255,255,255,0.7);font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
     CORE_CATS.forEach(function(cat) {
-        html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:#86868b;font-size:0.63rem;">/' + cat.max + '</span></th>';
+        html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.63rem;">/' + cat.max + '</span></th>';
     });
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
@@ -9928,31 +9930,31 @@ function renderFactFluencyTable() {
         return filtered.some(function(s) { return s.facts[oi] && s.facts[oi].count !== ''; });
     });
 
-    var html = '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;">';
+    var html = '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
 
     // Header
-    html += '<thead><tr style="background:#f5f5f7;">';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;">Student</th>';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">AL</th>';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">GLE</th>';
+    html += '<thead><tr style="background:#5c5b5a;">';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#fff;white-space:nowrap;">Student</th>';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">AL</th>';
+    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">GLE</th>';
     if (ffGroupFilter === 'all') {
-        html += '<th style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;">Group</th>';
+        html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">Group</th>';
     }
     activeOps.forEach(function(op) {
         var short = ffShortLabel(op.label);
         var tip   = op.label + (op.max ? ' (up to ' + op.max + ')' : '');
-        html += '<th colspan="2" style="position:sticky;top:0;z-index:12;background:#f5f5f7;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#86868b;border-bottom:2px solid #e8e8ed;border-left:1px solid #e8e8ed;white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
+        html += '<th colspan="2" style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#fff;border-left:1px solid rgba(255,255,255,0.15);white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
     });
     html += '</tr>';
 
     // Sub-header: # / %
-    html += '<tr style="background:#f5f5f7;">';
-    html += '<th colspan="' + (ffGroupFilter==='all'?4:3) + '" style="position:sticky;top:32px;z-index:11;background:#f5f5f7;border-bottom:1px solid #e8e8ed;"></th>';
+    html += '<tr style="background:#4a4948;">';
+    html += '<th colspan="' + (ffGroupFilter==='all'?4:3) + '" style="position:sticky;top:32px;z-index:11;background:#4a4948;border-bottom:1px solid #3a3a3c;"></th>';
     activeOps.forEach(function(op) {
         var maxLbl = op.max ? '/' + op.max : '';
-        html += '<th style="position:sticky;top:32px;z-index:11;background:#f5f5f7;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;border-left:1px solid #e8e8ed;">#' + maxLbl + '</th>';
-        html += '<th style="position:sticky;top:32px;z-index:11;background:#f5f5f7;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#aeaeb2;border-bottom:1px solid #e8e8ed;">%</th>';
+        html += '<th style="position:sticky;top:32px;z-index:11;background:#4a4948;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#d1d1d6;border-bottom:1px solid #3a3a3c;border-left:1px solid rgba(255,255,255,0.12);">#' + maxLbl + '</th>';
+        html += '<th style="position:sticky;top:32px;z-index:11;background:#4a4948;padding:0.25rem 0.4rem;text-align:center;font-weight:500;font-size:0.65rem;color:#d1d1d6;border-bottom:1px solid #3a3a3c;">%</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -10111,24 +10113,24 @@ function renderSTMathTable() {
             else domainGroups.push({ name: std.domain, stds: [std] });
         });
 
-        html += '<div style="margin-bottom:2.5rem;">';
-        html += '<div style="font-size:0.88rem;font-weight:700;color:#1d1d1f;padding:0.6rem 1.25rem;background:#f5f5f7;border-bottom:2px solid #e8e8ed;border-top:1px solid #e8e8ed;">' + section.grade.replace(/</g,'&lt;') + '</div>';
+        html += '<div style="margin-bottom:2rem;border-radius:16px;border:1px solid #f0f0f0;overflow:hidden;">';
+        html += '<div style="font-size:0.88rem;font-weight:700;color:#fff;padding:0.6rem 1.25rem;background:#5c5b5a;">' + section.grade.replace(/</g,'&lt;') + '</div>';
         html += '<div style="overflow-x:auto;">';
         html += '<table style="border-collapse:collapse;font-size:0.78rem;">';
 
         // Row 1: domain spans
-        html += '<thead><tr style="background:#f5f5f7;">';
-        html += '<th rowspan="2" style="padding:0.4rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;vertical-align:bottom;">Student</th>';
+        html += '<thead><tr style="background:#4a4948;">';
+        html += '<th rowspan="2" style="padding:0.4rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#fff;white-space:nowrap;vertical-align:bottom;">Student</th>';
         domainGroups.forEach(function(dg) {
-            html += '<th colspan="' + dg.stds.length + '" style="padding:0.3rem 0.5rem;text-align:center;font-weight:600;font-size:0.62rem;color:#86868b;border-bottom:1px solid #d1d5db;border-left:2px solid #d1d5db;white-space:nowrap;">' + (dg.name||'').replace(/</g,'&lt;') + '</th>';
+            html += '<th colspan="' + dg.stds.length + '" style="padding:0.3rem 0.5rem;text-align:center;font-weight:600;font-size:0.62rem;color:#fff;border-bottom:1px solid rgba(255,255,255,0.15);border-left:2px solid rgba(255,255,255,0.2);white-space:nowrap;">' + (dg.name||'').replace(/</g,'&lt;') + '</th>';
         });
         html += '</tr>';
 
         // Row 2: standard codes
-        html += '<tr style="background:#f5f5f7;">';
+        html += '<tr style="background:#4a4948;">';
         section.standards.forEach(function(std, si) {
             var isFirstInDomain = si === 0 || section.standards[si-1].domain !== std.domain;
-            html += '<th style="padding:0.2rem 0.25rem;text-align:center;font-weight:500;font-size:0.58rem;color:#86868b;border-bottom:2px solid #e8e8ed;white-space:nowrap;min-width:38px;' + (isFirstInDomain?'border-left:2px solid #d1d5db;':'border-left:1px solid #f0f0f5;') + '" title="' + std.code.replace(/"/g,'&quot;') + '">' + std.code.replace(/</g,'&lt;') + '</th>';
+            html += '<th style="padding:0.2rem 0.25rem;text-align:center;font-weight:500;font-size:0.58rem;color:#d1d1d6;border-bottom:1px solid rgba(255,255,255,0.1);white-space:nowrap;min-width:38px;' + (isFirstInDomain?'border-left:2px solid rgba(255,255,255,0.2);':'border-left:1px solid rgba(255,255,255,0.08);') + '" title="' + std.code.replace(/"/g,'&quot;') + '">' + std.code.replace(/</g,'&lt;') + '</th>';
         });
         html += '</tr></thead><tbody>';
 
@@ -10356,9 +10358,9 @@ function renderCompTable() {
     // Q# + CCSS standard sub-headers
     gleGroups.forEach(function(grp) {
         grp.items.forEach(function(item) {
-            html += '<th style="text-align:center;font-size:0.58rem;font-weight:500;padding:0.2rem 0.25rem;min-width:42px;max-width:68px;color:#86868b;word-break:break-word;white-space:normal;vertical-align:bottom;">'
-                + (item.q.q ? '<div style="font-weight:700;color:#1d1d1f;">Q' + item.q.q.replace(/</g,'&lt;') + '</div>' : '')
-                + (item.q.std ? '<div style="font-size:0.52rem;color:#86868b;margin-top:1px;">' + normCcssCode(item.q.std).replace(/</g,'&lt;') + '</div>' : '')
+            html += '<th style="text-align:center;font-size:0.58rem;font-weight:500;padding:0.2rem 0.25rem;min-width:42px;max-width:68px;color:#d1d1d6;word-break:break-word;white-space:normal;vertical-align:bottom;">'
+                + (item.q.q ? '<div style="font-weight:700;color:#fff;">Q' + item.q.q.replace(/</g,'&lt;') + '</div>' : '')
+                + (item.q.std ? '<div style="font-size:0.52rem;color:rgba(255,255,255,0.6);margin-top:1px;">' + normCcssCode(item.q.std).replace(/</g,'&lt;') + '</div>' : '')
                 + '</th>';
         });
     });
@@ -11201,15 +11203,15 @@ function renderLexiaStds() {
 
         html += '<div style="margin-bottom:2rem;">';
         html += '<h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;margin:0 0 0.75rem 0;">' + gradeName + '</h3>';
-        html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;">';
+        html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;border-radius:16px;border:1px solid #f0f0f0;">';
         html += '<table style="border-collapse:collapse;font-size:0.72rem;min-width:max-content;">';
 
         // Header row: standard codes (strip CA-CCSS. prefix)
         html += '<thead><tr>';
-        html += '<th style="position:sticky;top:0;left:0;background:#f5f5f7;z-index:12;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;font-weight:600;min-width:130px;color:#1d1d1f;">Student</th>';
+        html += '<th style="position:sticky;top:0;left:0;background:#5c5b5a;z-index:12;padding:4px 8px;border:1px solid #4a4948;white-space:nowrap;font-weight:600;min-width:130px;color:#fff;">Student</th>';
         stds.forEach(function(s) {
             var dispCode = s.code.replace(/^CA-CCSS\./i, '');
-            html += '<th style="position:sticky;top:0;z-index:10;padding:4px 5px;border:1px solid #d1d1d6;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#f5f5f7;color:#1d1d1f;" title="' + s.code + '">' + dispCode + '</th>';
+            html += '<th style="position:sticky;top:0;z-index:10;padding:4px 5px;border:1px solid #4a4948;font-weight:500;white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);height:90px;vertical-align:bottom;background:#5c5b5a;color:#fff;" title="' + s.code + '">' + dispCode + '</th>';
         });
         html += '</tr></thead>';
 
@@ -11679,11 +11681,11 @@ function renderGroupsView() {
     var html = '<div class="wd-card"><div class="wd-section-title">Cross-Level Comparison — BOY → MOY</div>'
         + '<p style="font-size:.75rem;color:#94a3b8;margin:0 0 14px">Shows overall average scores per level. Click a level button above to load it.</p>'
         + '<div class="wd-tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr>'
-        + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Level</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">Students</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">BOY Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">MOY Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;border-bottom:2px solid #e2e8f0">BOY→MOY Growth</th>'
+        + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">Level</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">Students</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">BOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">MOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">BOY→MOY Growth</th>'
         + '</tr></thead><tbody>'
         + levelKeys.map(function(key, i) {
             var cfg = LEVELS[key];
