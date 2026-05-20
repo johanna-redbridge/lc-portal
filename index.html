@@ -7012,54 +7012,53 @@ function renderReadingStudentOverview() {
     html += '<div style="padding:0.6rem 1rem;">';
     if (coreRec) {
         var corePeriods = [{key:'fall',label:'BOY'},{key:'winter',label:'MOY'},{key:'spring',label:'EOY'}];
-        // Totals for gleBar + donut
+        // Totals for donut
         var coreOvFallT   = coreStudentTotal(coreRec, 'fall');
         var coreOvWinterT = coreStudentTotal(coreRec, 'winter');
         var coreOvSpringT = coreStudentTotal(coreRec, 'spring');
         var coreOvKnown   = coreOvSpringT !== null ? coreOvSpringT : (coreOvWinterT !== null ? coreOvWinterT : coreOvFallT);
-        var coreOvGleGoal = '';
-        ['fall','winter','spring'].forEach(function(pk) { if (coreRec[pk] && coreRec[pk].gleGoal && !coreOvGleGoal) coreOvGleGoal = coreRec[pk].gleGoal; });
-        var gleBarHtml = coreOvKnown !== null ? coreGleBar(coreOvKnown, coreOvGleGoal) : null;
-        // EOY goal bar + donut row
-        html += '<div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;">';
-        if (gleBarHtml) html += '<div style="flex:1;min-width:120px;">' + gleBarHtml + '</div>';
-        if (coreOvKnown !== null) html += '<div>' + coreDonutSvg(coreOvKnown) + '</div>';
-        // Period legend
-        html += '<div style="display:flex;gap:0.75rem;align-items:center;margin-left:auto;">';
-        corePeriods.forEach(function(p){ html += '<span style="font-size:.58rem;color:#86868b;">&#9632; '+p.label+'</span>'; });
+
+        // Layout: [period labels left] [category bars grid flex:1] [donut right]
+        html += '<div style="display:flex;gap:6px;align-items:flex-start;">';
+
+        // Left: period labels (padded to align with bars, not headers)
+        var barH = 8, barGap = 4, headerH = 18, labelW = 26;
+        html += '<div style="flex-shrink:0;width:' + labelW + 'px;padding-top:' + headerH + 'px;">';
+        corePeriods.forEach(function(p, pi) {
+            html += '<div style="height:' + barH + 'px;display:flex;align-items:center;font-size:.58rem;font-weight:700;color:#86868b;' + (pi > 0 ? 'margin-top:' + barGap + 'px;' : '') + '">' + p.label + '</div>';
+        });
         html += '</div>';
+
+        // Middle: category header row + one row per period
+        html += '<div style="flex:1;min-width:0;">';
+        // Category names header
+        html += '<div style="display:flex;gap:3px;height:' + headerH + 'px;align-items:flex-end;margin-bottom:3px;">';
+        CORE_CATS.forEach(function(cat) {
+            html += '<div style="flex:1;min-width:0;text-align:center;font-size:.52rem;font-weight:700;color:#3a3a3c;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;" title="' + cat.full + '">' + cat.abbr + '</div>';
+        });
         html += '</div>';
-        // Horizontal category columns
-        html += '<div style="overflow-x:auto;padding-bottom:2px;">';
-        html += '<div style="display:flex;gap:5px;min-width:max-content;">';
-        CORE_CATS.forEach(function(cat, ci) {
-            // Get scores for each period
-            var scores = corePeriods.map(function(p) {
+        // One bar row per period
+        corePeriods.forEach(function(p, pi) {
+            html += '<div style="display:flex;gap:3px;' + (pi > 0 ? 'margin-top:' + barGap + 'px;' : '') + '">';
+            CORE_CATS.forEach(function(cat, ci) {
                 var pd = coreRec[p.key];
                 var raw = pd ? pd.scores[ci] : null;
                 var n = raw === null || raw === undefined ? null : (coreRawIsMastered(raw) ? cat.max : parseInt(raw,10));
                 var pct = (n !== null && !isNaN(n)) ? Math.min(100, Math.round(n/cat.max*100)) : null;
-                return { n: n, pct: pct, label: p.label };
+                var bg = pct !== null ? pctColor(pct) : '#e8e8ed';
+                html += '<div style="flex:1;min-width:0;background:#f0f0f0;border-radius:2px;height:' + barH + 'px;overflow:hidden;" title="' + p.label + ': ' + (n !== null ? n : '—') + '/' + cat.max + '">'
+                    + '<div style="height:100%;width:' + (pct||0) + '%;background:' + bg + ';border-radius:2px;"></div>'
+                    + '</div>';
             });
-            // Latest non-null score for the bottom label
-            var latest = null;
-            for (var si = scores.length - 1; si >= 0; si--) { if (scores[si].n !== null) { latest = scores[si]; break; } }
-
-            html += '<div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;">';
-            // Category name
-            html += '<div style="font-size:.58rem;font-weight:700;color:#3a3a3c;margin-bottom:4px;text-align:center;" title="'+cat.full+'">'+cat.abbr+'</div>';
-            // Bars (BOY, MOY, EOY)
-            scores.forEach(function(s) {
-                var bg = s.pct !== null ? pctColor(s.pct) : '#e8e8ed';
-                html += '<div style="width:100%;background:#f0f0f0;border-radius:2px;height:6px;overflow:hidden;margin-bottom:2px;" title="'+s.label+': '+(s.n !== null ? s.n : '—')+'/'+cat.max+'">';
-                html += '<div style="height:100%;width:'+(s.pct||0)+'%;background:'+bg+';border-radius:2px;"></div>';
-                html += '</div>';
-            });
-            // Score label
-            html += '<div style="font-size:.55rem;color:#5c5b5a;margin-top:3px;text-align:center;white-space:nowrap;">'+(latest ? latest.n+'/'+cat.max : '—')+'</div>';
             html += '</div>';
         });
-        html += '</div></div>';
+        html += '</div>'; // middle
+
+        // Right: donut
+        if (coreOvKnown !== null) {
+            html += '<div style="flex-shrink:0;padding-top:' + (headerH - 10) + 'px;">' + coreDonutSvg(coreOvKnown) + '</div>';
+        }
+        html += '</div>'; // flex row
     } else {
         html += '<p style="color:#aeaeb2;font-size:.78rem;">No CORE data for this student. Make sure CORE data is loaded (visit the CORE tab).</p>';
     }
