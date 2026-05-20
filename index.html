@@ -8600,7 +8600,7 @@ function xrefCompDetailHTML(){
                 bqs.forEach(function(q,qi){
                     if(qi>0) html += ' ';
                     var qMastered = q.mastery[benchName];
-                    html += '<span style="display:inline-block;padding:1px 5px;border-radius:4px;border:1px solid '+(qMastered?'#86efac':'#d1d5db')+';color:#1d1d1f;font-size:0.7rem;">Q'+q.q+'</span>';
+                    html += '<span style="display:inline-block;padding:1px 5px;border-radius:4px;border:2px solid '+(qMastered?'#34c759':'#d1d5db')+';color:'+(qMastered?'#16a34a':'#9ca3af')+';font-size:0.7rem;font-weight:'+(qMastered?'700':'400')+';">'+q.q+'</span>';
                 });
             } else {
                 html += '<span style="color:#d1d5db;">—</span>';
