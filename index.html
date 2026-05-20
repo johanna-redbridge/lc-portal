@@ -7012,9 +7012,22 @@ function renderReadingStudentOverview() {
     html += '<div style="padding:0.6rem 1rem;">';
     if (coreRec) {
         var corePeriods = [{key:'fall',label:'BOY'},{key:'winter',label:'MOY'},{key:'spring',label:'EOY'}];
+        // Totals for gleBar + donut
+        var coreOvFallT   = coreStudentTotal(coreRec, 'fall');
+        var coreOvWinterT = coreStudentTotal(coreRec, 'winter');
+        var coreOvSpringT = coreStudentTotal(coreRec, 'spring');
+        var coreOvKnown   = coreOvSpringT !== null ? coreOvSpringT : (coreOvWinterT !== null ? coreOvWinterT : coreOvFallT);
+        var coreOvGleGoal = '';
+        ['fall','winter','spring'].forEach(function(pk) { if (coreRec[pk] && coreRec[pk].gleGoal && !coreOvGleGoal) coreOvGleGoal = coreRec[pk].gleGoal; });
+        var gleBarHtml = coreOvKnown !== null ? coreGleBar(coreOvKnown, coreOvGleGoal) : null;
+        // EOY goal bar + donut row
+        html += '<div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;">';
+        if (gleBarHtml) html += '<div style="flex:1;min-width:120px;">' + gleBarHtml + '</div>';
+        if (coreOvKnown !== null) html += '<div>' + coreDonutSvg(coreOvKnown) + '</div>';
         // Period legend
-        html += '<div style="display:flex;gap:0.75rem;margin-bottom:0.5rem;align-items:center;">';
+        html += '<div style="display:flex;gap:0.75rem;align-items:center;margin-left:auto;">';
         corePeriods.forEach(function(p){ html += '<span style="font-size:.58rem;color:#86868b;">&#9632; '+p.label+'</span>'; });
+        html += '</div>';
         html += '</div>';
         // Horizontal category columns
         html += '<div style="overflow-x:auto;padding-bottom:2px;">';
@@ -8977,13 +8990,13 @@ function renderCore() {
     var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table"><thead><tr>';
     html += '<th class="core-name-col">Student</th>';
     html += '<th style="min-width:120px;font-size:0.65rem;white-space:normal;line-height:1.2;">EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">words known</span></th>';
-    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">% total</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
     html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
     if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:rgba(255,255,255,0.7);font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
     CORE_CATS.forEach(function(cat) {
         html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.63rem;">/' + cat.max + '</span></th>';
     });
+    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">% total</span></th>';
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
@@ -9011,15 +9024,6 @@ function renderCore() {
         var gleBar = coreGleBar(knownTotal, gleGoalVal);
         html += '<td style="padding:4px 8px;vertical-align:middle;">';
         html += gleBar || '<span style="color:#d1d1d6;font-size:0.65rem;">—</span>';
-        html += '</td>';
-
-        // Pie chart — % of total possible words known
-        html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
-        if (knownTotal !== null) {
-            html += coreDonutSvg(knownTotal);
-        } else {
-            html += '<span style="color:#d1d1d6;font-size:0.7rem;">—</span>';
-        }
         html += '</td>';
 
         // BOY→MOY: plain number only
@@ -9061,6 +9065,14 @@ function renderCore() {
                 html += '<td><span class="core-chip" style="background:' + bg + ';color:' + color + ';">' + label + '</span></td>';
             }
         });
+        // Pie chart — % of total possible words known (last column)
+        html += '<td style="padding:3px 4px;vertical-align:middle;text-align:center;">';
+        if (knownTotal !== null) {
+            html += coreDonutSvg(knownTotal);
+        } else {
+            html += '<span style="color:#d1d1d6;font-size:0.7rem;">—</span>';
+        }
+        html += '</td>';
         html += '</tr>';
     });
     html += '</tbody></table></div>';
