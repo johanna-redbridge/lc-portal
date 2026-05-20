@@ -10986,6 +10986,9 @@ function renderLexiaCombined() {
         allNames = allNames.filter(function(name) { return lexiaGetAL(name) === lexiaALFilter; });
     }
 
+    var BOX = 20;
+    var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
+
     var html = '';
     // Combined table
     html += '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;overflow-x:auto;">'
