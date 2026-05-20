@@ -1180,6 +1180,7 @@
                 <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
                 <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
                 <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
+                <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
             </div>
             <!-- CORE -->
             <div id="reading-panel-core">
@@ -1269,6 +1270,10 @@
                 </div>
                 <div id="map-ela-content"></div>
             </div>
+            <!-- Student Overview -->
+            <div id="reading-panel-student-overview" style="display:none;">
+                <div id="reading-student-overview-content"></div>
+            </div>
         </div>
 
         <!-- ── Computation Dashboard ── -->
@@ -1332,9 +1337,7 @@
             <!-- filter bar -->
             <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;row-gap:0.45rem;justify-content:flex-start;">
                 <div class="toggle-group">
-                    <button class="toggle-btn xref-view-btn active" data-view="student" onclick="xrefSetView('student')">Student View</button>
-                    <button class="toggle-btn xref-view-btn" data-view="class" onclick="xrefSetView('class')">Class Coverage</button>
-                    <button class="toggle-btn xref-view-btn" data-view="standards" onclick="xrefSetView('standards')">By Standard</button>
+                    <button class="toggle-btn xref-view-btn active" data-view="standards" onclick="xrefSetView('standards')">By Standard</button>
                     <button class="toggle-btn xref-view-btn" data-view="comp-detail" onclick="xrefSetView('comp-detail')">Computation</button>
                     <button class="toggle-btn xref-view-btn" data-view="read-detail" onclick="xrefSetView('read-detail')">Reading</button>
                 </div>
@@ -6873,7 +6876,7 @@ function switchReadingSubtab(sub) {
     document.querySelectorAll('.reading-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['core', 'fp', 'lexia', 'map-ela'].forEach(function(n) {
+    ['core', 'fp', 'lexia', 'map-ela', 'student-overview'].forEach(function(n) {
         var p = document.getElementById('reading-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -6881,11 +6884,324 @@ function switchReadingSubtab(sub) {
 }
 
 function renderReadingSubtab() {
-    if (readingSubtab === 'core')    renderCore();
-    if (readingSubtab === 'fp')      renderFP();
-    if (readingSubtab === 'lexia')   renderLexia();
-    if (readingSubtab === 'map-ela') renderMapEla();
+    if (readingSubtab === 'core')             renderCore();
+    if (readingSubtab === 'fp')               renderFP();
+    if (readingSubtab === 'lexia')            renderLexia();
+    if (readingSubtab === 'map-ela')          renderMapEla();
+    if (readingSubtab === 'student-overview') renderReadingStudentOverview();
 }
+
+// ── Student Overview ──────────────────────────────────────────────────
+var readingOverviewStudent = '';
+
+function renderReadingStudentOverview() {
+    var el = document.getElementById('reading-student-overview-content');
+    if (!el) return;
+
+    // Gather all student names across sources
+    var names = {};
+    function addNames(arr, nameKey) {
+        (arr || []).forEach(function(s) { var n = (s[nameKey||'name']||'').trim(); if (n) names[n] = true; });
+    }
+    addNames(fpStudents);
+    addNames(fpLongData);
+    addNames(lexiaPerfData);
+    addNames(lexiaProgData);
+    if (mapData) addNames(mapData.students);
+    ['al1','al2','al34'].forEach(function(k) { addNames(coreData[k]); });
+
+    var nameList = Object.keys(names).sort();
+    if (!nameList.length) {
+        el.innerHTML = '<p style="padding:2rem;color:#aeaeb2;text-align:center;">No student data loaded yet. Visit CORE, F&P, Lexia, and MAP ELA tabs first to load data.</p>';
+        return;
+    }
+    if (!readingOverviewStudent || !names[readingOverviewStudent]) readingOverviewStudent = nameList[0];
+    var sel = readingOverviewStudent;
+
+    // ── selector bar ──
+    var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        + '<label style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Student</label>'
+        + '<select id="stu-ov-sel" onchange="readingOverviewStudent=this.value;renderReadingStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
+        + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
+        + '</select></div>';
+
+    html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;" id="stu-ov-body">';
+
+    var norm = xrefNorm(sel);
+
+    // ── 1. F&P Current Levels ──
+    var fpRec = fpStudents ? fpStudents.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">F&P Current Levels</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (fpRec) {
+        var FP_LEVELS = ['aa','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+        function fpPct(lv) {
+            if (!lv) return 0;
+            var idx = FP_LEVELS.indexOf(lv.toLowerCase());
+            return idx < 0 ? 0 : Math.round((idx+1)/FP_LEVELS.length*100);
+        }
+        var periods = [{key:'boy',label:'BOY'},{key:'moy',label:'MOY'},{key:'eoy',label:'EOY'}];
+        html += '<div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;">';
+        periods.forEach(function(p) {
+            var lv = fpRec[p.key];
+            var pct = fpPct(lv);
+            var col = lv ? pctColor(pct) : '#e0e0e0';
+            html += '<div style="flex:1;min-width:120px;">'
+                + '<div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">'+p.label+'</div>'
+                + '<div style="font-size:2rem;font-weight:800;color:'+(lv?col:'#c7c7cc')+';line-height:1;">'+((lv||'—').toUpperCase())+'</div>'
+                + (fpRec['note'+p.label[0]] ? '<div style="font-size:.7rem;color:#86868b;margin-top:4px;">'+fpRec['note'+p.label[0]]+'</div>' : '')
+                + '</div>';
+        });
+        var gleGoal = fpRec.gle ? gleTargetLevel(fpRec.gle) : '';
+        if (gleGoal) html += '<div style="flex:1;min-width:120px;"><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">GLE Goal</div><div style="font-size:2rem;font-weight:800;color:#5c5b5a;line-height:1;">'+gleGoal.toUpperCase()+'</div></div>';
+        html += '</div>';
+        // Note row (if note present)
+        if (fpRec.noteE) html += '<div style="margin-top:0.75rem;font-size:.78rem;color:#5c5b5a;background:#f5f5f7;border-radius:8px;padding:0.5rem 0.75rem;">'+fpRec.noteE+'</div>';
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No F&P current data for this student.</p>';
+    }
+    html += '</div></div>';
+
+    // ── 2. F&P Growth (longitudinal graph) ──
+    var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">F&P Growth Over Time</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (fpLong && fpLong.points && fpLong.points.some(function(p){return p.score!==null;})) {
+        html += '<canvas id="stu-ov-fp-canvas" width="700" height="220" style="width:100%;height:220px;border-radius:8px;display:block;"></canvas>';
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No F&P longitudinal data for this student.</p>';
+    }
+    html += '</div></div>';
+
+    // ── 3. CORE Word Knowledge ──
+    var coreRec = null, coreALKey = null;
+    ['al1','al2','al34'].forEach(function(k) {
+        if (!coreRec && coreData[k]) {
+            var r = coreData[k].find(function(s){ return xrefNorm(s.name)===norm; });
+            if (r) { coreRec = r; coreALKey = k; }
+        }
+    });
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">CORE Word Knowledge</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (coreRec) {
+        var corePeriods = [{key:'fall',label:'BOY',col:'#3b82f6'},{key:'winter',label:'MOY',col:'#a78bfa'},{key:'spring',label:'EOY',col:'#34d399'}];
+        // Legend
+        html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">';
+        corePeriods.forEach(function(p){ html += '<span style="font-size:.72rem;color:'+p.col+';font-weight:700;">&#9632; '+p.label+'</span>'; });
+        html += '</div>';
+        // Category bars
+        CORE_CATS.forEach(function(cat, ci) {
+            html += '<div style="margin-bottom:0.6rem;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">';
+            html += '<span style="font-size:.72rem;font-weight:600;color:#3a3a3c;">'+cat.full+'</span>';
+            html += '<span style="font-size:.68rem;color:#86868b;">max '+cat.max+'</span>';
+            html += '</div>';
+            html += '<div style="display:flex;flex-direction:column;gap:2px;">';
+            corePeriods.forEach(function(p) {
+                var pd = coreRec[p.key];
+                var raw = pd ? pd.scores[ci] : null;
+                var n = raw === null || raw === undefined ? null : (coreRawIsMastered(raw) ? cat.max : parseInt(raw,10));
+                var pct = (n !== null && !isNaN(n)) ? Math.min(100, Math.round(n/cat.max*100)) : 0;
+                var disp = (n !== null && !isNaN(n)) ? n : (coreRawIsMastered(raw) ? '✓' : '—');
+                html += '<div style="display:flex;align-items:center;gap:6px;">';
+                html += '<div style="width:3rem;font-size:.65rem;color:#86868b;text-align:right;flex-shrink:0;">'+p.label+'</div>';
+                html += '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:12px;overflow:hidden;">';
+                html += '<div style="height:100%;width:'+pct+'%;background:'+p.col+';border-radius:4px;transition:width .3s;"></div>';
+                html += '</div>';
+                html += '<div style="width:2.5rem;font-size:.7rem;color:#3a3a3c;font-weight:600;">'+disp+'</div>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+        });
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No CORE data for this student. Make sure CORE data is loaded (visit the CORE tab).</p>';
+    }
+    html += '</div></div>';
+
+    // ── 4. Lexia ──
+    var lxPerf = lexiaPerfData ? lexiaPerfData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var lxProg = lexiaProgData ? lexiaProgData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">Lexia</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (lxPerf || lxProg) {
+        if (lxPerf) {
+            // Risk pill
+            var riskColors = {'Low Risk':'#34d399','Some Risk':'#fbbf24','High Risk':'#f87171','At Risk':'#f87171'};
+            var riskCol = riskColors[lxPerf.riskLevel] || '#86868b';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:1.5rem;margin-bottom:1rem;align-items:flex-start;">';
+            html += '<div><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:4px;">Risk Level</div>';
+            html += '<span style="padding:4px 12px;border-radius:20px;background:'+riskCol+';color:#fff;font-size:.78rem;font-weight:700;">'+lxPerf.riskLevel+'</span></div>';
+            if (lxPerf.grade) { html += '<div><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:4px;">Grade</div><div style="font-size:1rem;font-weight:700;color:#3a3a3c;">'+lxPerf.grade+'</div></div>'; }
+            if (lxPerf.predictor !== undefined) {
+                var predPct = Math.min(100, Math.max(0, parseFloat(lxPerf.predictor)||0));
+                html += '<div style="flex:1;min-width:200px;"><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:6px;">Predictor Score <span style="font-weight:400;text-transform:none;">'+lxPerf.predictor+'</span></div>';
+                html += '<div style="background:#f0f0f0;border-radius:6px;height:14px;overflow:hidden;">';
+                html += '<div style="height:100%;width:'+predPct+'%;background:'+riskCol+';border-radius:6px;"></div></div></div>';
+            }
+            if (lxPerf.usagePct !== undefined) {
+                var usePct = Math.min(100, Math.max(0, parseFloat(lxPerf.usagePct)||0));
+                html += '<div style="flex:1;min-width:200px;"><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:6px;">Usage <span style="font-weight:400;text-transform:none;">'+lxPerf.usagePct+'%</span></div>';
+                html += '<div style="background:#f0f0f0;border-radius:6px;height:14px;overflow:hidden;">';
+                html += '<div style="height:100%;width:'+usePct+'%;background:#5c5b5a;border-radius:6px;"></div></div></div>';
+            }
+            html += '</div>';
+        }
+        if (lxProg) {
+            // Unit progress dots
+            var units = lxProg.units || [];
+            html += '<div style="margin-top:0.5rem;"><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:8px;">Unit Progress ('+units.length+' units)</div>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">';
+            units.forEach(function(u, i) {
+                var bg = lexiaUnitColor(u);
+                var pct = lexiaUnitPct(u);
+                var tc = pct > 0 ? '#fff' : '#9ca3af';
+                var title = u ? 'Unit '+(i+1)+': '+u : 'Unit '+(i+1)+': not started';
+                html += '<div title="'+title+'" style="width:28px;height:28px;border-radius:6px;background:'+bg+';color:'+tc+';font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;">'+(i+1)+'</div>';
+            });
+            html += '</div>';
+            if (lxProg.gained !== undefined) html += '<div style="margin-top:8px;font-size:.78rem;color:#3a3a3c;">Gained: <strong>'+lxProg.gained+'</strong>&nbsp;&nbsp;To Target: <strong>'+(lxProg.toTarget||'—')+'</strong></div>';
+            html += '</div>';
+        }
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No Lexia data for this student. Visit the Lexia tab to load data.</p>';
+    }
+    html += '</div></div>';
+
+    // ── 5. MAP ELA ──
+    var mapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">MAP ELA</div>';
+    html += '<div style="padding:1rem 1.25rem;">';
+    if (mapRec) {
+        var elaPeriods = (mapData && mapData.elaPeriods) ? mapData.elaPeriods : [];
+        var validEla = mapRec.elaScores.map(function(s,i){ return {period:elaPeriods[i]||'P'+(i+1), score:parseFloat(s)||null, pct:parseFloat(mapRec.elaPcts[i])||null}; }).filter(function(x){ return x.score!==null; });
+        if (validEla.length) {
+            // Inline bar chart
+            var elaMin = Math.min.apply(null, validEla.map(function(x){return x.score;}));
+            var elaMax = Math.max.apply(null, validEla.map(function(x){return x.score;}));
+            var elaRng = elaMax - elaMin || 10;
+            html += '<canvas id="stu-ov-map-canvas" width="700" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
+            // Table of values below
+            html += '<div style="overflow-x:auto;margin-top:1rem;"><table style="width:100%;border-collapse:collapse;font-size:.75rem;">';
+            html += '<thead><tr style="background:#5c5b5a;">';
+            validEla.forEach(function(x){ html += '<th style="padding:5px 8px;color:#fff;font-weight:600;text-align:center;white-space:nowrap;">'+x.period+'</th>'; });
+            html += '</tr></thead><tbody><tr>';
+            validEla.forEach(function(x){ html += '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f0f0f0;font-weight:600;color:#3a3a3c;">'+x.score+'</td>'; });
+            html += '</tr><tr>';
+            validEla.forEach(function(x){ html += '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f0f0f0;color:#86868b;font-size:.7rem;">'+(x.pct!==null?x.pct+'%ile':'—')+'</td>'; });
+            html += '</tr></tbody></table></div>';
+        } else {
+            html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP ELA scores recorded for this student.</p>';
+        }
+    } else {
+        html += '<p style="color:#aeaeb2;font-size:.82rem;">No MAP data for this student. Visit the MAP ELA tab to load data.</p>';
+    }
+    html += '</div></div>';
+
+    html += '</div>'; // stu-ov-body
+
+    el.innerHTML = html;
+
+    // ── Draw F&P canvas ──
+    if (fpLong && fpLong.points && fpLong.points.some(function(p){return p.score!==null;})) {
+        var fpCanvas = document.getElementById('stu-ov-fp-canvas');
+        if (fpCanvas) drawFpGrowthGraph(fpCanvas, fpLong.points, fpLong.gle);
+    }
+
+    // ── Draw MAP ELA canvas ──
+    var mapRec2 = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    if (mapRec2) {
+        var elaPeriods2 = (mapData && mapData.elaPeriods) ? mapData.elaPeriods : [];
+        var validEla2 = mapRec2.elaScores.map(function(s,i){ return {period:elaPeriods2[i]||'P'+(i+1), score:parseFloat(s)||null, pct:parseFloat(mapRec2.elaPcts[i])||null}; }).filter(function(x){ return x.score!==null; });
+        var mapCanvas = document.getElementById('stu-ov-map-canvas');
+        if (mapCanvas && validEla2.length) {
+            drawMapLineGraph(mapCanvas, validEla2);
+        }
+    }
+}
+
+function drawMapLineGraph(canvas, pts) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
+    var padL = 46, padR = 16, padT = 20, padB = 48;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    var scores = pts.map(function(p){ return p.score; });
+    var minS = Math.min.apply(null, scores), maxS = Math.max.apply(null, scores);
+    var rng = maxS - minS || 10;
+    var yMin = minS - rng * 0.2, yMax = maxS + rng * 0.2;
+
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+    var n = pts.length;
+    function xOf(i){ return padL + (i / Math.max(n-1,1)) * plotW; }
+    function yOf(s){ return padT + plotH * (1 - (s - yMin) / (yMax - yMin)); }
+
+    // Grid
+    var steps = 4;
+    for (var gi = 0; gi <= steps; gi++) {
+        var gv = yMin + (yMax - yMin) * gi / steps;
+        var gy = yOf(gv);
+        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
+        ctx.fillStyle = '#8e8e93'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(Math.round(gv), padL - 5, gy + 4);
+    }
+
+    // Area fill under line
+    if (n > 1) {
+        ctx.beginPath();
+        ctx.moveTo(xOf(0), yOf(pts[0].score));
+        for (var i = 1; i < n; i++) ctx.lineTo(xOf(i), yOf(pts[i].score));
+        ctx.lineTo(xOf(n-1), padT + plotH);
+        ctx.lineTo(xOf(0), padT + plotH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(92,91,90,0.08)';
+        ctx.fill();
+    }
+
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#5c5b5a'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+    for (var i = 0; i < n; i++) {
+        if (i === 0) ctx.moveTo(xOf(i), yOf(pts[i].score));
+        else         ctx.lineTo(xOf(i), yOf(pts[i].score));
+    }
+    ctx.stroke();
+
+    // Dots + labels
+    pts.forEach(function(p, i) {
+        var x = xOf(i), y = yOf(p.score);
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+        ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.strokeStyle = '#5c5b5a'; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.fillStyle = '#3a3a3c'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(p.score, x, y - 10);
+        if (p.pct !== null) {
+            ctx.fillStyle = '#86868b'; ctx.font = '9px -apple-system,sans-serif';
+            ctx.fillText(p.pct + '%ile', x, y + 20);
+        }
+    });
+
+    // X axis labels
+    ctx.fillStyle = '#8e8e93'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
+    pts.forEach(function(p, i) {
+        ctx.fillText(p.period, xOf(i), padT + plotH + 28);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 var writingSubtab = 'writing-benchmark';
 function switchWritingSubtab(sub) {
@@ -7004,7 +7320,7 @@ var xrefMathStdsData = null; // parsed from XREF_COMP_STDS_URL
 var xrefElaStds   = null;  // [{gradeNum,grade,domain,id,desc}] authoritative ELA standards
 var xrefReadStds  = null;  // [{gradeNum,grade,domain,id,desc}]
 var xrefStudList  = [];
-var xrefView      = 'student';
+var xrefView      = 'standards';
 var xrefStudent   = '';
 var xrefAreaFilt  = 'all';
 var xrefGradeFilt = 'all';
@@ -7637,7 +7953,7 @@ function xrefSetView(v){
     }
     xrefView = v;
     document.querySelectorAll('.xref-view-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===v); });
-    var isStudentLike = (v==='student'||v==='comp-detail'||v==='read-detail');
+    var isStudentLike = (v==='comp-detail'||v==='read-detail');
     var sel       = document.getElementById('xref-student-sel');
     var areaTog   = document.getElementById('xref-area-toggle');
     var gradeTog  = document.getElementById('xref-grade-toggle');
@@ -7684,9 +8000,7 @@ function renderXrefContent(){
     if(xrefView==='comp-detail'){ xrefRenderCompDetail(); return; }
     if(xrefView==='read-detail'){ xrefRenderReadDetail(); return; }
     if(!xrefCCSCRows) return;
-    if(xrefView==='student')    el.innerHTML = xrefStudentHTML();
-    else if(xrefView==='class') el.innerHTML = xrefClassHTML();
-    else                        el.innerHTML = xrefStandardsHTML();
+    el.innerHTML = xrefStandardsHTML();
 }
 
 /* ── helpers ── */
@@ -8089,180 +8403,7 @@ function xrefCompDetailHTML(){
     return {header: headerHtml, body: html};
 }
 
-/* ── VIEW 1: Student ── */
-function xrefStudentHTML(){
-    if(!xrefStudent) return '<div style="padding:2rem;color:#86868b;text-align:center;">Select a student from the dropdown above.</div>';
-    var sdata = xrefStudents[xrefStudent];
-    if(!sdata) return '<div style="padding:2rem;color:#86868b;">No data found for this student.</div>';
-    var gleNum = xrefGleNum(sdata.gle);
-    var rows = xrefFilter(xrefCCSCRows);
-
-    // Build credit→standards map, then compute per-row status
-    var earned=0, inProgress=0, notStarted=0, gapAtLevel=0;
-    var tableRows = rows.map(function(r){
-        var st = xrefCreditStatus(xrefStudent, r.credit);
-        var cg = xrefGradeNum(r.code);
-        if(st==='e') earned++;
-        else if(st==='a') inProgress++;
-        else {
-            notStarted++;
-            if(cg>=0 && gleNum>=0 && cg<=gleNum) gapAtLevel++;
-        }
-        return {r:r, st:st, cg:cg};
-    });
-
-    var pct = rows.length ? Math.round(earned/rows.length*100) : 0;
-
-    // Summary cards
-    var html = '<div style="padding:1rem 1.25rem 0;">';
-    // Student header
-    html += '<div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
-    html += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent+'</div>';
-    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
-    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
-    html += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">Total Credits Earned: '+sdata.earned+'</span>';
-    html += '</div>';
-
-    // Summary stat cards
-    html += '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">';
-    var cards = [
-        {label:'Standards Earned',val:earned,color:'#d1fae5',tc:'#065f46'},
-        {label:'In Progress',val:inProgress,color:'#fef3c7',tc:'#92400e'},
-        {label:'Not Started',val:notStarted,color:'#f3f4f6',tc:'#6b7280'},
-        {label:'Grade-Level Gaps',val:gapAtLevel,color:'#fee2e2',tc:'#991b1b'}
-    ];
-    cards.forEach(function(c){
-        html += '<div style="flex:1;min-width:110px;background:'+c.color+';border-radius:10px;padding:0.6rem 0.9rem;">';
-        html += '<div style="font-size:1.5rem;font-weight:700;color:'+c.tc+';">'+c.val+'</div>';
-        html += '<div style="font-size:0.72rem;color:'+c.tc+';opacity:0.9;">'+c.label+'</div>';
-        html += '</div>';
-    });
-    html += '</div>';
-
-    // Progress bar
-    html += '<div style="background:#e5e7eb;border-radius:999px;height:8px;margin-bottom:0.5rem;overflow:hidden;">';
-    html += '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#34d399,#059669);transition:width 0.4s;"></div></div>';
-    html += '<div style="font-size:0.75rem;color:#6b7280;margin-bottom:1rem;">'+pct+'% of filtered standards addressed through earned credits</div>';
-
-    // Benchmark comparison banner
-    if(gleNum>=0){
-        var aboveGLE = tableRows.filter(function(x){ return x.st==='e'&&x.cg>gleNum; }).length;
-        var atGLE    = tableRows.filter(function(x){ return x.st==='e'&&x.cg===gleNum; }).length;
-        var belowGLE = tableRows.filter(function(x){ return x.st==='e'&&x.cg<gleNum&&x.cg>=0; }).length;
-        html += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:#1e40af;">';
-        html += '<strong>Benchmark Comparison</strong> (GLE: '+(sdata.gle||'?')+') &nbsp;·&nbsp; ';
-        html += belowGLE+' foundational &nbsp;·&nbsp; ';
-        html += atGLE+' at grade level &nbsp;·&nbsp; ';
-        html += aboveGLE+' above grade level';
-        if(gapAtLevel>0) html += ' &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:600;">'+gapAtLevel+' grade-level gaps</span>';
-        html += '</div>';
-    }
-    html += '</div>'; // end padding wrapper
-
-    // Table
-    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-    html += '<thead><tr style="background:#5c5b5a;">';
-    ['Standard','Description','Credit','Content Area','Stage','Status','Level Match'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.6rem 0.75rem;color:#fff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
-    });
-    html += '</tr></thead><tbody>';
-
-    // Group by domain prefix for color coding
-    var domainColors = {'K.CC':'#fef3c7','K.OA':'#fce7f3','K.G':'#e0f2fe','K.MD':'#dcfce7','K.NBT':'#ede9fe',
-        'RF':'#e0f2fe','RL':'#d1fae5','RI':'#dcfce7','W':'#fef9c3','L':'#fce7f3','SL':'#f3f4f6'};
-    function domColor(code){ var pre=code.split('.').slice(0,2).join('.'); return domainColors[pre]||domainColors[code.split('.')[0]]||''; }
-
-    tableRows.forEach(function(item, idx){
-        var r=item.r, st=item.st, cg=item.cg;
-        var rowBg = idx%2===0?'#ffffff':'#f9fafb';
-        if(st==='e') rowBg='#f0fdf4';
-        else if(st==='a') rowBg='#fffbeb';
-        html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
-        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+r.code+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#374151;max-width:280px;">'+r.text+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;">';
-        if(r.link && r.link!=='(no URL)'){
-            html += '<a href="'+r.link+'" target="_blank" style="color:#FF8200;font-weight:600;text-decoration:none;">'+r.credit+'</a>';
-        } else {
-            html += '<span style="color:#374151;">'+r.credit+'</span>';
-        }
-        html += '</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;">'+r.area+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;font-size:0.75rem;">'+r.stage+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;white-space:nowrap;">'+xrefStatusBadge(st)+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;white-space:nowrap;">'+xrefCompareLabel(cg, gleNum)+'</td>';
-        html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    return html;
-}
-
-/* ── VIEW 2: Class Coverage ── */
-function xrefClassHTML(){
-    if(!xrefStudents||!xrefCCSCRows) return '<div style="padding:2rem;color:#86868b;">Loading…</div>';
-    var rows = xrefFilter(xrefCCSCRows);
-
-    // Unique credits in filtered set
-    var creditMap = {}; // creditName -> {area, stage, link, earnedCount, inProgCount, total}
-    rows.forEach(function(r){
-        if(!creditMap[r.credit]) creditMap[r.credit]={area:r.area,stage:r.stage,link:r.link,e:0,a:0};
-    });
-    var total = xrefStudList.length;
-    xrefStudList.forEach(function(name){
-        var sd = xrefStudents[name];
-        if(!sd) return;
-        Object.keys(creditMap).forEach(function(cn){
-            var st = xrefCreditStatus(name, cn);
-            if(st==='e') creditMap[cn].e++;
-            else if(st==='a') creditMap[cn].a++;
-        });
-    });
-
-    var creditNames = Object.keys(creditMap).sort(function(a,b){
-        // sort by % earned desc
-        return (creditMap[b].e/total) - (creditMap[a].e/total);
-    });
-
-    var html = '<div style="padding:1rem 1.25rem 0;">';
-    html += '<div style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;">Showing '+creditNames.length+' credits · '+total+' students total. Sorted by % earned.</div>';
-    html += '</div>';
-    html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-    html += '<thead><tr style="background:#5c5b5a;">';
-    ['Credit','Content Area','Stage','Earned','In Progress','Not Started','Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#fff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
-    });
-    html += '</tr></thead><tbody>';
-    creditNames.forEach(function(cn, idx){
-        var c = creditMap[cn];
-        var notS = total - c.e - c.a;
-        var pct = total ? Math.round(c.e/total*100) : 0;
-        var rowBg = idx%2===0?'#ffffff':'#f9fafb';
-        var barColor = pct>=75?'#6edc5a':pct>=40?'#ffb54c':'#ff6961';
-        html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
-        html += '<td style="padding:0.55rem 0.75rem;">';
-        if(c.link&&c.link!=='(no URL)') html += '<a href="'+c.link+'" target="_blank" style="color:#FF8200;font-weight:600;text-decoration:none;">'+cn+'</a>';
-        else html += '<span style="font-weight:600;color:#1d1d1f;">'+cn+'</span>';
-        html += '</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;white-space:nowrap;">'+c.area+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;font-size:0.75rem;white-space:nowrap;">'+c.stage+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#065f46;">'+c.e+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#92400e;">'+c.a+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;color:#6b7280;">'+notS+'</td>';
-        html += '<td style="padding:0.55rem 0.75rem;min-width:120px;">';
-        html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
-        html += '<div style="flex:1;background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden;">';
-        html += '<div style="width:'+pct+'%;height:100%;background:'+barColor+';"></div></div>';
-        html += '<span style="font-size:0.72rem;color:#374151;min-width:32px;">'+pct+'%</span>';
-        html += '</div></td>';
-        html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    return html;
-}
-
-/* ── VIEW 3: By Standard ── */
+/* ── VIEW 1: By Standard ── */
 function xrefStandardsHTML(){
     if(!xrefCCSCRows) return '<div style="padding:2rem;color:#86868b;">Loading…</div>';
     var total = xrefStudList.length;
