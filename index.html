@@ -9009,7 +9009,7 @@ function renderCore() {
         // "Known %" uses most recent available period
         var knownTotal = springT !== null ? springT : (winterT !== null ? winterT : fallT);
 
-        html += '<tr><td class="core-name-col">' + s.name.replace(/</g, '&lt;') + '</td>';
+        html += '<tr><td class="core-name-col">' + fullName(s.name).replace(/</g, '&lt;') + '</td>';
 
         // GLE Goal pie — find best available GLE/goal across periods
         var gleVal = '', gleGoalVal = '';
@@ -9347,7 +9347,7 @@ function renderFPTable() {
                       : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>';
         }
         html += '<tr>'
-            + '<td class="core-name-col"><span onclick="showFpStudentGrowth(\'' + s.name.replace(/'/g,"\\'").replace(/</g,'&lt;') + '\')" style="cursor:pointer;color:#FF8200;font-weight:600;" title="View growth graph">' + s.name.replace(/</g,'&lt;') + '</span></td>'
+            + '<td class="core-name-col"><span onclick="showFpStudentGrowth(\'' + s.name.replace(/'/g,"\\'").replace(/</g,'&lt;') + '\')" style="cursor:pointer;color:#FF8200;font-weight:600;" title="View growth graph">' + fullName(s.name).replace(/</g,'&lt;') + '</span></td>'
             + '<td style="text-align:center;">' + (s.al||'') + '</td>'
             + lvCell(s.boy)
             + lvCell(s.moy)
@@ -9455,7 +9455,7 @@ function renderFPGrowthView() {
         var selHtml = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
             + '<label style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Student</label>'
             + '<select id="fp-long-sel" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
-            + students.map(function(s){ return '<option value="' + s.name.replace(/"/g,'&quot;') + '"' + (s.name===sel?' selected':'') + '>' + s.name + (s.al?' — AL'+s.al:'') + '</option>'; }).join('')
+            + students.map(function(s){ return '<option value="' + s.name.replace(/"/g,'&quot;') + '"' + (s.name===sel?' selected':'') + '>' + fullName(s.name).replace(/</g,'&lt;') + (s.al?' — AL'+s.al:'') + '</option>'; }).join('')
             + '</select>'
             + '<span style="font-size:.72rem;color:#94a3b8;margin-left:4px;">Click any student name in the table to jump here</span></div>';
 
@@ -9841,7 +9841,7 @@ function doRenderMapTable(el, students, periods, scoresFn, pctsFn) {
         var rb = si % 2 === 0 ? '#fff' : '#fafafa';
         var scores = scoresFn(s), pcts = pctsFn(s);
         bodyRows += '<tr>'
-            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + s.name.replace(/"/g,'&quot;') + '">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle || '—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al || '—') + '</td>';
         yearOrder.forEach(function(yr) {
@@ -9896,7 +9896,7 @@ function renderMapMathStudentGraphs() {
 
     // Search bar
     html += '<div style="position:relative;max-width:380px;margin-bottom:1.25rem;">'
-        + '<input id="map-math-student-search" type="text" value="' + s.name.replace(/"/g,'&quot;') + '" '
+        + '<input id="map-math-student-search" type="text" value="' + fullName(s.name).replace(/"/g,'&quot;') + '" '
         + 'placeholder="Search student…" autocomplete="off" '
         + 'style="width:100%;padding:0.5rem 2rem 0.5rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;color:#1d1d1f;background:#fff;outline:none;box-sizing:border-box;" '
         + 'oninput="mapMathSearchInput(this.value)" onfocus="mapMathShowDropdown()" onblur="setTimeout(function(){mapMathHideDropdown();},160)"/>'
@@ -9907,7 +9907,7 @@ function renderMapMathStudentGraphs() {
         html += '<div class="map-math-dd-item" data-name="' + st.name.replace(/"/g,'&quot;') + '" '
             + 'onmousedown="mapMathSelectStudent(\'' + st.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" '
             + 'style="padding:0.42rem 0.75rem;font-size:0.82rem;cursor:pointer;' + (active ? 'background:#fff7f0;font-weight:600;color:#FF8200;' : 'color:#1d1d1f;') + '">'
-            + st.name.replace(/</g,'&lt;')
+            + fullName(st.name).replace(/</g,'&lt;')
             + '<span style="color:#aeaeb2;font-size:0.68rem;margin-left:6px;font-weight:400;">AL' + st.al + '</span>'
             + '</div>';
     });
@@ -10072,7 +10072,7 @@ function renderMapElaStudentGraphs() {
             + 'style="background:#fff;border-radius:12px;border:1px solid #e8e8ed;padding:12px 14px;cursor:pointer;overflow:hidden;" '
             + 'onmouseover="this.style.boxShadow=\'0 2px 12px rgba(0,0,0,0.1)\'" onmouseout="this.style.boxShadow=\'\'">'
             + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">'
-            + '<div style="font-size:.72rem;font-weight:700;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + s.name.replace(/</g,'&lt;') + '</div>'
+            + '<div style="font-size:.72rem;font-weight:700;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + fullName(s.name).replace(/</g,'&lt;') + '</div>'
             + (latestScore ? '<div style="font-size:.82rem;font-weight:800;color:' + latestColor + ';margin-left:6px;flex-shrink:0;">' + Math.round(parseFloat(latestScore)) + '</div>' : '')
             + '</div>'
             + '<div style="font-size:.6rem;color:#86868b;margin-bottom:6px;">AL' + s.al + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
@@ -10135,7 +10135,7 @@ function buildMapStudentCard(s, periods, subject, canvasId) {
     var html = '<div class="map-student-card">';
     html += '<div class="map-student-card-header">'
         + '<div>'
-        + '<div class="map-student-name">' + s.name.replace(/</g,'&lt;') + '</div>'
+        + '<div class="map-student-name">' + fullName(s.name).replace(/</g,'&lt;') + '</div>'
         + '<div class="map-student-meta">AL' + s.al + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
         + '</div>';
     if (latest) {
@@ -10365,7 +10365,7 @@ function renderFactFluencyTable() {
     filtered.forEach(function(s, idx) {
         var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
         html += '<tr style="background:' + rowBg + ';">';
-        html += '<td style="padding:0.45rem 0.75rem;color:#1d1d1f;font-weight:500;white-space:nowrap;">' + s.name.replace(/</g,'&lt;') + '</td>';
+        html += '<td style="padding:0.45rem 0.75rem;color:#1d1d1f;font-weight:500;white-space:nowrap;">' + fullName(s.name).replace(/</g,'&lt;') + '</td>';
         html += '<td style="padding:0.45rem 0.6rem;text-align:center;color:#1d1d1f;">' + (s.al||'—') + '</td>';
         html += '<td style="padding:0.45rem 0.6rem;text-align:center;color:#1d1d1f;">' + (s.gle||'—') + '</td>';
         if (ffGroupFilter === 'all') {
@@ -10541,7 +10541,7 @@ function renderSTMathTable() {
         section.students.forEach(function(s, idx) {
             var rowBg = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
             html += '<tr style="background:' + rowBg + ';">';
-            html += '<td style="padding:0.35rem 0.75rem;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + s.name.replace(/</g,'&lt;') + '</td>';
+            html += '<td style="padding:0.35rem 0.75rem;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + fullName(s.name).replace(/</g,'&lt;') + '</td>';
             section.standards.forEach(function(std, si) {
                 var val   = s.scores[std.code] || '';
                 var bg    = stmathCellBg(val);
@@ -10658,16 +10658,13 @@ function setCompAL(al) {
     renderCompTable();
 }
 
-function compDisplayName(name) {
-    // If already has a last name, return as-is
-    if ((name || '').trim().split(/\s+/).length > 1) return name;
-    // Try to find the full name from studentAutonomyLevel
-    var first = (name || '').trim().toLowerCase();
+function fullName(name) {
+    if (!name || name.trim().split(/\s+/).length > 1) return name || '';
+    var first = name.trim().toLowerCase();
     for (var k in studentAutonomyLevel) {
         var parts = k.trim().split(/\s+/);
         if (parts.length > 1 && parts[0].toLowerCase() === first) return k;
     }
-    // Fallback: try mapData
     if (mapData && mapData.students) {
         var ms = mapData.students.find(function(s) {
             var p = (s.name || '').trim().split(/\s+/);
@@ -10675,8 +10672,30 @@ function compDisplayName(name) {
         });
         if (ms) return ms.name;
     }
+    if (fpStudents) {
+        var fs = fpStudents.find(function(s) {
+            var p = (s.name || '').trim().split(/\s+/);
+            return p.length > 1 && p[0].toLowerCase() === first;
+        });
+        if (fs) return fs.name;
+    }
+    if (typeof APP !== 'undefined' && APP.students) {
+        var ws = APP.students.find(function(s) {
+            var p = (s.name || '').trim().split(/\s+/);
+            return p.length > 1 && p[0].toLowerCase() === first;
+        });
+        if (ws) return ws.name;
+    }
+    if (typeof factFluencyData !== 'undefined' && factFluencyData && factFluencyData.students) {
+        var ffs = factFluencyData.students.find(function(s) {
+            var p = (s.name || '').trim().split(/\s+/);
+            return p.length > 1 && p[0].toLowerCase() === first;
+        });
+        if (ffs) return ffs.name;
+    }
     return name;
 }
+function compDisplayName(name) { return fullName(name); }
 
 function compStudentAL(name) {
     if (studentAutonomyLevel[name]) return studentAutonomyLevel[name];
@@ -11010,7 +11029,7 @@ function doRenderBenchOverview(el) {
     sorted.forEach(function(s, si) {
         var rb = si % 2 === 0 ? '#fff' : '#fafafa';
         bodyRows += '<tr>'
-            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + s.name.replace(/"/g,'&quot;') + '">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al||'—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle||'—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>';
@@ -11455,7 +11474,7 @@ function renderLexiaPerf() {
         var usageCol = pctColor(s.usagePct);
         var riskCol  = lexiaRiskColor(s.riskLevel);
         html += '<tr>'
-            + '<td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>'
+            + '<td class="core-name-col">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
             + '<td style="text-align:center;font-size:0.8rem;">' + s.grade + '</td>'
             + '<td style="padding:4px 8px;">'
             +   '<div style="display:flex;align-items:center;gap:6px;">'
@@ -11543,9 +11562,9 @@ function renderLexiaProg() {
         }
 
         html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">';
-        html += '<div style="min-width:150px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + s.name.replace(/"/g,'&quot;') + '">'
+        html += '<div style="min-width:150px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">'
             + (s.struggling ? '<span style="color:#e74c3c;margin-right:4px;font-size:0.65rem;">●</span>' : '')
-            + s.name.replace(/</g,'&lt;') + '</div>';
+            + fullName(s.name).replace(/</g,'&lt;') + '</div>';
 
         // Unit boxes grouped
         html += '<div style="display:flex;gap:3px;align-items:center;">';
@@ -11698,7 +11717,7 @@ function renderLexiaStds() {
         // Student rows
         visibleStudents.forEach(function(st) {
             html += '<tr>';
-            html += '<td style="position:sticky;left:0;background:#fff;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;color:#1d1d1f;">' + st.name + '</td>';
+            html += '<td style="position:sticky;left:0;background:#fff;z-index:1;padding:4px 8px;border:1px solid #d1d1d6;white-space:nowrap;color:#1d1d1f;">' + fullName(st.name).replace(/</g,'&lt;') + '</td>';
             stds.forEach(function(s) {
                 var pct = st.scores[s.code];
                 if (pct === null) {
@@ -12066,7 +12085,7 @@ function renderClassOverview() {
         +sortedRoster.map(function(s,i){
             var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
             return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
-                +'<td><strong>'+s.name+'</strong></td>'
+                +'<td><strong>'+fullName(s.name).replace(/</g,'&lt;')+'</strong></td>'
                 +(currentLevelCfg().hasGoal?'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>':'')
                 +'<td class="center">'+scoreChip(s.fallAvg)+'</td>'
                 +'<td class="center">'+scoreChip(s.winterAvg)+'</td>'
@@ -12120,11 +12139,11 @@ function renderStudentView() {
     el.innerHTML='<div class="wd-filter-bar"><label>Student</label>'
         +'<select id="wd-sel-student">'
         +APP.students.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
-        .map(function(st){return'<option value="'+st.name+'"'+(st.name===selectedStudent?' selected':'')+'>'+st.name+(st.goal?' — goal: '+st.goal:'')+'</option>';}).join('')
+        .map(function(st){return'<option value="'+st.name+'"'+(st.name===selectedStudent?' selected':'')+'>'+fullName(st.name).replace(/</g,'&lt;')+(st.goal?' — goal: '+st.goal:'')+'</option>';}).join('')
         +'</select></div>'
         +'<div class="wd-student-header">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
-        +'<div><h2>'+s.name+'</h2>'
+        +'<div><h2>'+fullName(s.name).replace(/</g,'&lt;')+'</h2>'
         +'<div style="color:#86868b;font-size:.8rem;margin-top:3px">Level: <strong style="color:#FF8200">'+s.al+'</strong>'+(s.goal?' &nbsp;·&nbsp; EOY Goal: <strong style="color:#FF8200">'+s.goal+'</strong> · '+gradeBand(s.goal)+' grade':'')+'</div>'
         +'</div><div style="display:flex;gap:12px">'+seasonScores+'</div></div>'
         +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e5ea">'
@@ -12667,7 +12686,7 @@ function doRenderWbOverview(el) {
     sorted.forEach(function(s, si) {
         var rb = si % 2 === 0 ? '#fff' : '#fafafa';
         bodyRows += '<tr>'
-            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + s.name.replace(/"/g, '&quot;') + '">' + s.name.replace(/</g, '&lt;') + '</td>'
+            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g, '&quot;') + '">' + fullName(s.name).replace(/</g, '&lt;') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al  || '—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle || '—') + '</td>';
         WB_LONG_YEARS.forEach(function(y) {
@@ -12711,7 +12730,7 @@ function renderWbStudentGrowth() {
     students.forEach(function(s, si) {
         html += '<div style="background:#fff;border-radius:12px;border:1px solid #e8e8ed;padding:14px 16px;overflow:hidden;">'
             + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">'
-            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;">' + s.name.replace(/</g,'&lt;') + '</div>'
+            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;">' + fullName(s.name).replace(/</g,'&lt;') + '</div>'
             + '<div style="font-size:.68rem;color:#86868b;">AL' + (s.al||'') + (s.gle ? '  ·  GLE ' + s.gle : '') + '</div>'
             + '</div>'
             + '<canvas id="wb-sg-' + si + '" width="520" height="160" style="width:100%;height:160px;border-radius:6px;display:block;"></canvas>'
