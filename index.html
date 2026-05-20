@@ -7007,28 +7007,41 @@ function renderReadingStudentOverview() {
     html += '<div style="padding:0.6rem 1rem;">';
     if (coreRec) {
         var corePeriods = [{key:'fall',label:'BOY'},{key:'winter',label:'MOY'},{key:'spring',label:'EOY'}];
-        // Legend
-        html += '<div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;align-items:center;">';
-        corePeriods.forEach(function(p){ html += '<span style="font-size:.58rem;color:#86868b;font-weight:600;">'+p.label+'</span><div style="width:24px;height:5px;border-radius:2px;background:#e0e0e0;"></div>'; });
-        html += '<span style="font-size:.55rem;color:#aeaeb2;margin-left:4px;">colors = score %</span></div>';
-        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;">';
+        // Period legend
+        html += '<div style="display:flex;gap:0.75rem;margin-bottom:0.5rem;align-items:center;">';
+        corePeriods.forEach(function(p){ html += '<span style="font-size:.58rem;color:#86868b;">&#9632; '+p.label+'</span>'; });
+        html += '</div>';
+        // Horizontal category columns
+        html += '<div style="overflow-x:auto;padding-bottom:2px;">';
+        html += '<div style="display:flex;gap:5px;min-width:max-content;">';
         CORE_CATS.forEach(function(cat, ci) {
-            html += '<div style="display:flex;align-items:center;gap:3px;">';
-            html += '<span style="font-size:.58rem;font-weight:600;color:#5c5b5a;min-width:2.6rem;flex-shrink:0;white-space:nowrap;" title="'+cat.full+'">'+cat.abbr+'</span>';
-            corePeriods.forEach(function(p) {
+            // Get scores for each period
+            var scores = corePeriods.map(function(p) {
                 var pd = coreRec[p.key];
                 var raw = pd ? pd.scores[ci] : null;
                 var n = raw === null || raw === undefined ? null : (coreRawIsMastered(raw) ? cat.max : parseInt(raw,10));
                 var pct = (n !== null && !isNaN(n)) ? Math.min(100, Math.round(n/cat.max*100)) : null;
-                var bg = pct !== null ? pctColor(pct) : '#f0f0f0';
-                var disp = n !== null && !isNaN(n) ? n : (coreRawIsMastered(raw) ? '✓' : '');
-                html += '<div style="flex:1;background:#f0f0f0;border-radius:2px;height:8px;overflow:hidden;" title="'+p.label+': '+(disp||'—')+'/'+cat.max+'">';
-                html += '<div style="height:100%;width:'+(pct||0)+'%;background:'+bg+';border-radius:2px;"></div>';
+                return { n: n, pct: pct, label: p.label };
+            });
+            // Latest non-null score for the bottom label
+            var latest = null;
+            for (var si = scores.length - 1; si >= 0; si--) { if (scores[si].n !== null) { latest = scores[si]; break; } }
+
+            html += '<div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;">';
+            // Category name
+            html += '<div style="font-size:.58rem;font-weight:700;color:#3a3a3c;margin-bottom:4px;text-align:center;" title="'+cat.full+'">'+cat.abbr+'</div>';
+            // Bars (BOY, MOY, EOY)
+            scores.forEach(function(s) {
+                var bg = s.pct !== null ? pctColor(s.pct) : '#e8e8ed';
+                html += '<div style="width:100%;background:#f0f0f0;border-radius:2px;height:6px;overflow:hidden;margin-bottom:2px;" title="'+s.label+': '+(s.n !== null ? s.n : '—')+'/'+cat.max+'">';
+                html += '<div style="height:100%;width:'+(s.pct||0)+'%;background:'+bg+';border-radius:2px;"></div>';
                 html += '</div>';
             });
+            // Score label
+            html += '<div style="font-size:.55rem;color:#5c5b5a;margin-top:3px;text-align:center;white-space:nowrap;">'+(latest ? latest.n+'/'+cat.max : '—')+'</div>';
             html += '</div>';
         });
-        html += '</div>';
+        html += '</div></div>';
     } else {
         html += '<p style="color:#aeaeb2;font-size:.78rem;">No CORE data for this student. Make sure CORE data is loaded (visit the CORE tab).</p>';
     }
