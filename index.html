@@ -1237,6 +1237,7 @@
                         <button class="toggle-btn lexia-al-btn" data-al="4" onclick="setLexiaAL('4')">AL4</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.6rem;">
+                        <button onclick="lexiaReload()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #86868b;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">&#8635; Reload Data</button>
                         <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">Import New Data</button>
                         <span style="font-size:0.65rem;color:#aeaeb2;white-space:nowrap;">Last updated: 05/14/2026</span>
                     </div>
@@ -11261,8 +11262,16 @@ function lexiaFetch(url, ms) {
             .catch(function(e) { clearTimeout(timer); throw e; });
 }
 
+function lexiaReload() {
+    lexiaPerfData = null;
+    lexiaProgData = null;
+    lexiaStdsData = null;
+    renderLexia();
+}
+
 function renderLexia() {
     var loaded = 0;
+    var errors = [];
     // Only count perf + prog for the progress view; stds loads independently
     var total = (!lexiaPerfData ? 1 : 0) + (!lexiaProgData ? 1 : 0);
     var pe = document.getElementById('lexia-perf');
@@ -11279,27 +11288,62 @@ function renderLexia() {
 
     function onDone() {
         if (++loaded >= total) {
-            renderLexiaCombined();
-            if (lexiaView === 'standards') renderLexiaStds();
+            if (errors.length && !lexiaPerfData.length && !lexiaProgData.length) {
+                var msg = '<div style="padding:1.5rem;text-align:center;">'
+                    + '<p style="color:#c0392b;font-weight:600;margin-bottom:8px;">Could not load Lexia data</p>'
+                    + '<p style="color:#86868b;font-size:0.8rem;margin-bottom:14px;">' + errors.join('; ') + '</p>'
+                    + '<button onclick="lexiaReload()" style="padding:6px 18px;border-radius:8px;border:1px solid #0071e3;background:#0071e3;color:#fff;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;">Retry</button>'
+                    + '</div>';
+                if (pe) pe.innerHTML = msg;
+            } else {
+                renderLexiaCombined();
+                if (lexiaView === 'standards') renderLexiaStds();
+            }
         }
     }
 
     if (!lexiaPerfData) {
-        lexiaFetch(LEXIA_PERF_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
-            lexiaPerfData = parsePerformanceCsv(t); onDone();
-        }).catch(function(){ lexiaPerfData = []; onDone(); });
+        lexiaFetch(LEXIA_PERF_URL, 12000).then(function(r){
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        }).then(function(t){
+            lexiaPerfData = parsePerformanceCsv(t);
+            console.log('[Lexia perf] rows:', lexiaPerfData.length, 'first:', lexiaPerfData[0]);
+            onDone();
+        }).catch(function(e){
+            console.error('[Lexia perf] fetch failed:', e);
+            errors.push('Performance: ' + (e && e.message ? e.message : 'network error'));
+            lexiaPerfData = [];
+            onDone();
+        });
     }
     if (!lexiaProgData) {
-        lexiaFetch(LEXIA_PROG_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
-            lexiaProgData = parseProgressCsv(t); onDone();
-        }).catch(function(){ lexiaProgData = []; onDone(); });
+        lexiaFetch(LEXIA_PROG_URL, 12000).then(function(r){
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        }).then(function(t){
+            lexiaProgData = parseProgressCsv(t);
+            console.log('[Lexia prog] rows:', lexiaProgData.length, 'first:', lexiaProgData[0]);
+            onDone();
+        }).catch(function(e){
+            console.error('[Lexia prog] fetch failed:', e);
+            errors.push('Progress: ' + (e && e.message ? e.message : 'network error'));
+            lexiaProgData = [];
+            onDone();
+        });
     }
     // Load stds in background — doesn't block progress view
     if (!lexiaStdsData) {
-        lexiaFetch(LEXIA_STDS_URL, 12000).then(function(r){ return r.text(); }).then(function(t){
+        lexiaFetch(LEXIA_STDS_URL, 12000).then(function(r){
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        }).then(function(t){
             lexiaStdsData = parseStandardsCsv(t);
             if (lexiaView === 'standards') renderLexiaStds();
-        }).catch(function(){ lexiaStdsData = { grades: [], standards: [], students: [] }; });
+        }).catch(function(e){
+            console.error('[Lexia stds] fetch failed:', e);
+            lexiaStdsData = { grades: [], standards: [], students: [] };
+        });
     }
 }
 
