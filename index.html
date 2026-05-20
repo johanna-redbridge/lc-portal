@@ -10344,8 +10344,9 @@ var BENCH_NAME_ALIASES = {
     'Abigail Martinez': 'Abby'
 };
 
-var compData       = null;
+var compData        = null;
 var compGroupFilter = 'all';
+var compALFilter    = 'all';
 
 var BENCH_LONG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=1047888246&single=true&output=csv';
 var benchLongData  = null;
@@ -10405,6 +10406,23 @@ function setCompGroup(group) {
     renderCompTable();
 }
 
+function setCompAL(al) {
+    compALFilter = al;
+    document.querySelectorAll('.comp-al-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.al === al);
+    });
+    renderCompTable();
+}
+
+function compStudentAL(name) {
+    if (studentAutonomyLevel[name]) return studentAutonomyLevel[name];
+    var norm = xrefNorm(name);
+    for (var k in studentAutonomyLevel) {
+        if (xrefNorm(k) === norm) return studentAutonomyLevel[k];
+    }
+    return '';
+}
+
 function renderCompFilters() {
     var el = document.getElementById('comp-filters');
     if (!el || !compData) return;
@@ -10421,6 +10439,13 @@ function renderCompFilters() {
         html += '<button class="toggle-btn comp-group-btn' + active + '" data-group="' + g.replace(/"/g,'&quot;') + '" onclick="setCompGroup(\'' + g.replace(/'/g,"\\'") + '\')">' + lbl.replace(/</g,'&lt;') + '</button>';
     });
     html += '</div>';
+    html += '<div class="toggle-group">';
+    ['all','AL1','AL2','AL3','AL4'].forEach(function(al) {
+        var lbl = al === 'all' ? 'All AL' : al;
+        var active = al === compALFilter ? ' active' : '';
+        html += '<button class="toggle-btn comp-al-btn' + active + '" data-al="' + al + '" onclick="setCompAL(\'' + al + '\')">' + lbl + '</button>';
+    });
+    html += '</div>';
     html += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">'
         + '<button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">+ Enter New Data</button>'
         + '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">↑ Import New Data</button>'
@@ -10432,9 +10457,11 @@ function renderCompTable() {
     var el = document.getElementById('comp-content');
     if (!el || !compData) return;
 
-    var students = compGroupFilter === 'all'
-        ? compData.students
-        : compData.students.filter(function(s) { return s.group === compGroupFilter; });
+    var students = compData.students.filter(function(s) {
+        if (compGroupFilter !== 'all' && s.group !== compGroupFilter) return false;
+        if (compALFilter !== 'all' && compStudentAL(s.name) !== compALFilter) return false;
+        return true;
+    });
 
     if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
