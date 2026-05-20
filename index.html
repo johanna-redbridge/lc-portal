@@ -10658,6 +10658,26 @@ function setCompAL(al) {
     renderCompTable();
 }
 
+function compDisplayName(name) {
+    // If already has a last name, return as-is
+    if ((name || '').trim().split(/\s+/).length > 1) return name;
+    // Try to find the full name from studentAutonomyLevel
+    var first = (name || '').trim().toLowerCase();
+    for (var k in studentAutonomyLevel) {
+        var parts = k.trim().split(/\s+/);
+        if (parts.length > 1 && parts[0].toLowerCase() === first) return k;
+    }
+    // Fallback: try mapData
+    if (mapData && mapData.students) {
+        var ms = mapData.students.find(function(s) {
+            var p = (s.name || '').trim().split(/\s+/);
+            return p.length > 1 && p[0].toLowerCase() === first;
+        });
+        if (ms) return ms.name;
+    }
+    return name;
+}
+
 function compStudentAL(name) {
     if (studentAutonomyLevel[name]) return studentAutonomyLevel[name];
     var norm = xrefNorm(name);
@@ -10798,7 +10818,7 @@ function renderCompTable() {
 
     // One row per student
     students.forEach(function(s) {
-        html += '<tr><td class="core-name-col">' + s.name.replace(/</g,'&lt;') + '</td>';
+        html += '<tr><td class="core-name-col">' + compDisplayName(s.name).replace(/</g,'&lt;') + '</td>';
         // GLE pie chart columns (all 8 groups)
         gleGroups.forEach(function(grp) {
             var masteredCount = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
