@@ -10921,6 +10921,14 @@ function lexiaUnitPct(val) {
 }
 
 var lexiaALFilter = 'all';
+var lexiaSortCol  = 'risk';
+var lexiaSortDir  = 1;
+function setLexiaSort(col) {
+    if (lexiaSortCol === col) lexiaSortDir = -lexiaSortDir;
+    else { lexiaSortCol = col; lexiaSortDir = 1; }
+    renderLexiaCombined();
+}
+
 function setLexiaAL(al) {
     lexiaALFilter = al;
     document.querySelectorAll('.lexia-al-btn').forEach(function(b) {
@@ -10968,17 +10976,28 @@ function renderLexiaCombined() {
     perf.forEach(function(s) { perfMap[s.name] = s; });
     prog.forEach(function(s) { progMap[s.name] = s; });
 
-    // Union of all names, sorted by risk then name
-    var order = { 'At Risk': 0, 'High Risk': 0, 'Some Risk': 1, 'On Target': 2 };
+    // Union of all names
+    var riskOrder = { 'At Risk': 0, 'High Risk': 0, 'Some Risk': 1, 'On Target': 2 };
+    var gradeOrder = {'K':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8};
     var allNames = [];
     var seen = {};
     perf.forEach(function(s) { if(!seen[s.name]){ seen[s.name]=true; allNames.push(s.name); } });
     prog.forEach(function(s) { if(!seen[s.name]){ seen[s.name]=true; allNames.push(s.name); } });
+
+    function lexiaSortVal(name) {
+        var p = perfMap[name], r = progMap[name];
+        if (lexiaSortCol === 'name')      return name.toLowerCase();
+        if (lexiaSortCol === 'grade')     return p ? (gradeOrder.hasOwnProperty(p.grade) ? gradeOrder[p.grade] : 99) : 99;
+        if (lexiaSortCol === 'risk')      return p ? (riskOrder.hasOwnProperty(p.riskLevel) ? riskOrder[p.riskLevel] : 1) : 99;
+        if (lexiaSortCol === 'predictor') return p ? -(p.predictor || 0) : 0;
+        if (lexiaSortCol === 'usage')     return p ? -(p.usagePct || 0) : 0;
+        if (lexiaSortCol === 'units')     return r ? -r.units.reduce(function(s,v){return s + lexiaUnitPct(v);}, 0) : 0;
+        return name.toLowerCase();
+    }
     allNames.sort(function(a, b) {
-        var pa = perfMap[a], pb = perfMap[b];
-        var ra = pa ? (order.hasOwnProperty(pa.riskLevel) ? order[pa.riskLevel] : 1) : 99;
-        var rb = pb ? (order.hasOwnProperty(pb.riskLevel) ? order[pb.riskLevel] : 1) : 99;
-        return ra - rb || a.localeCompare(b);
+        var va = lexiaSortVal(a), vb = lexiaSortVal(b);
+        var cmp = (typeof va === 'string') ? va.localeCompare(vb) : va - vb;
+        return cmp * lexiaSortDir || a.localeCompare(b);
     });
 
     // AL filter
@@ -10989,19 +11008,26 @@ function renderLexiaCombined() {
     var BOX = 20;
     var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
 
+    function lxTh(col, label, extraStyle) {
+        var active = lexiaSortCol === col;
+        var arrow = active ? (lexiaSortDir === 1 ? ' ↑' : ' ↓') : '';
+        var base = 'cursor:pointer;user-select:none;white-space:nowrap;' + (extraStyle || '');
+        return '<th style="' + base + '" onclick="setLexiaSort(\'' + col + '\')">' + label + '<span style="color:' + (active ? '#fff' : 'rgba(255,255,255,0.4)') + ';font-size:.7em;">' + (active ? arrow : ' ↕') + '</span></th>';
+    }
+
     var html = '';
     // Combined table
     html += '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:100%;"><thead><tr>'
-        + '<th class="core-name-col">Student</th>'
-        + '<th style="white-space:nowrap;">Grade</th>'
-        + '<th style="white-space:nowrap;">Risk</th>'
-        + '<th style="min-width:120px;white-space:nowrap;">Predictor</th>'
-        + '<th style="min-width:110px;white-space:nowrap;">Usage</th>'
-        + '<th style="white-space:nowrap;vertical-align:bottom;padding-bottom:4px;">'
-        + '<div style="font-size:0.65rem;font-weight:600;color:#1d1d1f;margin-bottom:5px;">Unit Progress</div>'
+        + lxTh('name',      'Student',   'min-width:140px;')
+        + lxTh('grade',     'Grade',     '')
+        + lxTh('risk',      'Risk',      '')
+        + lxTh('predictor', 'Predictor', 'min-width:120px;')
+        + lxTh('usage',     'Usage',     'min-width:110px;')
+        + '<th style="white-space:nowrap;vertical-align:bottom;padding-bottom:4px;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
+        + '<div style="font-size:0.65rem;font-weight:600;color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.85)') + ';margin-bottom:5px;">Unit Progress<span style="color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.4)') + ';font-size:.8em;">' + (lexiaSortCol==='units'?(lexiaSortDir===1?' ↑':' ↓'):' ↕') + '</span></div>'
         + '<div style="display:flex;gap:2px;align-items:center;">'
-        + (function(){var BOX=20,out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*21+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:#86868b;line-height:1;">'+g.label+'</div>';});return out;})()
+        + (function(){var out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*21+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.6);line-height:1;">'+g.label+'</div>';});return out;})()
         + '</div></th>'
         + '<th style="white-space:nowrap;">Gained / Target</th>'
         + '</tr></thead><tbody>';
