@@ -6947,11 +6947,15 @@ function renderReadingStudentOverview() {
 
     var norm = xrefNorm(sel);
 
-    // ── 1. F&P Current Levels ──
+    // ── 1. F&P (current levels + growth graph) ──
     var fpRec = fpStudents ? fpStudents.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var hasFpLong = fpLong && fpLong.points && fpLong.points.some(function(p){return p.score!==null;});
     html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
-    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">F&P Current Levels</div>';
-    html += '<div style="padding:1rem 1.25rem;">';
+    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">F&P</div>';
+    html += '<div style="padding:1rem 1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">';
+    // Left: current level chips
+    html += '<div style="flex-shrink:0;">';
     if (fpRec) {
         var FP_LEVELS = ['aa','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
         function fpPct(lv) {
@@ -6960,37 +6964,34 @@ function renderReadingStudentOverview() {
             return idx < 0 ? 0 : Math.round((idx+1)/FP_LEVELS.length*100);
         }
         var periods = [{key:'boy',label:'BOY'},{key:'moy',label:'MOY'},{key:'eoy',label:'EOY'}];
-        html += '<div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;">';
+        html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start;">';
         periods.forEach(function(p) {
             var lv = fpRec[p.key];
             var pct = fpPct(lv);
             var col = lv ? pctColor(pct) : '#e0e0e0';
-            html += '<div style="flex:1;min-width:120px;">'
-                + '<div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">'+p.label+'</div>'
-                + '<div style="font-size:2rem;font-weight:800;color:'+(lv?col:'#c7c7cc')+';line-height:1;">'+((lv||'—').toUpperCase())+'</div>'
-                + (fpRec['note'+p.label[0]] ? '<div style="font-size:.7rem;color:#86868b;margin-top:4px;">'+fpRec['note'+p.label[0]]+'</div>' : '')
+            html += '<div style="text-align:center;">'
+                + '<div style="font-size:.65rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">'+p.label+'</div>'
+                + '<div style="font-size:1.75rem;font-weight:800;color:'+(lv?col:'#c7c7cc')+';line-height:1;">'+((lv||'—').toUpperCase())+'</div>'
+                + (fpRec['note'+p.label[0]] ? '<div style="font-size:.62rem;color:#86868b;margin-top:3px;max-width:70px;">'+fpRec['note'+p.label[0]]+'</div>' : '')
                 + '</div>';
         });
         var gleGoal = fpRec.gle ? gleTargetLevel(fpRec.gle) : '';
-        if (gleGoal) html += '<div style="flex:1;min-width:120px;"><div style="font-size:.7rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">GLE Goal</div><div style="font-size:2rem;font-weight:800;color:#5c5b5a;line-height:1;">'+gleGoal.toUpperCase()+'</div></div>';
+        if (gleGoal) html += '<div style="text-align:center;"><div style="font-size:.65rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Goal</div><div style="font-size:1.75rem;font-weight:800;color:#5c5b5a;line-height:1;">'+gleGoal.toUpperCase()+'</div></div>';
         html += '</div>';
-        // Note row (if note present)
-        if (fpRec.noteE) html += '<div style="margin-top:0.75rem;font-size:.78rem;color:#5c5b5a;background:#f5f5f7;border-radius:8px;padding:0.5rem 0.75rem;">'+fpRec.noteE+'</div>';
+        if (fpRec.noteE) html += '<div style="margin-top:0.6rem;font-size:.72rem;color:#5c5b5a;background:#f5f5f7;border-radius:6px;padding:0.4rem 0.6rem;">'+fpRec.noteE+'</div>';
     } else {
-        html += '<p style="color:#aeaeb2;font-size:.82rem;">No F&P current data for this student.</p>';
+        html += '<p style="color:#aeaeb2;font-size:.78rem;">No current F&P data.</p>';
     }
-    html += '</div></div>';
-
-    // ── 2. F&P Growth (longitudinal graph) ──
-    var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
-    html += '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;">F&P Growth Over Time</div>';
-    html += '<div style="padding:1rem 1.25rem;">';
-    if (fpLong && fpLong.points && fpLong.points.some(function(p){return p.score!==null;})) {
-        html += '<canvas id="stu-ov-fp-canvas" width="700" height="220" style="width:100%;height:220px;border-radius:8px;display:block;"></canvas>';
+    html += '</div>';
+    // Right: growth graph
+    html += '<div style="flex:1;min-width:260px;">';
+    if (hasFpLong) {
+        html += '<div style="font-size:.65rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Growth Over Time</div>';
+        html += '<canvas id="stu-ov-fp-canvas" width="600" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
     } else {
-        html += '<p style="color:#aeaeb2;font-size:.82rem;">No F&P longitudinal data for this student.</p>';
+        html += '<p style="color:#aeaeb2;font-size:.78rem;">No longitudinal F&P data.</p>';
     }
+    html += '</div>';
     html += '</div></div>';
 
     // ── 3. CORE Word Knowledge ──
