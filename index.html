@@ -972,14 +972,13 @@
         #wd-root .wd-cat-kpi .ck-value { font-size:1.3rem; font-weight:800; }
 
         /* ── Redact mode ── */
+        .redact-box { background:#1c1c1e !important; color:transparent !important; border-radius:2px; user-select:none; display:inline; }
         body.redacted [data-redact],
         body.redacted .core-name-col { background:#1c1c1e !important; color:transparent !important; border-radius:3px; user-select:none; }
         body.redacted [data-redact] * { visibility:hidden !important; }
         body.redacted select.redact-select { color:transparent !important; background:#1c1c1e !important; border-color:#1c1c1e !important; }
         body.redacted select.redact-select option { color:transparent !important; }
         body.redacted input.redact-input { color:transparent !important; background:#1c1c1e !important; border-color:#1c1c1e !important; caret-color:transparent; }
-        body.redacted .map-math-dd-item { color:transparent !important; }
-        body.redacted .map-math-dd-item * { color:transparent !important; }
     </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=true;if(typeof initGDrive==='function')initGDrive();"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -13229,6 +13228,88 @@ window._msRubricB64="PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjxtZXRhIGN
 
 <script>
 var redactMode = false;
+var _redactObserver = null;
+var _redactBusy = false;
+
+function _buildRedactRegex() {
+    var names = [];
+    // First names + display names from APP students roster
+    if (typeof students !== 'undefined') {
+        students.forEach(function(s) {
+            var raw = s.name || '';
+            var clean = raw.replace(/\s*\(.*?\)/g, '').trim();
+            if (clean) names.push(clean);
+            var nick = raw.match(/\(([^)]+)\)/);
+            if (nick) names.push(nick[1].trim());
+        });
+    }
+    // Full names from any loaded data sources
+    [
+        typeof mapData !== 'undefined' && mapData && mapData.students,
+        typeof compData !== 'undefined' && compData && compData.students,
+        typeof benchLongData !== 'undefined' && benchLongData,
+        typeof baData !== 'undefined' && baData,
+        typeof factFluencyData !== 'undefined' && factFluencyData && factFluencyData.students,
+        typeof fpStudents !== 'undefined' && fpStudents
+    ].forEach(function(pool) {
+        if (pool) pool.forEach(function(s) { if (s && s.name) names.push(s.name.trim()); });
+    });
+    // Deduplicate, drop single-char strings, sort longest first
+    var seen = {};
+    names = names.filter(function(n) {
+        if (!n || n.length < 2 || seen[n]) return false;
+        seen[n] = true; return true;
+    }).sort(function(a, b) { return b.length - a.length; });
+    if (!names.length) return null;
+    var esc = names.map(function(n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+    return new RegExp('\\b(' + esc.join('|') + ')\\b', 'g');
+}
+
+var SKIP_TAGS = { SCRIPT:1, STYLE:1, NOSCRIPT:1, CANVAS:1, INPUT:1, TEXTAREA:1, SELECT:1, OPTION:1 };
+
+function _redactNode(root) {
+    if (!root || !redactMode) return;
+    var regex = window._redactRegex;
+    if (!regex) return;
+    _redactBusy = true;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    var n;
+    while ((n = walker.nextNode())) {
+        var p = n.parentNode;
+        if (!p || SKIP_TAGS[p.tagName] || (p.className && p.className.indexOf && p.className.indexOf('redact-box') >= 0)) continue;
+        if (p.id === 'redact-track' || p.id === 'redact-knob') continue;
+        regex.lastIndex = 0;
+        if (regex.test(n.nodeValue)) nodes.push(n);
+    }
+    nodes.forEach(function(tn) {
+        regex.lastIndex = 0;
+        var parts = tn.nodeValue.split(regex);
+        if (parts.length <= 1) return;
+        var frag = document.createDocumentFragment();
+        parts.forEach(function(part, i) {
+            if (!part) return;
+            if (i % 2 === 1) {
+                var sp = document.createElement('span');
+                sp.className = 'redact-box';
+                sp.textContent = part;
+                frag.appendChild(sp);
+            } else {
+                frag.appendChild(document.createTextNode(part));
+            }
+        });
+        if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
+    });
+    _redactBusy = false;
+}
+
+function _unredact() {
+    document.querySelectorAll('.redact-box').forEach(function(el) {
+        var p = el.parentNode;
+        if (p) { p.replaceChild(document.createTextNode(el.textContent), el); p.normalize(); }
+    });
+}
+
 function toggleRedact() {
     redactMode = !redactMode;
     document.body.classList.toggle('redacted', redactMode);
@@ -13236,6 +13317,26 @@ function toggleRedact() {
     var knob  = document.getElementById('redact-knob');
     if (track) track.style.background = redactMode ? '#1c1c1e' : '#d1d1d6';
     if (knob)  knob.style.left        = redactMode ? '17px'   : '2px';
+
+    if (redactMode) {
+        window._redactRegex = _buildRedactRegex();
+        _redactNode(document.body);
+        _redactObserver = new MutationObserver(function(muts) {
+            if (_redactBusy) return;
+            muts.forEach(function(m) {
+                m.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && !(node.className && node.className.indexOf && node.className.indexOf('redact-box') >= 0)) {
+                        _redactNode(node);
+                    }
+                });
+            });
+        });
+        _redactObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+        if (_redactObserver) { _redactObserver.disconnect(); _redactObserver = null; }
+        window._redactRegex = null;
+        _unredact();
+    }
 }
 </script>
 
