@@ -973,6 +973,8 @@
 
         /* ── Redact mode ── */
         .redact-box { background:#1c1c1e !important; color:transparent !important; border-radius:2px; user-select:none; display:inline; }
+        body.redacted .redact-col { background:#1c1c1e !important; color:transparent !important; user-select:none; }
+        body.redacted .redact-col * { visibility:hidden !important; }
         body.redacted a.redact-link { color:transparent !important; text-decoration:none !important; }
         body.redacted [data-redact],
         body.redacted .core-name-col { background:#1c1c1e !important; color:transparent !important; border-radius:3px; user-select:none; }
@@ -13360,7 +13362,45 @@ function _redactNode(root) {
         if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
     });
     _redactSelects();
+    _redactTableCols();
     _redactBusy = false;
+}
+
+var _REDACT_COL_RE = /^(al|student)$/i;
+
+function _colStart(th) {
+    var idx = 0, cells = th.parentElement.cells;
+    for (var i = 0; i < cells.length; i++) {
+        if (cells[i] === th) return idx;
+        idx += parseInt(cells[i].getAttribute('colspan')) || 1;
+    }
+    return -1;
+}
+
+function _tdAtCol(tr, col) {
+    var idx = 0;
+    for (var i = 0; i < tr.cells.length; i++) {
+        if (idx === col) return tr.cells[i];
+        idx += parseInt(tr.cells[i].getAttribute('colspan')) || 1;
+    }
+    return null;
+}
+
+function _redactTableCols() {
+    if (!redactMode) return;
+    document.querySelectorAll('table').forEach(function(table) {
+        table.querySelectorAll('th').forEach(function(th) {
+            var txt = (th.textContent || '').trim().replace(/[↕▲▼↑↓]/g, '').trim();
+            if (!_REDACT_COL_RE.test(txt)) return;
+            var col = _colStart(th);
+            if (col < 0) return;
+            th.classList.add('redact-col');
+            table.querySelectorAll('tbody tr').forEach(function(tr) {
+                var td = _tdAtCol(tr, col);
+                if (td) td.classList.add('redact-col');
+            });
+        });
+    });
 }
 
 function _unredact() {
@@ -13368,6 +13408,7 @@ function _unredact() {
         var p = el.parentNode;
         if (p) { p.replaceChild(document.createTextNode(el.textContent), el); p.normalize(); }
     });
+    document.querySelectorAll('.redact-col').forEach(function(el) { el.classList.remove('redact-col'); });
     document.querySelectorAll('a.redact-link').forEach(function(a) { a.classList.remove('redact-link'); });
     _unredactSelects();
 }
@@ -13385,13 +13426,16 @@ function toggleRedact() {
         _redactNode(document.body);
         _redactObserver = new MutationObserver(function(muts) {
             if (_redactBusy) return;
+            var needCols = false;
             muts.forEach(function(m) {
                 m.addedNodes.forEach(function(node) {
                     if (node.nodeType === 1 && !(node.className && node.className.indexOf && node.className.indexOf('redact-box') >= 0)) {
                         _redactNode(node);
+                        needCols = true;
                     }
                 });
             });
+            if (needCols) _redactTableCols();
         });
         _redactObserver.observe(document.body, { childList: true, subtree: true });
     } else {
