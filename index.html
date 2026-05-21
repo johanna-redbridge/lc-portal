@@ -7311,18 +7311,37 @@ function renderCompStudentOverview() {
     var el = document.getElementById('math-student-overview-content');
     if (!el) return;
 
-    // Collect all student names across sources, deduplicating via fullName()
-    var names = {};
-    var compNameFor = {}; // fullName → original comp spreadsheet name (for mastery lookups)
-    if (compData) compData.students.forEach(function(s) {
-        var dn = fullName(s.name);
-        names[dn] = true;
-        compNameFor[dn] = s.name;
+    // Collect every raw name from all loaded sources
+    var rawNames = [];
+    if (compData) compData.students.forEach(function(s) { rawNames.push(s.name); });
+    if (mapData && mapData.students) mapData.students.forEach(function(s) { rawNames.push(s.name); });
+    if (factFluencyData) factFluencyData.students.forEach(function(s) { rawNames.push(s.name); });
+    if (benchLongData) benchLongData.forEach(function(s) { rawNames.push(s.name); });
+    if (stmathData) stmathData.forEach(function(sec) { sec.students.forEach(function(s) { rawNames.push(s.name); }); });
+    if (fpStudents) fpStudents.forEach(function(s) { rawNames.push(s.name); });
+
+    // Build first-name → full-name map from any multi-word name in the pool
+    var firstToFull = {};
+    rawNames.forEach(function(n) {
+        var parts = (n || '').trim().split(/\s+/);
+        if (parts.length > 1) {
+            var key = parts[0].toLowerCase();
+            if (!firstToFull[key]) firstToFull[key] = n;
+        }
     });
-    if (mapData && mapData.students) mapData.students.forEach(function(s) { names[fullName(s.name)] = true; });
-    if (factFluencyData) factFluencyData.students.forEach(function(s) { names[fullName(s.name)] = true; });
-    if (benchLongData) benchLongData.forEach(function(s) { names[fullName(s.name)] = true; });
-    if (stmathData) stmathData.forEach(function(sec) { sec.students.forEach(function(s) { names[fullName(s.name)] = true; }); });
+    function resolveToFull(n) {
+        var parts = (n || '').trim().split(/\s+/);
+        if (parts.length > 1) return n;
+        return firstToFull[parts[0].toLowerCase()] || n;
+    }
+
+    // Build deduplicated name set and comp-key map
+    var names = {};
+    var compNameFor = {}; // resolved full name → original comp spreadsheet name
+    rawNames.forEach(function(n) { names[resolveToFull(n)] = true; });
+    if (compData) compData.students.forEach(function(s) {
+        compNameFor[resolveToFull(s.name)] = s.name;
+    });
 
     var nameList = Object.keys(names).sort();
     if (!nameList.length) {
