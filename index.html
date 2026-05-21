@@ -906,7 +906,7 @@
         .map-student-meta { font-size: 0.68rem; color: #86868b; margin-top: 2px; }
         /* ── CORE Assessment ── */
         .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 16px; border: 1px solid #f0f0f0; }
-        .core-table { border-collapse: collapse; font-size: 0.75rem; white-space: nowrap; }
+        .core-table { border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; width: 100%; }
         .core-table th { background: #5c5b5a; color: #fff; padding: 0.35rem 0.45rem; text-align: center; font-weight: 600; border: 1px solid #4a4948; position: sticky; top: 0; z-index: 1; vertical-align: bottom; line-height: 1.3; }
         .core-table th.core-name-col { position: sticky; top: 0; left: 0; z-index: 3; text-align: left; min-width: 140px; background: #5c5b5a; }
         .core-table td { padding: 0.2rem 0.2rem; border: 1px solid #e8e8ed; text-align: center; vertical-align: middle; }
@@ -8914,9 +8914,9 @@ function coreCellAllHtml(student, catIdx) {
         }
         var barFill = pct > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + bg + ';"></div>' : '';
         var lblColor = (raw === null || scoreLabel === '0') ? '#aeaeb2' : '#1d1d1f';
-        rows += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:1px;">' +
-            '<div style="width:38px;height:6px;background:#f0f0f0;border-radius:2px;overflow:hidden;flex-shrink:0;">' + barFill + '</div>' +
-            '<span style="min-width:24px;font-size:0.58rem;color:' + lblColor + ';text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
+        rows += '<div style="display:flex;align-items:center;gap:2px;margin-bottom:1px;">' +
+            '<div style="flex:1;height:5px;background:#f0f0f0;border-radius:2px;overflow:hidden;">' + barFill + '</div>' +
+            '<span style="min-width:18px;font-size:0.55rem;color:' + lblColor + ';text-align:right;flex-shrink:0;">' + scoreLabel + '</span>' +
             '</div>';
     });
     if (!hasAny) return '<span style="color:#c7c7cc;font-size:0.7rem;">&ndash;</span>';
@@ -8968,15 +8968,15 @@ function coreGleBar(knownTotal, gleGoal) {
     if (isNaN(current) || isNaN(goal) || goal <= 0) return null;
     var pct = Math.min(Math.round(current / goal * 100), 100);
     var col = pctColor(pct);
-    return '<div style="min-width:110px;padding:1px 0;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">'
-        + '<span style="font-size:0.65rem;font-weight:700;color:#1d1d1f;">' + current + '</span>'
-        + '<span style="font-size:0.6rem;color:#86868b;">/ ' + goal + ' goal</span>'
+    return '<div style="padding:1px 2px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">'
+        + '<span style="font-size:0.6rem;font-weight:700;color:#1d1d1f;">' + current + '</span>'
+        + '<span style="font-size:0.55rem;color:#86868b;">/' + goal + '</span>'
         + '</div>'
-        + '<div style="height:7px;background:#e8e8ed;border-radius:4px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:4px;transition:width 0.4s;"></div>'
+        + '<div style="height:5px;background:#e8e8ed;border-radius:3px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:3px;"></div>'
         + '</div>'
-        + '<div style="text-align:right;font-size:0.58rem;color:' + col + ';font-weight:600;margin-top:2px;">' + pct + '%</div>'
+        + '<div style="text-align:right;font-size:0.55rem;color:' + col + ';font-weight:600;margin-top:1px;">' + pct + '%</div>'
         + '</div>';
 }
 
@@ -8995,16 +8995,29 @@ function renderCore() {
     }
     var p = corePeriod;
     var isAll = (p === 'all');
-    var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table"><thead><tr>';
+    // colgroup: student 14%, goal 7%, 2 growth 4% each, period 2.5%(All), 13 cats share rest, known 4%
+    var fixedPct = 14 + 7 + 4 + 4 + (isAll ? 2.5 : 0) + 4;
+    var catPct   = ((100 - fixedPct) / CORE_CATS.length).toFixed(1);
+    var colgroup = '<colgroup>'
+        + '<col style="width:14%">'
+        + '<col style="width:7%">'
+        + '<col style="width:4%">'
+        + '<col style="width:4%">'
+        + (isAll ? '<col style="width:2.5%">' : '')
+        + CORE_CATS.map(function() { return '<col style="width:' + catPct + '%">'; }).join('')
+        + '<col style="width:4%">'
+        + '</colgroup>';
+    var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table">'
+        + colgroup + '<thead><tr>';
     html += '<th class="core-name-col">Student</th>';
-    html += '<th style="min-width:120px;font-size:0.65rem;white-space:normal;line-height:1.2;">EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">words known</span></th>';
-    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
-    html += '<th style="min-width:64px;font-size:0.65rem;white-space:normal;line-height:1.2;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">growth</span></th>';
-    if (isAll) html += '<th style="width:30px;font-size:0.6rem;color:rgba(255,255,255,0.7);font-weight:500;text-align:right;padding-right:4px;white-space:nowrap;">Period</th>';
+    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">words</span></th>';
+    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
+    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
+    if (isAll) html += '<th style="font-size:0.55rem;color:rgba(255,255,255,0.7);font-weight:500;overflow:hidden;"></th>';
     CORE_CATS.forEach(function(cat) {
-        html += '<th title="' + cat.full + '">' + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.63rem;">/' + cat.max + '</span></th>';
+        html += '<th title="' + cat.full + '" style="overflow:hidden;">' + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">/' + cat.max + '</span></th>';
     });
-    html += '<th style="min-width:48px;font-size:0.65rem;white-space:normal;line-height:1.2;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.6rem;">% total</span></th>';
+    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">%</span></th>';
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
