@@ -7509,6 +7509,10 @@ function renderCompStudentOverview() {
             html += '<p style="color:#aeaeb2;font-size:.82rem;" id="comp-stu-ba-loading">Loading Beast Academy data...</p>';
         } else {
             var baRec = baData.find(function(r){ return xrefNorm(r.name)===norm; });
+            if (!baRec) {
+                var selFirst = sel.trim().split(/\s+/)[0].toLowerCase();
+                baRec = baData.find(function(r){ return (r.name||'').trim().split(/\s+/)[0].toLowerCase()===selFirst; });
+            }
             if (!baRec || !baRec.hasData) {
                 html += '<p style="color:#aeaeb2;font-size:.82rem;">No Beast Academy data for this student.</p>';
             } else {
@@ -11028,6 +11032,12 @@ function compStudentAL(name) {
     var norm = xrefNorm(name);
     for (var k in studentAutonomyLevel) {
         if (xrefNorm(k) === norm) return studentAutonomyLevel[k];
+    }
+    // Full name passed (e.g. "Fritz Schallich") but keys are first names ("Fritz") — match on first word
+    var inputFirst = (name || '').trim().split(/\s+/)[0].toLowerCase();
+    for (var k in studentAutonomyLevel) {
+        var keyFirst = (k || '').trim().split(/\s+/)[0].toLowerCase();
+        if (keyFirst === inputFirst) return studentAutonomyLevel[k];
     }
     return '';
 }
