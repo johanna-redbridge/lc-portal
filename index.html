@@ -970,6 +970,16 @@
         #wd-root .wd-cat-kpi { padding:9px 16px; border-radius:10px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.08); min-width:100px; }
         #wd-root .wd-cat-kpi .ck-label { font-size:.63rem; color:#94a3b8; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
         #wd-root .wd-cat-kpi .ck-value { font-size:1.3rem; font-weight:800; }
+
+        /* ── Redact mode ── */
+        body.redacted [data-redact],
+        body.redacted .core-name-col { background:#1c1c1e !important; color:transparent !important; border-radius:3px; user-select:none; }
+        body.redacted [data-redact] * { visibility:hidden !important; }
+        body.redacted select.redact-select { color:transparent !important; background:#1c1c1e !important; border-color:#1c1c1e !important; }
+        body.redacted select.redact-select option { color:transparent !important; }
+        body.redacted input.redact-input { color:transparent !important; background:#1c1c1e !important; border-color:#1c1c1e !important; caret-color:transparent; }
+        body.redacted .map-math-dd-item { color:transparent !important; }
+        body.redacted .map-math-dd-item * { color:transparent !important; }
     </style>
 <script src="https://accounts.google.com/gsi/client" async defer onload="window._gisReady=true;if(typeof initGDrive==='function')initGDrive();"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -7362,7 +7372,7 @@ function renderCompStudentOverview() {
     // ── selector bar ──
     var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
         + '<label style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Student</label>'
-        + '<select id="comp-stu-ov-sel" onchange="compStudOverviewName=this.value;renderCompStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
+        + '<select id="comp-stu-ov-sel" class="redact-select" onchange="compStudOverviewName=this.value;renderCompStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
         + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
         + '</select></div>';
 
@@ -7518,7 +7528,7 @@ function renderCompStudentOverview() {
             } else {
                 // Group badge
                 if (baRec.group) {
-                    html += '<div style="margin-bottom:0.85rem;font-size:.72rem;font-weight:700;color:#5c5b5a;">Group: <span style="background:#f0f0f0;border-radius:6px;padding:2px 8px;color:#3a3a3c;">'+baRec.group+'</span></div>';
+                    html += '<div style="margin-bottom:0.85rem;font-size:.72rem;font-weight:700;color:#5c5b5a;">Group: <span data-redact="group" style="background:#f0f0f0;border-radius:6px;padding:2px 8px;color:#3a3a3c;">'+baRec.group+'</span></div>';
                 }
                 // Stat bars
                 var baStats = [
@@ -10014,7 +10024,7 @@ function renderMapMathStudentGraphs() {
 
     // Search bar
     html += '<div style="position:relative;max-width:380px;margin-bottom:1.25rem;">'
-        + '<input id="map-math-student-search" type="text" value="' + fullName(s.name).replace(/"/g,'&quot;') + '" '
+        + '<input id="map-math-student-search" type="text" class="redact-input" value="' + fullName(s.name).replace(/"/g,'&quot;') + '" '
         + 'placeholder="Search student…" autocomplete="off" '
         + 'style="width:100%;padding:0.5rem 2rem 0.5rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;color:#1d1d1f;background:#fff;outline:none;box-sizing:border-box;" '
         + 'oninput="mapMathSearchInput(this.value)" onfocus="mapMathShowDropdown()" onblur="setTimeout(function(){mapMathHideDropdown();},160)"/>'
@@ -10967,10 +10977,10 @@ function doRenderBeastAcademy(el) {
     sorted.forEach(function(s, i) {
         var rb = i % 2 === 0 ? '#fff' : '#fafafa';
         html += '<tr style="background:' + rb + ';border-bottom:1px solid #f1f5f9;">';
-        html += '<td style="padding:6px 8px;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + fullName(s.name).replace(/</g,'&lt;') + '</td>';
-        html += '<td style="padding:6px 8px;text-align:center;font-size:.75rem;color:#64748b;">' + (s.al ? 'AL'+s.al : '—') + '</td>';
+        html += '<td data-redact="name" style="padding:6px 8px;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + fullName(s.name).replace(/</g,'&lt;') + '</td>';
+        html += '<td data-redact="al" style="padding:6px 8px;text-align:center;font-size:.75rem;color:#64748b;">' + (s.al ? 'AL'+s.al : '—') + '</td>';
         html += '<td style="padding:6px 8px;text-align:center;font-size:.75rem;color:#64748b;">' + (s.gle || '—') + '</td>';
-        html += '<td style="padding:6px 8px;text-align:center;"><span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#f5f5f7;font-size:.72rem;font-weight:600;color:#5c5b5a;">' + (s.group || '—') + '</span></td>';
+        html += '<td data-redact="group" style="padding:6px 8px;text-align:center;"><span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#f5f5f7;font-size:.72rem;font-weight:600;color:#5c5b5a;">' + (s.group || '—') + '</span></td>';
         html += '<td style="padding:6px 10px;min-width:100px;">' + bar(s.stars, maxStars, '#f59e0b') + '</td>';
         html += '<td style="padding:6px 10px;min-width:100px;">' + bar(s.checks, maxChecks, '#00E3FF') + '</td>';
         html += '<td style="padding:6px 10px;min-width:110px;">' + bar(s.minutes, maxMinutes, '#a78bfa') + '</td>';
@@ -11396,10 +11406,10 @@ function doRenderBenchOverview(el) {
         }
 
         bodyRows += '<tr>'
-            + '<td style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
-            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al||'—') + '</td>'
+            + '<td data-redact="name" style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
+            + '<td data-redact="al" style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al||'—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle||'—') + '</td>'
-            + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>'
+            + '<td data-redact="group" style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>'
             + mapMathCell;
         BENCH_LONG_YEARS.forEach(function(y) {
             var yd = s.years[y.key];
@@ -13207,6 +13217,26 @@ window._msRubricB64="PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjxtZXRhIGN
         <div id="analytics-modal-body"></div>
     </div>
 </div>
+
+<!-- ── Redact toggle ── -->
+<div style="position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;align-items:center;gap:7px;background:#fff;padding:6px 11px 6px 10px;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.18);cursor:pointer;" onclick="toggleRedact()">
+  <span style="font-size:0.65rem;font-weight:700;color:#3a3a3c;letter-spacing:.04em;text-transform:uppercase;">Redact</span>
+  <div id="redact-track" style="width:32px;height:17px;background:#d1d1d6;border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;">
+    <div id="redact-knob" style="width:13px;height:13px;background:#1c1c1e;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .18s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></div>
+  </div>
+</div>
+
+<script>
+var redactMode = false;
+function toggleRedact() {
+    redactMode = !redactMode;
+    document.body.classList.toggle('redacted', redactMode);
+    var track = document.getElementById('redact-track');
+    var knob  = document.getElementById('redact-knob');
+    if (track) track.style.background = redactMode ? '#1c1c1e' : '#d1d1d6';
+    if (knob)  knob.style.left        = redactMode ? '17px'   : '2px';
+}
+</script>
 
 </body>
 </html>
