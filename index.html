@@ -12744,7 +12744,7 @@ function renderCategoryView() {
     var gc=growthColors(clsGrow,'half');
     var html='<div class="wd-filter-bar" style="flex-wrap:wrap;gap:6px;padding-bottom:10px;">'
         +'<div class="toggle-group" style="flex-wrap:wrap;gap:3px;">'
-        +CATS.map(function(c,i){return'<button class="toggle-btn'+(i===catDiveIdx?' active':'')+'" onclick="catDiveIdx='+i+';renderCategoryView();" style="font-size:0.72rem;padding:0.3rem 0.75rem;">'+c+'</button>';}).join('')
+        +CATS.map(function(c,i){return'<button class="toggle-btn'+(i===catDiveIdx?' active':'')+'" onclick="WD.setCatDive('+i+')" style="font-size:0.72rem;padding:0.3rem 0.75rem;">'+c+'</button>';}).join('')
         +'</div>'
         +'</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
@@ -12868,8 +12868,9 @@ function setLevel(lvl) {
 }
 function setRosterGrowth(col) { rosterGrowthCol=col; renderClassOverview(); }
 function setStudentGrowth(col) { studentGrowthCol=col; renderStudentView(); }
+function setCatDive(i) { catDiveIdx=i; renderCategoryView(); }
 
-return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth };
+return { init:init, switchView:switchView, setLevel:setLevel, setRosterGrowth:setRosterGrowth, setStudentGrowth:setStudentGrowth, setCatDive:setCatDive };
 })();
 
 /* ═══════════════════════════════════════════════════════════════
