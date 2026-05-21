@@ -973,6 +973,7 @@
 
         /* ── Redact mode ── */
         .redact-box { background:#1c1c1e !important; color:transparent !important; border-radius:2px; user-select:none; display:inline; }
+        body.redacted a.redact-link { color:transparent !important; text-decoration:none !important; }
         body.redacted [data-redact],
         body.redacted .core-name-col { background:#1c1c1e !important; color:transparent !important; border-radius:3px; user-select:none; }
         body.redacted [data-redact] * { visibility:hidden !important; }
@@ -13267,6 +13268,35 @@ function _buildRedactRegex() {
 
 var SKIP_TAGS = { SCRIPT:1, STYLE:1, NOSCRIPT:1, CANVAS:1, INPUT:1, TEXTAREA:1, SELECT:1, OPTION:1 };
 
+function _redactSelects() {
+    var regex = window._redactRegex;
+    if (!regex) return;
+    document.querySelectorAll('select').forEach(function(sel) {
+        var hasName = false;
+        for (var oi = 0; oi < sel.options.length; oi++) {
+            regex.lastIndex = 0;
+            if (regex.test(sel.options[oi].text)) { hasName = true; break; }
+        }
+        if (!hasName) return;
+        for (var oi = 0; oi < sel.options.length; oi++) {
+            var opt = sel.options[oi];
+            if (!opt.dataset.origText) opt.dataset.origText = opt.text;
+            opt.text = '●●●●';
+        }
+        sel.dataset.redacted = '1';
+    });
+}
+
+function _unredactSelects() {
+    document.querySelectorAll('select[data-redacted]').forEach(function(sel) {
+        for (var oi = 0; oi < sel.options.length; oi++) {
+            var opt = sel.options[oi];
+            if (opt.dataset.origText !== undefined) { opt.text = opt.dataset.origText; delete opt.dataset.origText; }
+        }
+        delete sel.dataset.redacted;
+    });
+}
+
 function _redactNode(root) {
     if (!root || !redactMode) return;
     var regex = window._redactRegex;
@@ -13286,6 +13316,12 @@ function _redactNode(root) {
         regex.lastIndex = 0;
         var parts = tn.nodeValue.split(regex);
         if (parts.length <= 1) return;
+        // Mark ancestor anchor so its orange color doesn't bleed through
+        var anc = tn.parentNode;
+        while (anc && anc !== document.body) {
+            if (anc.tagName === 'A') { anc.classList.add('redact-link'); break; }
+            anc = anc.parentNode;
+        }
         var frag = document.createDocumentFragment();
         parts.forEach(function(part, i) {
             if (!part) return;
@@ -13300,6 +13336,7 @@ function _redactNode(root) {
         });
         if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
     });
+    _redactSelects();
     _redactBusy = false;
 }
 
@@ -13308,6 +13345,8 @@ function _unredact() {
         var p = el.parentNode;
         if (p) { p.replaceChild(document.createTextNode(el.textContent), el); p.normalize(); }
     });
+    document.querySelectorAll('a.redact-link').forEach(function(a) { a.classList.remove('redact-link'); });
+    _unredactSelects();
 }
 
 function toggleRedact() {
