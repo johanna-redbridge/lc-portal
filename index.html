@@ -1284,6 +1284,7 @@
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
                 <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
                 <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
+                <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1334,6 +1335,9 @@
             <!-- Student Overview -->
             <div id="math-panel-student-overview" style="display:none;">
                 <div id="math-student-overview-content"></div>
+            </div>
+            <div id="math-panel-beast-academy" style="display:none;">
+                <div id="ba-content"></div>
             </div>
         </div>
 
@@ -7289,7 +7293,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview'].forEach(function(n) {
+    ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview', 'beast-academy'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -7302,6 +7306,7 @@ function renderMathSubtab() {
     if (mathSubtab === 'fact-fluency')     renderFactFluency();
     if (mathSubtab === 'stmath')           renderSTMath();
     if (mathSubtab === 'student-overview') renderCompStudentOverview();
+    if (mathSubtab === 'beast-academy')    renderBeastAcademy();
 }
 
 // ── Computation Student Overview ──────────────────────────────────────────────
@@ -10695,6 +10700,216 @@ function setCompAL(al) {
         b.classList.toggle('active', b.dataset.al === al);
     });
     renderCompTable();
+}
+
+// ── Beast Academy ─────────────────────────────────────────────────────────────
+var BA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=194535538&single=true&output=csv';
+var baData = null;
+var baSortCol = 'stars';
+var baSortDir = 'desc';
+var baALFilter = 'all';
+var baGroupFilter = 'all';
+
+function parseBACsv(text) {
+    var rows = parseCSV(text);
+    if (rows.length < 2) return [];
+    var students = [];
+    for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1] || '').trim();
+        if (!name) continue;
+        var stars   = r[5] !== undefined && r[5] !== '' ? parseFloat(r[5])   : null;
+        var checks  = r[6] !== undefined && r[6] !== '' ? parseFloat(r[6])   : null;
+        var minutes = r[7] !== undefined && r[7] !== '' ? parseFloat(r[7])   : null;
+        var growth  = r[8] !== undefined && r[8] !== '' ? parseFloat(r[8])   : null;
+        students.push({
+            name:    name,
+            al:      (r[2] || '').trim(),
+            gle:     (r[3] || '').trim(),
+            group:   (r[4] || '').trim(),
+            stars:   isNaN(stars)   ? null : stars,
+            checks:  isNaN(checks)  ? null : checks,
+            minutes: isNaN(minutes) ? null : minutes,
+            growth:  isNaN(growth)  ? null : growth,
+            hasData: stars !== null || checks !== null || minutes !== null
+        });
+    }
+    return students;
+}
+
+function setBaSort(col) {
+    if (baSortCol === col) baSortDir = baSortDir === 'desc' ? 'asc' : 'desc';
+    else { baSortCol = col; baSortDir = 'desc'; }
+    renderBeastAcademy();
+}
+
+function setBaAL(al) {
+    baALFilter = al;
+    document.querySelectorAll('.ba-al-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.al === al);
+    });
+    renderBeastAcademy();
+}
+
+function setBaGroup(g) {
+    baGroupFilter = g;
+    document.querySelectorAll('.ba-group-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.group === g);
+    });
+    renderBeastAcademy();
+}
+
+function renderBeastAcademy() {
+    var el = document.getElementById('ba-content');
+    if (!el) return;
+    if (!baData) {
+        el.innerHTML = '<p style="padding:2rem;color:#aeaeb2;text-align:center;">Loading Beast Academy data…</p>';
+        fetch(BA_URL).then(function(r) { return r.text(); }).then(function(text) {
+            baData = parseBACsv(text);
+            doRenderBeastAcademy(el);
+        }).catch(function(e) {
+            el.innerHTML = '<p style="padding:1rem;color:#ff3b30;">Failed to load data: ' + (e.message || e) + '</p>';
+        });
+        return;
+    }
+    doRenderBeastAcademy(el);
+}
+
+function doRenderBeastAcademy(el) {
+    var all = baData || [];
+
+    // Unique groups
+    var groups = [];
+    all.forEach(function(s) { if (s.group && groups.indexOf(s.group) < 0) groups.push(s.group); });
+    groups.sort();
+
+    // Filter
+    var filtered = all.filter(function(s) {
+        if (baALFilter !== 'all' && s.al !== baALFilter) return false;
+        if (baGroupFilter !== 'all' && s.group !== baGroupFilter) return false;
+        return true;
+    });
+
+    // Sort
+    var sorted = filtered.slice().sort(function(a, b) {
+        var av = a[baSortCol], bv = b[baSortCol];
+        var nullV = baSortDir === 'desc' ? -Infinity : Infinity;
+        var an = av !== null ? av : nullV, bn = bv !== null ? bv : nullV;
+        if (baSortCol === 'name' || baSortCol === 'al' || baSortCol === 'gle' || baSortCol === 'group') {
+            var as2 = String(av || ''), bs2 = String(bv || '');
+            return baSortDir === 'asc' ? as2.localeCompare(bs2) : bs2.localeCompare(as2);
+        }
+        return baSortDir === 'desc' ? bn - an : an - bn;
+    });
+
+    // KPI summary (from filtered set, students with data only)
+    var withData = filtered.filter(function(s) { return s.hasData; });
+    function avg(fn) {
+        var vals = withData.map(fn).filter(function(v) { return v !== null; });
+        return vals.length ? vals.reduce(function(a,b){return a+b;},0)/vals.length : null;
+    }
+    function fmt1(v) { return v !== null ? v.toFixed(1) : '—'; }
+    function fmtInt(v) { return v !== null ? Math.round(v).toLocaleString() : '—'; }
+    var avgStars   = avg(function(s){return s.stars;});
+    var avgChecks  = avg(function(s){return s.checks;});
+    var avgMinutes = avg(function(s){return s.minutes;});
+    var avgGrowth  = avg(function(s){return s.growth;});
+
+    // Max values for bar scaling
+    var maxStars   = Math.max.apply(null, withData.map(function(s){return s.stars   || 0;})) || 1;
+    var maxChecks  = Math.max.apply(null, withData.map(function(s){return s.checks  || 0;})) || 1;
+    var maxMinutes = Math.max.apply(null, withData.map(function(s){return s.minutes || 0;})) || 1;
+
+    // AL buttons
+    var als = ['all','1','2','3','4'];
+
+    var html = '';
+
+    // ── Filter bar ──
+    html += '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
+    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">AL</span><div style="display:flex;gap:4px;">';
+    als.forEach(function(al) {
+        html += '<button class="toggle-btn ba-al-btn' + (baALFilter===al?' active':'') + '" data-al="' + al + '" onclick="setBaAL(\'' + al + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + (al==='all'?'All':'AL'+al) + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Group</span><div style="display:flex;gap:4px;">';
+    html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">All</button>';
+    groups.forEach(function(g) {
+        html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter===g?' active':'') + '" data-group="' + g + '" onclick="setBaGroup(\'' + g.replace(/'/g,"\\'") + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + g + '</button>';
+    });
+    html += '</div></div>';
+    html += '<span style="font-size:.72rem;color:#94a3b8;margin-left:auto;">' + withData.length + ' of ' + filtered.length + ' students with BA data</span>';
+    html += '</div>';
+
+    // ── KPI cards ──
+    var growthColor = avgGrowth !== null ? (avgGrowth >= 0.5 ? '#16a34a' : avgGrowth >= 0.25 ? '#d97706' : '#dc2626') : '#86868b';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:1.25rem 1.25rem .5rem;">';
+    [
+        { label: 'Avg Stars ⭐',   value: fmt1(avgStars),             sub: 'per student' },
+        { label: 'Avg Checks ✓',   value: fmtInt(avgChecks),          sub: 'per student' },
+        { label: 'Avg Minutes ⏱',  value: fmtInt(avgMinutes),         sub: 'per student' },
+        { label: 'Avg BOY→MOY',    value: avgGrowth !== null ? (avgGrowth>0?'+':'') + avgGrowth.toFixed(2) : '—', sub: 'growth', color: growthColor }
+    ].forEach(function(k) {
+        html += '<div style="background:#fff;border-radius:12px;box-shadow:0 1px 5px rgba(0,0,0,.07);padding:14px 18px;">'
+            + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px;">' + k.label + '</div>'
+            + '<div style="font-size:1.6rem;font-weight:800;line-height:1;color:' + (k.color || '#1d1d1f') + ';">' + k.value + '</div>'
+            + '<div style="font-size:.68rem;color:#94a3b8;margin-top:3px;">' + k.sub + '</div>'
+            + '</div>';
+    });
+    html += '</div>';
+
+    // ── Student table ──
+    function thSort(label, col, right) {
+        var active = baSortCol === col;
+        var arrow = active ? (baSortDir === 'desc' ? ' ▼' : ' ▲') : ' <span style="opacity:.3">↕</span>';
+        return '<th onclick="setBaSort(\'' + col + '\')" style="cursor:pointer;user-select:none;padding:7px 8px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;' + (right?'text-align:right;':'') + (active?'background:#3a3a3c;':'') + '">' + label + arrow + '</th>';
+    }
+    function bar(v, max, color) {
+        if (v === null) return '<span style="color:#d1d1d6;font-size:.75rem;">—</span>';
+        var pct = Math.min(100, Math.round(v / max * 100));
+        return '<div style="display:flex;align-items:center;gap:5px;">'
+            + '<div style="flex:1;min-width:40px;height:7px;background:#f0f0f0;border-radius:4px;overflow:hidden;">'
+            + '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:4px;"></div></div>'
+            + '<span style="font-size:.72rem;font-weight:600;color:#1d1d1f;min-width:36px;text-align:right;">' + Math.round(v).toLocaleString() + '</span>'
+            + '</div>';
+    }
+    function growthBadge(v) {
+        if (v === null) return '<span style="color:#d1d1d6;font-size:.75rem;">—</span>';
+        var col = v >= 0.5 ? '#16a34a' : v >= 0.25 ? '#d97706' : v >= 0 ? '#64748b' : '#dc2626';
+        var bg  = v >= 0.5 ? '#d1fae5' : v >= 0.25 ? '#fef3c7' : v >= 0 ? '#f1f5f9' : '#fee2e2';
+        return '<span style="display:inline-block;padding:2px 8px;border-radius:8px;background:' + bg + ';color:' + col + ';font-size:.72rem;font-weight:700;">' + (v>0?'+':'') + v.toFixed(2) + '</span>';
+    }
+
+    html += '<div style="padding:0 1.25rem 1.5rem;">';
+    html += '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.07);">';
+    html += '<div style="overflow-x:auto;max-height:62vh;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
+    html += '<thead><tr style="background:#5c5b5a;color:#fff;position:sticky;top:0;z-index:2;">';
+    html += thSort('Student','name') + thSort('AL','al',true) + thSort('GLE','gle',true) + '<th style="padding:7px 8px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Group</th>';
+    html += thSort('Stars ⭐','stars',true) + thSort('Checks ✓','checks',true) + thSort('Minutes ⏱','minutes',true) + thSort('BOY→MOY','growth',true);
+    html += '</tr></thead><tbody>';
+
+    sorted.forEach(function(s, i) {
+        var rb = i % 2 === 0 ? '#fff' : '#fafafa';
+        html += '<tr style="background:' + rb + ';border-bottom:1px solid #f1f5f9;">';
+        html += '<td style="padding:6px 8px;font-weight:500;color:#1d1d1f;white-space:nowrap;">' + fullName(s.name).replace(/</g,'&lt;') + '</td>';
+        html += '<td style="padding:6px 8px;text-align:center;font-size:.75rem;color:#64748b;">' + (s.al ? 'AL'+s.al : '—') + '</td>';
+        html += '<td style="padding:6px 8px;text-align:center;font-size:.75rem;color:#64748b;">' + (s.gle || '—') + '</td>';
+        html += '<td style="padding:6px 8px;text-align:center;"><span style="display:inline-block;padding:2px 8px;border-radius:8px;background:#f5f5f7;font-size:.72rem;font-weight:600;color:#5c5b5a;">' + (s.group || '—') + '</span></td>';
+        html += '<td style="padding:6px 10px;min-width:100px;">' + bar(s.stars, maxStars, '#f59e0b') + '</td>';
+        html += '<td style="padding:6px 10px;min-width:100px;">' + bar(s.checks, maxChecks, '#00E3FF') + '</td>';
+        html += '<td style="padding:6px 10px;min-width:110px;">' + bar(s.minutes, maxMinutes, '#a78bfa') + '</td>';
+        html += '<td style="padding:6px 10px;text-align:center;">' + growthBadge(s.growth) + '</td>';
+        html += '</tr>';
+    });
+
+    if (!sorted.length) {
+        html += '<tr><td colspan="8" style="padding:2rem;text-align:center;color:#aeaeb2;">No students match the current filters.</td></tr>';
+    }
+
+    html += '</tbody></table></div></div></div>';
+
+    el.innerHTML = html;
 }
 
 function fullName(name) {
