@@ -12832,7 +12832,7 @@ function init() {
 }
 function currentLevelCfg() {
     if (currentLevel === 'all') return { label: 'All LS', hasGoal: true, cats: WD_CATS_LOWER };
-    return currentLevelCfg() || { label: '—', hasGoal: false, cats: [] };
+    return LEVELS[currentLevel] || { label: '—', hasGoal: false, cats: [] };
 }
 function setLevel(lvl) {
     if (lvl !== 'all' && !(lvl in LEVELS)) return;
