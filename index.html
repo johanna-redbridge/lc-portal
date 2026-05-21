@@ -7483,7 +7483,11 @@ function renderCompStudentOverview() {
     // STMath (AL1) or Beast Academy (AL2+)
     var alStr = compStudentAL(sel) || '';
     var alNum = parseInt(alStr.replace(/[^0-9]/g,'')) || 0;
-    var isAL1 = alNum === 1 || alNum === 0; // show STMath if AL unknown too
+    // If AL unknown but student has Beast Academy data, treat as AL2+
+    var baCheck = baData && baData.find(function(r){
+        return (xrefNorm(r.name)===norm || (r.name||'').trim().split(/\s+/)[0].toLowerCase()===sel.trim().split(/\s+/)[0].toLowerCase()) && r.hasData;
+    });
+    var isAL1 = alNum === 1 || (alNum === 0 && !baCheck);
 
     if (isAL1) {
         html += '<div style="flex:1;min-width:260px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">';
@@ -11044,11 +11048,30 @@ function compStudentAL(name) {
     for (var k in studentAutonomyLevel) {
         if (xrefNorm(k) === norm) return studentAutonomyLevel[k];
     }
-    // Full name passed (e.g. "Fritz Schallich") but keys are first names ("Fritz") — match on first word
     var inputFirst = (name || '').trim().split(/\s+/)[0].toLowerCase();
     for (var k in studentAutonomyLevel) {
         var keyFirst = (k || '').trim().split(/\s+/)[0].toLowerCase();
         if (keyFirst === inputFirst) return studentAutonomyLevel[k];
+    }
+    // Fall back to AL stored in loaded data sources
+    function matchName(n) {
+        return xrefNorm(n) === norm || (n || '').trim().split(/\s+/)[0].toLowerCase() === inputFirst;
+    }
+    function fmtAL(raw) {
+        var d = (raw || '').toString().replace(/[^0-9]/g, '');
+        return d ? 'AL' + d : '';
+    }
+    if (baData) {
+        var br = baData.find(function(s){ return matchName(s.name); });
+        if (br && br.al) return fmtAL(br.al);
+    }
+    if (mapData && mapData.students) {
+        var mr = mapData.students.find(function(s){ return matchName(s.name); });
+        if (mr && mr.al) return fmtAL(mr.al);
+    }
+    if (benchLongData) {
+        var blr = benchLongData.find(function(s){ return matchName(s.name); });
+        if (blr && blr.al) return fmtAL(blr.al);
     }
     return '';
 }
