@@ -7311,13 +7311,18 @@ function renderCompStudentOverview() {
     var el = document.getElementById('math-student-overview-content');
     if (!el) return;
 
-    // Collect all student names across sources
+    // Collect all student names across sources, deduplicating via fullName()
     var names = {};
-    if (compData) compData.students.forEach(function(s){ names[s.name] = true; });
-    if (mapData && mapData.students) mapData.students.forEach(function(s){ names[s.name] = true; });
-    if (factFluencyData) factFluencyData.students.forEach(function(s){ names[s.name] = true; });
-    if (benchLongData) benchLongData.forEach(function(s){ names[s.name] = true; });
-    if (stmathData) stmathData.forEach(function(sec){ sec.students.forEach(function(s){ names[s.name] = true; }); });
+    var compNameFor = {}; // fullName → original comp spreadsheet name (for mastery lookups)
+    if (compData) compData.students.forEach(function(s) {
+        var dn = fullName(s.name);
+        names[dn] = true;
+        compNameFor[dn] = s.name;
+    });
+    if (mapData && mapData.students) mapData.students.forEach(function(s) { names[fullName(s.name)] = true; });
+    if (factFluencyData) factFluencyData.students.forEach(function(s) { names[fullName(s.name)] = true; });
+    if (benchLongData) benchLongData.forEach(function(s) { names[fullName(s.name)] = true; });
+    if (stmathData) stmathData.forEach(function(sec) { sec.students.forEach(function(s) { names[fullName(s.name)] = true; }); });
 
     var nameList = Object.keys(names).sort();
     if (!nameList.length) {
@@ -7327,6 +7332,8 @@ function renderCompStudentOverview() {
     if (!compStudOverviewName || !names[compStudOverviewName]) compStudOverviewName = nameList[0];
     var sel = compStudOverviewName;
     var norm = xrefNorm(sel);
+    // Resolve to the comp spreadsheet key for mastery lookups
+    var compSel = compNameFor[sel] || sel;
 
     // ── selector bar ──
     var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
@@ -7350,7 +7357,7 @@ function renderCompStudentOverview() {
             gleGroups[gleMap[g]].items.push({ q: q, qi: qi });
         });
         gleGroups.forEach(function(grp) {
-            var mastered = grp.items.filter(function(it){ return it.q.mastery[sel]; }).length;
+            var mastered = grp.items.filter(function(it){ return it.q.mastery[compSel]; }).length;
             var total = grp.items.length;
             var pct = total ? Math.round(mastered/total*100) : 0;
             var col = pctColor(pct);
@@ -7364,7 +7371,7 @@ function renderCompStudentOverview() {
             // Question chips
             html += '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4.25rem;">';
             grp.items.forEach(function(it) {
-                var done = it.q.mastery[sel];
+                var done = it.q.mastery[compSel];
                 var bg = done ? '#34c759' : '#e8e8ed';
                 var tc = done ? '#fff' : '#aeaeb2';
                 var lbl = (it.q.q || it.q.std || '').replace(/"/g,'&quot;');
