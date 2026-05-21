@@ -6993,7 +6993,7 @@ function renderReadingStudentOverview() {
     html += '<div style="flex:1;min-width:0;">';
     if (hasFpLong) {
         html += '<div style="font-size:.65rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Growth Over Time</div>';
-        html += '<canvas id="stu-ov-fp-canvas" width="600" height="180" style="width:100%;height:180px;border-radius:8px;display:block;"></canvas>';
+        html += '<canvas id="stu-ov-fp-canvas" width="600" height="360" style="width:100%;height:360px;border-radius:8px;display:block;"></canvas>';
     } else {
         html += '<p style="color:#aeaeb2;font-size:.78rem;">No longitudinal F&P data.</p>';
     }
@@ -9485,9 +9485,9 @@ function renderFPGrowthView() {
             + '<div><div style="font-size:1.1rem;font-weight:800;color:#1d1d1f;">' + student.name + '</div>'
             + '<div style="font-size:.75rem;color:#94a3b8;margin-top:2px;">F&amp;P Reading Level · Multi-year progression · 2021–2026</div></div>'
             + '<div style="display:flex;gap:14px;font-size:.72rem;align-items:center;">'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#FF8200;display:inline-block;"></span>BOY (Sep)</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#007aff;display:inline-block;"></span>MOY (Jan)</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#34c759;display:inline-block;"></span>EOY (Jun)</span>'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#d1d1d6;border:2px solid #FFC8BB;display:inline-block;"></span>BOY</span>'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#8e8e93;border:2px solid #FFC8BB;display:inline-block;"></span>MOY</span>'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#1c1c1e;border:2px solid #FFC8BB;display:inline-block;"></span>EOY</span>'
             + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2px dashed #16a34a;display:inline-block;vertical-align:middle;"></span>EOY Target</span>'
             + '</div></div>'
             + '<div id="fp-long-wrap" style="overflow-x:auto;"><canvas id="fp-long-canvas" style="display:block;"></canvas></div>'
@@ -9500,7 +9500,7 @@ function renderFPGrowthView() {
         var wrap   = document.getElementById('fp-long-wrap');
         if (canvas && wrap) {
             canvas.width  = Math.min(920, wrap.clientWidth - 4 || 760);
-            canvas.height = 330;
+            canvas.height = 600;
             drawFpGrowthGraph(canvas, student.points, student.gle);
         }
     }
