@@ -10887,6 +10887,7 @@ function doRenderBeastAcademy(el) {
     html += '<thead><tr style="background:#5c5b5a;color:#fff;position:sticky;top:0;z-index:2;">';
     html += thSort('Student','name') + thSort('AL','al',true) + thSort('GLE','gle',true) + '<th style="padding:7px 8px;font-size:.72rem;font-weight:700;">Group</th>';
     html += thSort('Stars','stars',true) + thSort('Checks','checks',true) + thSort('Minutes','minutes',true) + thSort('BOY→MOY','growth',true);
+    html += '<th style="padding:7px 8px;font-size:.72rem;font-weight:700;text-align:right;">MOY→EOY</th>';
     html += '</tr></thead><tbody>';
 
     sorted.forEach(function(s, i) {
@@ -10900,11 +10901,12 @@ function doRenderBeastAcademy(el) {
         html += '<td style="padding:6px 10px;min-width:100px;">' + bar(s.checks, maxChecks, '#00E3FF') + '</td>';
         html += '<td style="padding:6px 10px;min-width:110px;">' + bar(s.minutes, maxMinutes, '#a78bfa') + '</td>';
         html += '<td style="padding:6px 10px;text-align:center;">' + growthBadge(s.growth) + '</td>';
+        html += '<td style="padding:6px 10px;text-align:center;font-size:.72rem;color:#aeaeb2;font-style:italic;">no data yet</td>';
         html += '</tr>';
     });
 
     if (!sorted.length) {
-        html += '<tr><td colspan="8" style="padding:2rem;text-align:center;color:#aeaeb2;">No students match the current filters.</td></tr>';
+        html += '<tr><td colspan="9" style="padding:2rem;text-align:center;color:#aeaeb2;">No students match the current filters.</td></tr>';
     }
 
     html += '</tbody></table></div></div></div>';
