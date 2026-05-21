@@ -10845,13 +10845,13 @@ function doRenderBeastAcademy(el) {
     var growthColor = avgGrowth !== null ? (avgGrowth >= 0.5 ? '#16a34a' : avgGrowth >= 0.25 ? '#d97706' : '#dc2626') : '#86868b';
     html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:1.25rem 1.25rem .5rem;">';
     [
-        { label: 'Avg Stars ⭐',   value: fmt1(avgStars),             sub: 'per student' },
-        { label: 'Avg Checks ✓',   value: fmtInt(avgChecks),          sub: 'per student' },
-        { label: 'Avg Minutes ⏱',  value: fmtInt(avgMinutes),         sub: 'per student' },
-        { label: 'Avg BOY→MOY',    value: avgGrowth !== null ? (avgGrowth>0?'+':'') + avgGrowth.toFixed(2) : '—', sub: 'growth', color: growthColor }
+        { label: 'Avg stars',      value: fmt1(avgStars),             sub: 'per student' },
+        { label: 'Avg checks',     value: fmtInt(avgChecks),          sub: 'per student' },
+        { label: 'Avg minutes',    value: fmtInt(avgMinutes),         sub: 'per student' },
+        { label: 'Avg BOY→MOY',   value: avgGrowth !== null ? (avgGrowth>0?'+':'') + avgGrowth.toFixed(2) : '—', sub: 'growth', color: growthColor }
     ].forEach(function(k) {
         html += '<div style="background:#fff;border-radius:12px;box-shadow:0 1px 5px rgba(0,0,0,.07);padding:14px 18px;">'
-            + '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px;">' + k.label + '</div>'
+            + '<div style="font-size:.72rem;font-weight:700;color:#94a3b8;margin-bottom:4px;">' + k.label + '</div>'
             + '<div style="font-size:1.6rem;font-weight:800;line-height:1;color:' + (k.color || '#1d1d1f') + ';">' + k.value + '</div>'
             + '<div style="font-size:.68rem;color:#94a3b8;margin-top:3px;">' + k.sub + '</div>'
             + '</div>';
@@ -10862,7 +10862,7 @@ function doRenderBeastAcademy(el) {
     function thSort(label, col, right) {
         var active = baSortCol === col;
         var arrow = active ? (baSortDir === 'desc' ? ' ▼' : ' ▲') : ' <span style="opacity:.3">↕</span>';
-        return '<th onclick="setBaSort(\'' + col + '\')" style="cursor:pointer;user-select:none;padding:7px 8px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;' + (right?'text-align:right;':'') + (active?'background:#3a3a3c;':'') + '">' + label + arrow + '</th>';
+        return '<th onclick="setBaSort(\'' + col + '\')" style="cursor:pointer;user-select:none;padding:7px 8px;font-size:.72rem;font-weight:700;white-space:nowrap;' + (right?'text-align:right;':'') + (active?'background:#3a3a3c;':'') + '">' + label + arrow + '</th>';
     }
     function bar(v, max, color) {
         if (v === null) return '<span style="color:#d1d1d6;font-size:.75rem;">—</span>';
@@ -10885,8 +10885,8 @@ function doRenderBeastAcademy(el) {
     html += '<div style="overflow-x:auto;max-height:62vh;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
     html += '<thead><tr style="background:#5c5b5a;color:#fff;position:sticky;top:0;z-index:2;">';
-    html += thSort('Student','name') + thSort('AL','al',true) + thSort('GLE','gle',true) + '<th style="padding:7px 8px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Group</th>';
-    html += thSort('Stars ⭐','stars',true) + thSort('Checks ✓','checks',true) + thSort('Minutes ⏱','minutes',true) + thSort('BOY→MOY','growth',true);
+    html += thSort('Student','name') + thSort('AL','al',true) + thSort('GLE','gle',true) + '<th style="padding:7px 8px;font-size:.72rem;font-weight:700;">Group</th>';
+    html += thSort('Stars','stars',true) + thSort('Checks','checks',true) + thSort('Minutes','minutes',true) + thSort('BOY→MOY','growth',true);
     html += '</tr></thead><tbody>';
 
     sorted.forEach(function(s, i) {
