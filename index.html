@@ -10869,6 +10869,7 @@ function doRenderBeastAcademy(el) {
 
     // Filter
     var filtered = all.filter(function(s) {
+        if (!s.hasData) return false;
         if (baALFilter !== 'all' && s.al !== baALFilter) return false;
         if (baGroupFilter !== 'all' && s.group !== baGroupFilter) return false;
         return true;
