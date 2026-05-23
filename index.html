@@ -1197,12 +1197,12 @@
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
             <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
+                <button class="toggle-btn reading-view-btn" data-view="xref-read" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
                 <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
                 <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
                 <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
                 <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
-                <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
-                <button class="toggle-btn reading-view-btn" data-view="xref-read" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
             </div>
             <!-- CORE -->
             <div id="reading-panel-core">
@@ -1314,13 +1314,13 @@
         <!-- ── Computation Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
             <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
+                <button class="toggle-btn math-view-btn" data-view="xref-comp" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
                 <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
                 <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
                 <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
                 <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
-                <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
                 <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
-                <button class="toggle-btn math-view-btn" data-view="xref-comp" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
