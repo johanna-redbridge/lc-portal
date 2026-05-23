@@ -4851,19 +4851,20 @@ function renderAvailable() {
     }
 
     var html = whPanel + '<table style="table-layout:fixed;width:100%;">';
-    html += '<colgroup><col style="width:36px"><col style="width:34%"><col style="width:6%"><col style="width:12%"><col style="width:12%"><col style="width:14%"><col style="width:14%"></colgroup>';
+    html += '<colgroup><col style="width:36px"><col style="width:30%"><col style="width:5%"><col style="width:10%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:14%"></colgroup>';
     html += '<thead><tr>';
     html += '<th></th>';
     html += '<th>Credit Name</th>';
-    html += '<th style="text-align:center;">Doc</th>';
+    html += '<th style="text-align:center;">Open</th>';
     html += '<th>Stage</th>';
     html += '<th>Type</th>';
     html += '<th style="text-align:center;">Badge</th>';
     html += '<th style="text-align:center;">Print Page</th>';
+    html += '<th style="text-align:center;">Practice Options</th>';
     html += '</tr></thead><tbody>';
 
     if (filtered.length === 0) {
-        html += '<tr><td colspan="7" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
+        html += '<tr><td colspan="8" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
     }
 
     filtered.forEach(function(c) {
@@ -4882,7 +4883,7 @@ function renderAvailable() {
         var stdTag = stdId ? '<br><span style="font-size:0.62rem;font-weight:500;color:#86868b;cursor:default;" title="' + (stdObj ? stdObj.description.replace(/"/g,'&quot;') : stdId) + '">' + stdId + '</span>' : '';
         html += '<td style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1d1d1f;" title="' + c.title.replace(/"/g,'&amp;quot;') + '">' + c.title + stdTag + '</td>';
         if (docLink) {
-            html += '<td style="text-align:center;"><a href="' + docLink + '" target="_blank" style="color:#FF8200;text-decoration:none;font-size:0.78rem;font-weight:600;" title="Open Google Doc">Doc</a></td>';
+            html += '<td style="text-align:center;"><a href="' + docLink + '" target="_blank" style="color:#FF8200;text-decoration:none;font-size:0.78rem;font-weight:600;" title="Open Google Doc">Open</a></td>';
         } else {
             html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
         }
@@ -4910,11 +4911,16 @@ function renderAvailable() {
                 html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
             }
         }
+        html += '<td style="text-align:center;"><span style="font-size:0.78rem;font-weight:500;color:#FF8200;cursor:pointer;text-decoration:underline;text-underline-offset:2px;" onclick="showPracticeOptions(\'' + c.id.replace(/'/g,"\\'") + '\',\'' + c.title.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">show options</span></td>';
         html += '</tr>';
     });
 
     html += '</tbody></table>';
     grid.innerHTML = html;
+}
+
+function showPracticeOptions(creditId, creditTitle) {
+    alert('Practice options for: ' + creditTitle);
 }
 
 // ───────── TAB 2: EARNED CREDITS ─────────
