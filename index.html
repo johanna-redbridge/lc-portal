@@ -1012,12 +1012,12 @@
         <button class="tab-btn" onclick="switchTab('portfolio')">Digital Portfolio</button>
         <button class="tab-btn" onclick="switchTab('data')">Analytics</button>
         <button class="tab-btn" onclick="switchTab('manage')" style="margin-left:auto;">Manage</button>
+        <div id="drive-user-info" style="display:none;align-items:center;gap:0.6rem;padding:0 0.25rem 0 0.5rem;">
+            <span id="drive-user-name" style="display:none;"></span>
+            <button onclick="signOut()" style="padding:0.25rem 0.65rem;border:1px solid #d2d2d7;border-radius:8px;background:transparent;cursor:pointer;font-size:0.75rem;font-family:inherit;color:#86868b;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='#f5f5f7'" onmouseout="this.style.background='transparent'">Sign out</button>
+            <img id="drive-user-pic" src="" alt="" style="display:none;width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid #e8e8ed;">
+        </div>
     </nav>
-    <div id="drive-user-info" style="position:absolute;right:1.5rem;display:none;align-items:center;gap:0.6rem;">
-        <span id="drive-user-name" style="display:none;"></span>
-        <button onclick="signOut()" style="padding:0.25rem 0.65rem;border:1px solid #d2d2d7;border-radius:8px;background:transparent;cursor:pointer;font-size:0.75rem;font-family:inherit;color:#86868b;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='#f5f5f7'" onmouseout="this.style.background='transparent'">Sign out</button>
-        <img id="drive-user-pic" src="" alt="" style="display:none;width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid #e8e8ed;">
-    </div>
 </header>
 
 <!-- TAB 1: Learning Credits (Available / Earned / Draft sub-tabs) -->
