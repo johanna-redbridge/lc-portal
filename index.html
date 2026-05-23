@@ -8038,6 +8038,7 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
+    requestAnimationFrame(updateStickyOffsets);
     if (name === 'reading') renderReadingSubtab();
     if (name === 'comp')    renderMathSubtab();
     if (name === 'writing') WD.init();
@@ -13737,8 +13738,13 @@ function renderWbAnalytics() {
 function updateStickyOffsets() {
     var hdr = document.querySelector('header');
     var h1 = hdr ? hdr.offsetHeight : 57;
-    var h2 = h1 + 44;
-    var h3 = h2 + 44;
+    var nav2 = document.querySelector('.data-subtab-nav');
+    var h2 = h1 + (nav2 && nav2.offsetHeight ? nav2.offsetHeight : 44);
+    var panelSubnavH = 0;
+    document.querySelectorAll('.panel-subnav').forEach(function(el) {
+        if (el.offsetHeight > panelSubnavH) panelSubnavH = el.offsetHeight;
+    });
+    var h3 = h2 + (panelSubnavH || 44);
     document.documentElement.style.setProperty('--nav-h-1', h1 + 'px');
     document.documentElement.style.setProperty('--nav-h-2', h2 + 'px');
     document.documentElement.style.setProperty('--nav-h-3', h3 + 'px');
