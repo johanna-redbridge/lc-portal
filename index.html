@@ -4972,17 +4972,49 @@ function showPracticeOptions(creditId, creditTitle) {
             return;
         }
 
-        var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">';
+        // Build grid with placeholder slots first
+        var grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;';
+        body.innerHTML = '';
+        body.appendChild(grid);
+
         matched.forEach(function(f) {
-            var imgUrl = 'https://drive.google.com/thumbnail?id=' + f.id + '&sz=w400';
             var viewUrl = f.webViewLink || ('https://drive.google.com/file/d/' + f.id + '/view');
-            html += '<a href="' + viewUrl + '" target="_blank" style="display:block;border-radius:10px;overflow:hidden;border:1px solid #e8e8ed;text-decoration:none;background:#f5f5f7;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.12)\'" onmouseout="this.style.boxShadow=\'none\'">'
-                + '<img src="' + imgUrl + '" alt="" style="width:100%;display:block;aspect-ratio:3/4;object-fit:cover;" onerror="this.style.display=\'none\'">'
-                + '<div style="padding:6px 8px;font-size:0.68rem;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + f.name.replace(/"/g,'&quot;') + '">' + f.name.replace(/</g,'&lt;') + '</div>'
-                + '</a>';
+            var card = document.createElement('a');
+            card.href = viewUrl;
+            card.target = '_blank';
+            card.style.cssText = 'display:block;border-radius:10px;overflow:hidden;border:1px solid #e8e8ed;text-decoration:none;background:#f5f5f7;transition:box-shadow 0.15s;';
+            card.onmouseover = function(){ this.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'; };
+            card.onmouseout  = function(){ this.style.boxShadow = 'none'; };
+
+            var img = document.createElement('img');
+            img.alt = '';
+            img.style.cssText = 'width:100%;display:block;aspect-ratio:3/4;object-fit:cover;background:#e8e8ed;';
+            img.onerror = function(){ this.style.display = 'none'; };
+
+            var label = document.createElement('div');
+            label.style.cssText = 'padding:6px 8px;font-size:0.68rem;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            label.title = f.name;
+            label.textContent = f.name;
+
+            card.appendChild(img);
+            card.appendChild(label);
+            grid.appendChild(card);
+
+            // Fetch image blob with auth token so it actually renders
+            fetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {
+                headers: { 'Authorization': 'Bearer ' + gDriveToken }
+            }).then(function(r) {
+                if (!r.ok) throw new Error('fetch failed');
+                return r.blob();
+            }).then(function(blob) {
+                var url = URL.createObjectURL(blob);
+                img.src = url;
+                img.onload = function(){ /* blob URL stays valid for session */ };
+            }).catch(function() {
+                img.style.display = 'none';
+            });
         });
-        html += '</div>';
-        body.innerHTML = html;
     });
 }
 
