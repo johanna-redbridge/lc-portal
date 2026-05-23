@@ -8622,15 +8622,14 @@ function xrefReadDetailHTML(){
     var headerHtml = '<div style="padding:1rem 1.25rem 0.5rem;">';
     headerHtml += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
     headerHtml += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
-    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fff3e0;color:#FF8200;">AL'+sdata.al+'</span>';
     headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
     var _mapXrefRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===xrefNorm(xrefStudent); }) : null;
     if (_mapXrefRec) {
-        var _elaPeriods = (mapData && mapData.elaPeriods) ? mapData.elaPeriods : [];
         var _validEla = _mapXrefRec.elaScores.map(function(sc,i){ return {score:parseFloat(sc)||null, pct:parseFloat((_mapXrefRec.elaPcts||[])[i])||null}; }).filter(function(x){ return x.score!==null; });
         if (_validEla.length) {
             var _latest = _validEla[_validEla.length-1];
-            headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">MAP ELA: '+_latest.score+(_latest.pct!==null?' ('+_latest.pct+'%ile)':'')+'</span>';
+            headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fff0ed;color:#c2410c;">MAP ELA: '+_latest.score+(_latest.pct!==null?' ('+_latest.pct+'%ile)':'')+'</span>';
         }
     }
     if(!lexiaStudent) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">No Lexia data matched</span>';
@@ -9084,10 +9083,10 @@ function xrefCompDetailHTML(){
     var headerHtml = '<div style="padding:1rem 1.25rem 0.5rem;">';
     headerHtml += '<div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">';
     headerHtml += '<div style="font-size:1.05rem;font-weight:700;color:#1d1d1f;">'+xrefStudent.replace(/</g,'&lt;')+'</div>';
-    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0f2fe;color:#0369a1;">AL'+sdata.al+'</span>';
+    headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fff3e0;color:#FF8200;">AL'+sdata.al+'</span>';
     headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
     var mapRit = getMapMathRit(xrefStudent);
-    if(mapRit) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fef3c7;color:#b45309;" title="MAP Math RIT ('+mapRit.period+')">MAP Math: '+mapRit.score+(mapRit.pct ? ' <span style="font-weight:400;opacity:0.75;">('+mapRit.pct+'%ile)</span>' : '')+'</span>';
+    if(mapRit) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0faff;color:#0369a1;" title="MAP Math RIT ('+mapRit.period+')">MAP Math: '+mapRit.score+(mapRit.pct ? ' <span style="font-weight:400;opacity:0.75;">('+mapRit.pct+'%ile)</span>' : '')+'</span>';
     headerHtml += '</div>';
 
     // Summary cards
