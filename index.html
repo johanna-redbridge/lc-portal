@@ -4979,9 +4979,10 @@ function showPracticeOptions(creditId, creditTitle) {
 
         matched.forEach(function(f) {
             var viewUrl = f.webViewLink || ('https://drive.google.com/file/d/' + f.id + '/view');
+            var selected = false;
 
             var card = document.createElement('div');
-            card.style.cssText = 'border-radius:10px;overflow:hidden;border:1px solid #e8e8ed;background:#f5f5f7;';
+            card.style.cssText = 'position:relative;border-radius:10px;overflow:hidden;border:2px solid #e8e8ed;background:#f5f5f7;transition:border-color 0.15s;';
 
             var img = document.createElement('img');
             img.alt = f.name;
@@ -4989,6 +4990,27 @@ function showPracticeOptions(creditId, creditTitle) {
             img.title = 'Click to open in Drive';
             img.onclick = function(){ window.open(viewUrl, '_blank'); };
             img.onerror = function(){ this.parentNode.style.display = 'none'; };
+
+            // Selection button — top-right corner
+            var selBtn = document.createElement('button');
+            selBtn.title = 'Select';
+            selBtn.style.cssText = 'position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,0.85);box-shadow:0 1px 4px rgba(0,0,0,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,border-color 0.15s;';
+            selBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><polyline points="2,7 5.5,10.5 11,3.5" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            selBtn.onclick = function(e) {
+                e.stopPropagation();
+                selected = !selected;
+                if (selected) {
+                    card.style.borderColor = '#FF8200';
+                    selBtn.style.background = '#FF8200';
+                    selBtn.style.borderColor = '#FF8200';
+                    selBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><polyline points="2,7 5.5,10.5 11,3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                } else {
+                    card.style.borderColor = '#e8e8ed';
+                    selBtn.style.background = 'rgba(255,255,255,0.85)';
+                    selBtn.style.borderColor = '#fff';
+                    selBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><polyline points="2,7 5.5,10.5 11,3.5" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                }
+            };
 
             // thumbnailLink is a signed Google URL — usable directly, bump size to 800px wide
             if (f.thumbnailLink) {
@@ -5003,6 +5025,7 @@ function showPracticeOptions(creditId, creditTitle) {
             }
 
             card.appendChild(img);
+            card.appendChild(selBtn);
             grid.appendChild(card);
         });
     });
@@ -13855,6 +13878,10 @@ window._msRubricB64="PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjxtZXRhIGN
             <button onclick="document.getElementById('practice-options-modal').style.display='none'" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#86868b;line-height:1;">✕</button>
         </div>
         <div id="practice-options-body" style="overflow-y:auto;flex:1;min-height:0;"></div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:16px;flex-shrink:0;border-top:1px solid #f0f0f0;padding-top:14px;">
+            <button onclick="alert('Coming soon')" style="padding:8px 16px;border-radius:8px;border:1.5px solid #e8e8ed;background:#fff;color:#1d1d1f;font-size:0.82rem;font-weight:600;cursor:pointer;">Add option</button>
+            <button onclick="alert('Coming soon')" style="padding:8px 18px;border-radius:8px;border:none;background:#FF8200;color:#fff;font-size:0.82rem;font-weight:600;cursor:pointer;">Generate practice option sheet</button>
+        </div>
     </div>
 </div>
 
