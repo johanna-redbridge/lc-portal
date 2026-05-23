@@ -2338,6 +2338,8 @@ function handleArtifactDrop(e, studentId, creditId) {
         var credit = credits.find(function(cr) { return cr.id === creditId; });
         var earnedEntry = earned.find(function(en) { return en.studentId === studentId && en.creditId === creditId; });
         var dateStr = (earnedEntry && earnedEntry.date) ? earnedEntry.date : new Date().toISOString().substring(0, 10);
+        // Auto-set the earned date from the upload date if not already set
+        if (earnedEntry && !earnedEntry.date) { earnedEntry.date = dateStr; }
         var dt = new Date(dateStr + 'T00:00:00');
         var m = dt.getMonth() + 1, dy = dt.getDate(), yr = String(dt.getFullYear()).slice(-2);
         var datePart = (m < 10 ? '0' + m : m) + '-' + (dy < 10 ? '0' + dy : dy) + '-' + yr;
@@ -3237,38 +3239,39 @@ function formatDate(d) {
 }
 
 // Parse a human-readable date from an artifact filename.
-// Returns { display: "Mar 2023" or "Mar 15, 2023", hasDay: bool } or null.
+// Returns { display: "Mar 2023" or "Mar 15, 2023", hasDay: bool, iso: "YYYY-MM-DD" or null } or null.
 function parseDateFromFilename(name) {
     if (!name) return null;
     var MN = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,
                jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
     var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function iso(yr4, mo1, dy) { return yr4 + '-' + String(mo1).padStart(2,'0') + (dy ? '-' + String(dy).padStart(2,'0') : '-01'); }
     var s = name;
     var m;
 
     // YYYY-MM-DD (ISO)
     m = s.match(/\b(20\d\d)[.\-](0?[1-9]|1[0-2])[.\-](0?[1-9]|[12]\d|3[01])\b/);
-    if (m) { var mo=parseInt(m[2])-1; return { display: MON[mo]+' '+parseInt(m[3])+', '+m[1], hasDay:true }; }
+    if (m) { var mo=parseInt(m[2])-1; return { display: MON[mo]+' '+parseInt(m[3])+', '+m[1], hasDay:true, iso: iso(m[1],parseInt(m[2]),parseInt(m[3])) }; }
 
     // M/D/YYYY or M-D-YYYY (4-digit year)
     m = s.match(/\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](20\d\d)\b/);
-    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true }; }
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true, iso: iso(m[3],parseInt(m[1]),parseInt(m[2])) }; }
 
     // M-D-YY (2-digit year, treated as 20YY) e.g. 04-30-26
     m = s.match(/\b(0?[1-9]|1[0-2])-(0?[1-9]|[12]\d|3[01])-(\d{2})(?!\d)/);
-    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', 20'+m[3], hasDay:true }; }
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', 20'+m[3], hasDay:true, iso: iso('20'+m[3],parseInt(m[1]),parseInt(m[2])) }; }
 
     // Month name + day + year: "March 15, 2023" / "March 15 2023"
     m = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(20\d\d)\b/i);
-    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true }; }
+    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true, iso: iso(m[3],mo+1,parseInt(m[2])) }; }
 
     // Month name + year: "March 2023"
     m = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(20\d\d)\b/i);
-    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+m[2], hasDay:false }; }
+    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+m[2], hasDay:false, iso: null }; }
 
     // M.YYYY or M/YYYY (no day)
     m = s.match(/\b(0?[1-9]|1[0-2])[.\\/](20\d\d)\b/);
-    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+m[2], hasDay:false }; }
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+m[2], hasDay:false, iso: null }; }
 
     return null;
 }
@@ -3813,6 +3816,26 @@ function loadPortfolioDriveArtifacts(studentId) {
     var finish = function(files) {
         portfolioDriveArtifacts[studentId] = files || [];
         portfolioDriveArtifactsLoading[studentId] = false;
+
+        // Backfill earned dates from Drive artifact filenames
+        if (files && files.length) {
+            earned.forEach(function(e) {
+                if (e.studentId !== studentId || e.date) return;
+                var credit = credits.find(function(c) { return c.id === e.creditId; });
+                if (!credit) return;
+                var norm = function(s) { return s.replace(/\(.*?\)/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); };
+                var tNorm = norm(credit.title);
+                if (tNorm.length < 3) return;
+                for (var i = 0; i < files.length; i++) {
+                    var fNorm = norm(files[i].name);
+                    if (fNorm.indexOf(tNorm) !== -1 || (tNorm.length >= 5 && fNorm.indexOf(tNorm.slice(0, Math.ceil(tNorm.length * 0.75))) !== -1)) {
+                        var d = parseDateFromFilename(files[i].name);
+                        if (d && d.iso) { e.date = d.iso; break; }
+                    }
+                }
+            });
+        }
+
         if (portfolioStudent === studentId) renderPortfolioStudent(studentId);
         if (currentTab === 'earned') {
             var earnedSel = document.getElementById('st-student');
