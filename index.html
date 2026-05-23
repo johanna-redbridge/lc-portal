@@ -7340,12 +7340,28 @@ function renderReadingStudentOverview() {
     if (!readingOverviewStudent || !names[readingOverviewStudent]) readingOverviewStudent = nameList[0];
     var sel = readingOverviewStudent;
 
+    // AL / GLE chips for reading selector bar
+    var readOvCoreRec = null;
+    ['al1','al2','al34'].forEach(function(k) {
+        if (!readOvCoreRec && coreData[k]) {
+            var r = coreData[k].find(function(s){ return xrefNorm(s.name)===norm; });
+            if (r) readOvCoreRec = r;
+        }
+    });
+    var readOvAL = readOvCoreRec && readOvCoreRec.al ? 'AL' + readOvCoreRec.al : '';
+    var readOvFpRec = fpStudents ? fpStudents.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var readOvGLE = readOvFpRec && readOvFpRec.gle ? readOvFpRec.gle : '';
+    function smallChipR(txt) { return '<span style="display:inline-block;background:#e8e8ed;color:#3a3a3c;border-radius:6px;padding:2px 7px;font-size:0.68rem;font-weight:600;white-space:nowrap;">'+txt+'</span>'; }
+
     // ── selector bar ──
     var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
         + '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
         + '<select id="stu-ov-sel" onchange="readingOverviewStudent=this.value;renderReadingStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
         + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
-        + '</select></div>';
+        + '</select>'
+        + (readOvAL ? smallChipR(readOvAL) : '')
+        + (readOvGLE ? smallChipR('GLE&nbsp;'+readOvGLE) : '')
+        + '</div>';
 
     html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;" id="stu-ov-body">';
 
@@ -7754,12 +7770,21 @@ function renderCompStudentOverview() {
     // Resolve to the comp spreadsheet key for mastery lookups
     var compSel = compNameFor[sel] || sel;
 
+    // AL / GLE chips for comp selector bar
+    var compOvAL = compStudentAL(sel) || '';
+    var compOvLongRec = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var compOvGLE = compOvLongRec && compOvLongRec.gle ? compOvLongRec.gle : '';
+    function smallChip(txt) { return '<span style="display:inline-block;background:#e8e8ed;color:#3a3a3c;border-radius:6px;padding:2px 7px;font-size:0.68rem;font-weight:600;white-space:nowrap;">'+txt+'</span>'; }
+
     // ── selector bar ──
     var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
         + '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
         + '<select id="comp-stu-ov-sel" class="redact-select" onchange="compStudOverviewName=this.value;renderCompStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
         + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
-        + '</select></div>';
+        + '</select>'
+        + (compOvAL ? smallChip(compOvAL) : '')
+        + (compOvGLE ? smallChip('GLE&nbsp;'+compOvGLE) : '')
+        + '</div>';
 
     html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;">';
 
@@ -11384,18 +11409,18 @@ function doRenderBeastAcademy(el) {
 
     // ── Filter bar ──
     html += '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">AL</span><div style="display:flex;gap:4px;">';
+    html += '<div style="display:flex;gap:4px;">';
     als.forEach(function(al) {
-        html += '<button class="toggle-btn ba-al-btn' + (baALFilter===al?' active':'') + '" data-al="' + al + '" onclick="setBaAL(\'' + al + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + (al==='all'?'All':'AL'+al) + '</button>';
+        html += '<button class="toggle-btn ba-al-btn' + (baALFilter===al?' active':'') + '" data-al="' + al + '" onclick="setBaAL(\'' + al + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + (al==='all'?'all':'AL'+al) + '</button>';
     });
-    html += '</div></div>';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Group</span><div style="display:flex;gap:4px;">';
+    html += '</div>';
+    html += '<div style="display:flex;gap:4px;">';
     html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">all</button>';
     groups.forEach(function(g) {
         html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter===g?' active':'') + '" data-group="' + g + '" onclick="setBaGroup(\'' + g.replace(/'/g,"\\'") + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + g + '</button>';
     });
-    html += '</div></div>';
-    html += '<span style="font-size:.72rem;color:#94a3b8;margin-left:auto;">' + withData.length + ' of ' + filtered.length + ' students with BA data</span>';
+    html += '</div>';
+    html += '';
     html += '</div>';
 
     // ── KPI cards ──
