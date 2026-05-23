@@ -11097,7 +11097,7 @@ function renderSTMathTable() {
             th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter===g?' active':'') + '" onclick="stmathGradeFilter=\'' + g.replace(/'/g,"\\'") + '\';renderSTMathTable()">' + g.replace(/</g,'&lt;') + '</button>';
         });
         th += '</div>';
-        th += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.6rem;">';
+        th += '<div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">';
         th += '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">Import New Data</button>';
         th += '<span style="font-size:0.65rem;color:#aeaeb2;white-space:nowrap;">Last updated: 05/14/2026</span>';
         th += '</div></div>';
