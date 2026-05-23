@@ -1331,6 +1331,9 @@
                         <button class="toggle-btn bench-view-btn" data-view="drilldown" onclick="setBenchView('drilldown')">Drilldown</button>
                         <button class="toggle-btn bench-view-btn" data-view="student-growth" onclick="setBenchView('student-growth')">Student Growth</button>
                     </div>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                    </div>
                 </div>
                 <div id="comp-filters" style="display:none;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
@@ -1352,7 +1355,6 @@
                         <button class="toggle-btn map-math-al-btn" data-al="4" onclick="setMapMathAL('4')">AL4</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                        <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
                         <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
@@ -11647,7 +11649,7 @@ function renderCompTable() {
     }
 
     // ── Table: GLE pie columns + Q# check columns ───────
-    var html = '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;overflow-x:auto;">'
+    var html = '<div class="core-table-wrap" style="overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;border-collapse:collapse;">'
         + '<thead>'
         + '<tr>'
@@ -11922,6 +11924,8 @@ function doRenderBenchOverview(el) {
     el.innerHTML = html;
 }
 
+var benchSgSearch = '';
+
 function renderBenchStudentGrowth() {
     var el = document.getElementById('comp-content');
     if (!el) return;
@@ -11936,10 +11940,19 @@ function renderBenchStudentGrowth() {
         return;
     }
 
-    var students = benchLongData;
-    if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+    var allStudents = benchLongData;
+    if (!allStudents.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var html = '<div style="display:flex;flex-wrap:wrap;gap:1rem;padding:1.25rem;">';
+    var q = benchSgSearch.trim().toLowerCase();
+    var students = q ? allStudents.filter(function(s) { return fullName(s.name).toLowerCase().indexOf(q) !== -1; }) : allStudents;
+
+    var html = '<div style="padding:0.75rem 1.25rem 0;">'
+        + '<input id="bench-sg-search" type="text" placeholder="Search student…" value="' + benchSgSearch.replace(/"/g,'&quot;') + '"'
+        + ' oninput="benchSgSearch=this.value;renderBenchStudentGrowth()"'
+        + ' style="padding:0.35rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;width:180px;outline:none;box-sizing:border-box;"'
+        + ' onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#d2d2d7\'">'
+        + '</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;padding:1.25rem;">';
     var canvasIds = [];
 
     students.forEach(function(s, idx) {
@@ -11970,7 +11983,7 @@ function renderBenchStudentGrowth() {
         html += '</div>';
     });
 
-    html += '</div>';
+    html += '</div></div>';
     el.innerHTML = html;
 
     canvasIds.forEach(function(entry) {
