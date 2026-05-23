@@ -1158,6 +1158,7 @@
     <div class="data-subtab-nav" id="dp-subtab-nav">
         <button class="data-subtab-btn active" data-subtab="portfolio" onclick="switchDPSubtab('portfolio')">Artifact</button>
         <button class="data-subtab-btn" data-subtab="student" onclick="switchDPSubtab('student')">Credit Overview</button>
+        <button class="data-subtab-btn" data-subtab="goaltracker" onclick="switchDPSubtab('goaltracker')">Goal Tracker</button>
     </div>
     <!-- Parent sub-panel -->
     <div id="dp-subtab-portfolio" class="dp-subtab-panel">
@@ -1170,6 +1171,12 @@
         <div id="student-tab-sticky" style="display:none;position:sticky;top:var(--nav-h-2,100px);z-index:110;background:#fff;border-bottom:1px solid #e8e8ed;padding:0.75rem 1.5in 0.5rem;"></div>
         <div class="view-container">
             <div id="student-tab-content"></div>
+        </div>
+    </div>
+    <!-- Goal Tracker sub-panel -->
+    <div id="dp-subtab-goaltracker" class="dp-subtab-panel" style="display:none;">
+        <div class="view-container">
+            <div id="goaltracker-content"></div>
         </div>
     </div>
 </div>
@@ -3993,6 +4000,236 @@ function extractNarrativeSectionText(doc) {
     return null;
 }
 
+// ───────── GOAL TRACKER ─────────
+
+var gtStudent = null;          // selected student id
+var gtWorkHabits = null;       // parsed from sheet: { al1:[...], al2:[...], al3:[...], al4:[...] }
+var gtWorkHabitsLoading = false;
+var GT_SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3U992BxsDjXj_kqq3gjBwNYprkjuV_DZOO4JAhoKVRSCS1oBsZznMkSl7Jyfg2pStqI4CWrCcj7Ye/pub?gid=558983832&single=true&output=csv';
+
+function gtLoadWorkHabits(cb) {
+    if (gtWorkHabits) { cb(); return; }
+    if (gtWorkHabitsLoading) { var t = setInterval(function(){ if(gtWorkHabits){clearInterval(t);cb();} }, 100); return; }
+    gtWorkHabitsLoading = true;
+    fetch(GT_SHEET).then(function(r){ return r.text(); }).then(function(text) {
+        var rows = parseCSVFull(text);
+        // Row 0: domain labels (B onwards), Row 1 = AL1 rows 2-6 (0-indexed: 1-5), AL2 6-9, AL3 10-15, AL4 16-21
+        var habits = { al1:[], al2:[], al3:[], al4:[] };
+        var ranges = { al1:[1,5], al2:[6,9], al3:[10,15], al4:[16,21] };
+        Object.keys(ranges).forEach(function(al) {
+            var r = ranges[al];
+            for (var i = r[0]; i <= r[1] && i < rows.length; i++) {
+                for (var c = 1; c < rows[i].length; c++) {
+                    var v = (rows[i][c] || '').trim();
+                    if (v) habits[al].push(v);
+                }
+            }
+        });
+        gtWorkHabits = habits;
+        gtWorkHabitsLoading = false;
+        cb();
+    }).catch(function() { gtWorkHabitsLoading = false; gtWorkHabits = { al1:[], al2:[], al3:[], al4:[] }; cb(); });
+}
+
+function gtKey(studentId) { return 'gt_' + studentId; }
+
+function gtLoad(studentId) {
+    try { return JSON.parse(localStorage.getItem(gtKey(studentId)) || 'null') || {}; }
+    catch(e) { return {}; }
+}
+
+function gtSetStatus(btn, field, value) {
+    var colors = { complete: '#27ae60', almost_complete: '#f39c12', not_yet: '#e74c3c' };
+    var form = document.getElementById('gt-form');
+    if (!form) return;
+    var hidden = form.querySelector('input[data-gtfield="' + field + '"]');
+    var prev = hidden ? hidden.value : '';
+    var next = (prev === value) ? '' : value;  // clicking active button deselects it
+    if (hidden) hidden.value = next;
+    // Restyle all buttons in this group
+    form.querySelectorAll('[data-gtstatus="' + field + '"]').forEach(function(b) {
+        var sel = (b.dataset.gtvalue === next);
+        var c = colors[b.dataset.gtvalue] || '#86868b';
+        b.style.background  = sel ? c : '#f5f5f7';
+        b.style.color       = sel ? '#fff' : '#86868b';
+        b.style.borderColor = sel ? c : '#e8e8ed';
+    });
+}
+
+function gtSave(studentId) {
+    var el = document.getElementById('gt-form');
+    if (!el) return;
+    var data = {};
+    el.querySelectorAll('[data-gtfield]').forEach(function(inp) {
+        data[inp.dataset.gtfield] = inp.value;
+    });
+    localStorage.setItem(gtKey(studentId), JSON.stringify(data));
+    var btn = document.getElementById('gt-save-btn');
+    if (btn) { btn.textContent = 'Saved ✓'; setTimeout(function(){ btn.textContent = 'Save'; }, 1500); }
+}
+
+function renderGoalTracker() {
+    var el = document.getElementById('goaltracker-content');
+    if (!el) return;
+    if (gtStudent) {
+        gtLoadWorkHabits(function() { renderGoalTrackerForm(gtStudent); });
+    } else {
+        renderGoalTrackerOverview();
+    }
+}
+
+function renderGoalTrackerOverview() {
+    var el = document.getElementById('goaltracker-content');
+    if (!el) return;
+    var html = '<div style="padding:1.25rem;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:0.75rem;">';
+    students.forEach(function(s) {
+        var portrait = studentPortraitBlobMap[s.name];
+        html += '<div onclick="gtStudent=\'' + s.id + '\';renderGoalTracker();" style="cursor:pointer;background:#fff;border:1px solid #e8e8ed;border-radius:12px;padding:0.9rem 0.5rem;text-align:center;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.10)\'" onmouseout="this.style.boxShadow=\'none\'">';
+        if (portrait) {
+            html += '<div style="width:56px;height:56px;border-radius:50%;margin:0 auto 0.55rem;overflow:hidden;background:#FF8200;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+                  + '<img src="' + portrait + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#fff;font-size:1.4rem;font-weight:700;&quot;>' + (s.name.charAt(0)||'?') + '</span>\'">'
+                  + '</div>';
+        } else {
+            html += '<div style="width:56px;height:56px;border-radius:50%;background:#FF8200;color:#fff;font-size:1.4rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 0.55rem;">' + (s.name.charAt(0)||'?') + '</div>';
+        }
+        html += '<div style="font-weight:600;font-size:0.82rem;line-height:1.2;">' + nickName(s.name) + '</div>';
+        html += '</div>';
+    });
+    html += '</div></div>';
+    el.innerHTML = html;
+}
+
+function renderGoalTrackerForm(studentId) {
+    var el = document.getElementById('goaltracker-content');
+    if (!el) return;
+    var s = students.find(function(x){ return x.id === studentId; });
+    if (!s) return;
+    var data = gtLoad(studentId);
+
+    var al = (s.al || 'al1').toLowerCase().replace(/\s/,'');
+    var habits = (gtWorkHabits && gtWorkHabits[al]) ? gtWorkHabits[al] : [];
+
+    var portrait = studentPortraitBlobMap[s.name];
+    var avatarHtml = portrait
+        ? '<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:#FF8200;flex-shrink:0;"><img src="' + portrait + '" style="width:100%;height:100%;object-fit:cover;"></div>'
+        : '<div style="width:44px;height:44px;border-radius:50%;background:#FF8200;color:#fff;font-size:1.3rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (s.name.charAt(0)||'?') + '</div>';
+
+    var html = '<div id="gt-form" style="max-width:860px;margin:0 auto;padding:1.25rem;">';
+
+    // Header
+    html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">'
+          + '<button onclick="gtStudent=null;renderGoalTracker();" style="padding:0.3rem 0.8rem;border:1px solid #d2d2d7;border-radius:8px;background:#fff;cursor:pointer;font-size:0.8rem;font-family:inherit;color:#86868b;">← Back</button>'
+          + avatarHtml
+          + '<div><div style="font-size:1.1rem;font-weight:700;color:#1d1d1f;">' + fullName(s.name) + '</div>'
+          + '<div style="font-size:0.75rem;color:#86868b;">' + (s.al ? s.al.toUpperCase() : '') + '</div></div>'
+          + '<button id="gt-save-btn" onclick="gtSave(\'' + studentId + '\');" style="margin-left:auto;padding:0.4rem 1.1rem;background:#FF8200;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:inherit;font-weight:600;">Save</button>'
+          + '</div>';
+
+    function section(num, label) {
+        return '<div style="font-size:0.7rem;font-weight:700;color:#FF8200;text-transform:uppercase;letter-spacing:0.06em;margin:1.5rem 0 0.75rem;">' + num + '. ' + label + '</div>';
+    }
+    function subsection(label) {
+        return '<div style="font-size:0.8rem;font-weight:700;color:#1d1d1f;margin-bottom:0.35rem;">' + label + '</div>';
+    }
+    function textarea(field, placeholder, rows) {
+        var val = (data[field] || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+        return '<textarea data-gtfield="' + field + '" placeholder="' + (placeholder||'') + '" rows="' + (rows||3) + '" '
+             + 'style="width:100%;box-sizing:border-box;padding:0.55rem 0.7rem;border:1.5px solid #e8e8ed;border-radius:8px;font-size:0.83rem;font-family:inherit;resize:vertical;outline:none;" '
+             + 'onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#e8e8ed\'">'
+             + val + '</textarea>';
+    }
+    function card(content) {
+        return '<div style="background:#fff;border:1px solid #e8e8ed;border-radius:12px;padding:1rem 1.1rem;margin-bottom:0.75rem;">' + content + '</div>';
+    }
+
+    // ── 1. Habit Goals ──
+    html += section('1', 'Habit Goals');
+
+    // 1a Work Habit
+    var whVal = data['wh_goal'] || '';
+    var whOpts = '<option value="">— Select a Work Habit Goal —</option>';
+    habits.forEach(function(h) {
+        var sel = (h === whVal) ? ' selected' : '';
+        whOpts += '<option value="' + h.replace(/"/g,'&quot;') + '"' + sel + '>' + h.replace(/</g,'&lt;') + '</option>';
+    });
+    if (!habits.length) whOpts += '<option disabled>No habits loaded for ' + al.toUpperCase() + '</option>';
+    html += card(
+        subsection('a) Work Habit Goal')
+      + '<select data-gtfield="wh_goal" style="width:100%;padding:0.45rem 0.7rem;border:1.5px solid #e8e8ed;border-radius:8px;font-size:0.83rem;font-family:inherit;margin-bottom:0.6rem;outline:none;" onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#e8e8ed\'">'
+      + whOpts + '</select>'
+      + '<div style="font-size:0.75rem;color:#86868b;margin-bottom:0.35rem;">Notes</div>'
+      + textarea('wh_notes', 'Notes on this goal…', 2)
+    );
+
+    // 1b Character Habit
+    var chVal = data['ch_goal'] || '';
+    var chOpts = '<option value="">— Select a Character Habit Goal —</option>';
+    'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(l) {
+        chOpts += '<option value="' + l + '"' + (l === chVal ? ' selected' : '') + '>' + l + '</option>';
+    });
+    html += card(
+        subsection('b) Character Habit Goal')
+      + '<select data-gtfield="ch_goal" style="width:100%;padding:0.45rem 0.7rem;border:1.5px solid #e8e8ed;border-radius:8px;font-size:0.83rem;font-family:inherit;margin-bottom:0.6rem;outline:none;" onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#e8e8ed\'">'
+      + chOpts + '</select>'
+      + '<div style="font-size:0.75rem;color:#86868b;margin-bottom:0.35rem;">Notes</div>'
+      + textarea('ch_notes', 'Notes on this goal…', 2)
+    );
+
+    // ── 2. Task-Based Work Plan ──
+    html += section('2', 'Task-Based Work Plan');
+    var twpItems = [
+        { key: 'twp_reading',     label: 'a) Reading' },
+        { key: 'twp_writing',     label: 'b) Writing' },
+        { key: 'twp_computation', label: 'c) Computation' },
+        { key: 'twp_observation', label: 'd) Observation' },
+        { key: 'twp_ctws',        label: 'e) CTWS' },
+    ];
+    var twpQ = 'What supported or did not support you in completing your work? / Next steps?';
+    var twpStatuses = [
+        { value: 'complete',         label: 'Complete',         color: '#27ae60' },
+        { value: 'almost_complete',  label: 'Almost Complete',  color: '#f39c12' },
+        { value: 'not_yet',          label: 'Not Yet',          color: '#e74c3c' },
+    ];
+    twpItems.forEach(function(item) {
+        var statusKey = item.key + '_status';
+        var curStatus = data[statusKey] || '';
+        var statusBtns = '<input type="hidden" data-gtfield="' + statusKey + '" value="' + curStatus + '">';
+        statusBtns += '<div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">';
+        twpStatuses.forEach(function(st) {
+            var active = curStatus === st.value;
+            var bg = active ? st.color : '#f5f5f7';
+            var col = active ? '#fff' : '#86868b';
+            var border = active ? st.color : '#e8e8ed';
+            statusBtns += '<button data-gtstatus="' + statusKey + '" data-gtvalue="' + st.value + '" '
+                + 'onclick="gtSetStatus(this,\'' + statusKey + '\',\'' + st.value + '\')" '
+                + 'style="padding:0.3rem 0.85rem;border:1.5px solid ' + border + ';border-radius:20px;background:' + bg + ';color:' + col + ';font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">'
+                + st.label + '</button>';
+        });
+        statusBtns += '</div>';
+        html += card(
+            subsection(item.label)
+          + statusBtns
+          + '<div style="font-size:0.75rem;color:#86868b;margin-bottom:0.35rem;">' + twpQ + '</div>'
+          + textarea(item.key, 'Enter notes…', 3)
+        );
+    });
+
+    // ── 3. Summaries ──
+    html += section('3', 'Summaries');
+    html += card(
+        subsection('a) Learning Guide Comments')
+      + textarea('sum_lg', 'Enter comments…', 3)
+    );
+    html += card(
+        subsection('b) Parent Reflection / Comments to Student')
+      + textarea('sum_parent', 'Enter comments…', 3)
+    );
+
+    html += '</div>';
+    el.innerHTML = html;
+}
+
 // ───────── TAB 6: STUDENT LIBRARY ─────────
 
 var studentTabStudentId = '';
@@ -4199,6 +4436,7 @@ function switchDPSubtab(name) {
     if (panel) panel.style.display = '';
     if (name === 'portfolio') renderPortfolio();
     if (name === 'student') renderStudentTab();
+    if (name === 'goaltracker') renderGoalTracker();
 }
 
 function switchLCSubtab(name) {
@@ -11832,7 +12070,7 @@ function renderLexiaCombined() {
         allNames = allNames.filter(function(name) { return lexiaGetAL(name) === lexiaALFilter; });
     }
 
-    var BOX = 20;
+    var BOX = 16;
     var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
 
     function lxTh(col, label, extraStyle) {
@@ -11846,15 +12084,15 @@ function renderLexiaCombined() {
     // Combined table
     html += '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;overflow-x:auto;">'
         + '<table class="core-table" style="width:100%;"><thead><tr>'
-        + lxTh('name',      'Student',   'min-width:140px;')
-        + lxTh('grade',     'Grade',     '')
-        + lxTh('risk',      'Risk',      '')
-        + lxTh('predictor', 'Predictor', 'min-width:120px;')
-        + lxTh('usage',     'Usage',     'min-width:110px;')
+        + lxTh('name',      'Student',   'min-width:110px;')
+        + lxTh('grade',     'Grade',     'width:40px;text-align:center;')
+        + lxTh('risk',      'Risk',      'width:90px;')
+        + lxTh('predictor', 'Predictor', 'width:110px;')
+        + lxTh('usage',     'Usage',     'width:100px;')
         + '<th style="white-space:nowrap;vertical-align:bottom;padding-bottom:4px;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
         + '<div style="font-size:0.65rem;font-weight:600;color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.85)') + ';margin-bottom:5px;">Unit Progress<span style="color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.4)') + ';font-size:.8em;">' + (lexiaSortCol==='units'?(lexiaSortDir===1?' ↑':' ↓'):' ↕') + '</span></div>'
         + '<div style="display:flex;gap:2px;align-items:center;">'
-        + (function(){var out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*21+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.6);line-height:1;">'+g.label+'</div>';});return out;})()
+        + (function(){var out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*(BOX+1)+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.6);line-height:1;">'+g.label+'</div>';});return out;})()
         + '</div></th>'
         + '<th style="white-space:nowrap;">Gained / Target</th>'
         + '</tr></thead><tbody>';
@@ -12006,12 +12244,12 @@ function renderLexiaPerf() {
 
     var html = summary
         + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
-        + '<table class="core-table" style="width:100%;"><thead><tr>'
+        + '<table class="core-table" style="width:100%;table-layout:fixed;"><thead><tr>'
         + '<th class="core-name-col">Student</th>'
-        + '<th style="text-align:center;">Grade</th>'
-        + '<th style="min-width:150px;">Predictor Score</th>'
-        + '<th>Risk Level</th>'
-        + '<th style="min-width:150px;">Usage This Year</th>'
+        + '<th style="width:44px;text-align:center;">Grade</th>'
+        + '<th style="width:130px;">Predictor Score</th>'
+        + '<th style="width:90px;">Risk Level</th>'
+        + '<th style="width:130px;">Usage This Year</th>'
         + '</tr></thead><tbody>';
 
     data.forEach(function(s) {
@@ -12084,7 +12322,7 @@ function renderLexiaProg() {
     var data = lexiaProgData;
     if (!data.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var BOX = 22;
+    var BOX = 18;
     var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
 
     var html = '<div style="padding:12px 1.25rem 1.5rem;">';
@@ -12107,7 +12345,7 @@ function renderLexiaProg() {
         }
 
         html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">';
-        html += '<div style="min-width:150px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">'
+        html += '<div style="min-width:110px;font-size:0.8rem;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">'
             + (s.struggling ? '<span style="color:#e74c3c;margin-right:4px;font-size:0.65rem;">●</span>' : '')
             + fullName(s.name).replace(/</g,'&lt;') + '</div>';
 
@@ -13493,7 +13731,6 @@ function _redactTableCols() {
             if (!_REDACT_COL_RE.test(txt)) return;
             var col = _colStart(th);
             if (col < 0) return;
-            th.classList.add('redact-col');
             table.querySelectorAll('tbody tr').forEach(function(tr) {
                 var td = _tdAtCol(tr, col);
                 if (td) td.classList.add('redact-col');
