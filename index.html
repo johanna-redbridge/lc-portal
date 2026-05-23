@@ -4176,6 +4176,12 @@ function renderGoalTrackerForm(studentId) {
       + textarea('ch_notes', 'Notes on this goal…', 2)
     );
 
+    // 1c Personal Goal
+    html += card(
+        subsection('c) Personal Goal')
+      + textarea('pg_notes', 'Enter personal goal…', 2)
+    );
+
     // ── 2. Task-Based Work Plan ──
     html += section('2', 'Task-Based Work Plan');
     var twpItems = [
