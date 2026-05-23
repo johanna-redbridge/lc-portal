@@ -1050,7 +1050,7 @@
         <div class="view-container">
             <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:nowrap;">
                 <div class="toggle-group" style="background:none;padding:0;gap:0;">
-                    <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">All</button>
+                    <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">all</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL1';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL1</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL2';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL2</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL3';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL3</button>
@@ -1059,7 +1059,7 @@
                 <div class="toggle-group" id="earned-mode-toggle" style="flex-shrink:0;">
                     <button class="toggle-btn active" data-value="student" onclick="setToggle('earned-mode-toggle', 'student'); renderEarnedCredits()">Student</button>
                     <button class="toggle-btn" data-value="group" onclick="setToggle('earned-mode-toggle', 'group'); renderEarnedCredits()">Group</button>
-                    <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">All</button>
+                    <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">all</button>
                 </div>
                 <div id="earned-group-filter" style="flex-shrink:0;">
                     <select id="gp-group" onchange="renderEarnedCredits()" style="padding:0.4rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;"></select>
@@ -1069,7 +1069,7 @@
                 </div>
                 <div id="earned-period-toggle-wrap" style="flex-shrink:0;">
                     <div class="toggle-group" id="earned-period-toggle">
-                        <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">All Time</button>
+                        <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">all time</button>
                         <button class="toggle-btn" data-value="2026" onclick="setToggle('earned-period-toggle', '2026'); renderEarnedCredits()">This Year</button>
                         <button class="toggle-btn" data-value="previous" onclick="setToggle('earned-period-toggle', 'previous'); renderEarnedCredits()">Previous Years</button>
                     </div>
@@ -1127,7 +1127,7 @@
             <div id="manage-student-search" style="display:none;align-items:center;gap:0.6rem;flex-wrap:wrap;">
                 <input type="text" id="manage-student-search-input" placeholder="Search students..." oninput="registrySearch=this.value; renderStudentsLeft()" style="padding:0.4rem 0.8rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;width:180px;">
                 <div class="toggle-group" id="manage-al-filter" style="background:none;padding:0;gap:0;">
-                    <button class="toggle-btn active" id="manage-al-all" onclick="registryALFilter='all';document.querySelectorAll('.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">All</button>
+                    <button class="toggle-btn active" id="manage-al-all" onclick="registryALFilter='all';document.querySelectorAll('.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">all</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL1';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL1</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL2';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL2</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL3';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL3</button>
@@ -1208,7 +1208,8 @@
             <div id="reading-panel-core">
                 <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
-                        <button class="toggle-btn core-al-btn active" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
+                        <button class="toggle-btn core-al-btn active" data-al="all" onclick="setCoreAL('all')">all</button>
+                        <button class="toggle-btn core-al-btn" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
                         <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
                         <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
                     </div>
@@ -1216,7 +1217,7 @@
                         <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
                         <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
                         <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
-                        <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
+                        <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">all</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
                         <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
@@ -1228,7 +1229,7 @@
             <div id="reading-panel-fp" style="display:none;">
                 <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
-                        <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
+                        <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">all</button>
                         <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
                         <button class="toggle-btn fp-al-btn" data-al="2" onclick="setFpAL('2')">AL2</button>
                         <button class="toggle-btn fp-al-btn" data-al="3" onclick="setFpAL('3')">AL3</button>
@@ -1240,7 +1241,6 @@
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
                         <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
-                        <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
                     </div>
                 </div>
                 <div id="fp-content"></div>
@@ -1253,7 +1253,7 @@
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn lexia-al-btn active" data-al="all" onclick="setLexiaAL('all')">All</button>
+                        <button class="toggle-btn lexia-al-btn active" data-al="all" onclick="setLexiaAL('all')">all</button>
                         <button class="toggle-btn lexia-al-btn" data-al="1" onclick="setLexiaAL('1')">AL1</button>
                         <button class="toggle-btn lexia-al-btn" data-al="2" onclick="setLexiaAL('2')">AL2</button>
                         <button class="toggle-btn lexia-al-btn" data-al="3" onclick="setLexiaAL('3')">AL3</button>
@@ -1279,7 +1279,7 @@
                         <button class="toggle-btn map-ela-view-btn" data-view="student" onclick="setMapElaView('student')">Student Growth</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
+                        <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">all</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="2" onclick="setMapElaAL('2')">AL2</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
@@ -1345,7 +1345,7 @@
                         <button class="toggle-btn map-math-view-btn" data-view="student" onclick="setMapMathView('student')">Student Growth</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
+                        <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">all</button>
                         <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
                         <button class="toggle-btn map-math-al-btn" data-al="2" onclick="setMapMathAL('2')">AL2</button>
                         <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
@@ -1402,7 +1402,7 @@
                 <div id="xref-area-toggle" style="display:none;align-items:center;gap:0.4rem;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Subject</span>
                     <div class="toggle-group">
-                        <button class="toggle-btn xref-area-btn active" data-area="all" onclick="xrefSetArea('all')">All</button>
+                        <button class="toggle-btn xref-area-btn active" data-area="all" onclick="xrefSetArea('all')">all</button>
                         <button class="toggle-btn xref-area-btn" data-area="Computation" onclick="xrefSetArea('Computation')">Math</button>
                         <button class="toggle-btn xref-area-btn" data-area="Reading" onclick="xrefSetArea('Reading')">Reading</button>
                         <button class="toggle-btn xref-area-btn" data-area="Writing" onclick="xrefSetArea('Writing')">Writing</button>
@@ -1411,7 +1411,7 @@
                 <div id="xref-grade-toggle" style="display:none;align-items:center;gap:0.4rem;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Grade</span>
                     <div class="toggle-group">
-                        <button class="toggle-btn xref-grade-btn active" data-grade="all" onclick="xrefSetGrade('all')">All</button>
+                        <button class="toggle-btn xref-grade-btn active" data-grade="all" onclick="xrefSetGrade('all')">all</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="K" onclick="xrefSetGrade('K')">K</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="1" onclick="xrefSetGrade('1')">1</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="2" onclick="xrefSetGrade('2')">2</button>
@@ -1448,7 +1448,7 @@
                 <div id="wd-root">
                     <div id="wd-nav">
                         <div class="toggle-group">
-                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">All</button>
+                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">all</button>
                             <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
                             <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
                             <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
@@ -1482,7 +1482,7 @@
                 <div id="survey-filter-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">AL</span>
                     <div id="survey-al-btns" class="toggle-group">
-                        <button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL('all')">All</button>
+                        <button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL('all')">all</button>
                     </div>
                 </div>
                 <div id="survey-content" style="padding:1.25rem;"></div>
@@ -3247,9 +3247,13 @@ function parseDateFromFilename(name) {
     m = s.match(/\b(20\d\d)[.\-](0?[1-9]|1[0-2])[.\-](0?[1-9]|[12]\d|3[01])\b/);
     if (m) { var mo=parseInt(m[2])-1; return { display: MON[mo]+' '+parseInt(m[3])+', '+m[1], hasDay:true }; }
 
-    // M/D/YYYY or M-D-YYYY
+    // M/D/YYYY or M-D-YYYY (4-digit year)
     m = s.match(/\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](20\d\d)\b/);
     if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true }; }
+
+    // M-D-YY (2-digit year, treated as 20YY) e.g. 04-30-26
+    m = s.match(/\b(0?[1-9]|1[0-2])-(0?[1-9]|[12]\d|3[01])-(\d{2})(?!\d)/);
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', 20'+m[3], hasDay:true }; }
 
     // Month name + day + year: "March 15, 2023" / "March 15 2023"
     m = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(20\d\d)\b/i);
@@ -3264,6 +3268,25 @@ function parseDateFromFilename(name) {
     if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+m[2], hasDay:false }; }
 
     return null;
+}
+
+// Match a Drive file for a student's credit by fuzzy title, return parsed date or null.
+function driveArtifactDateFor(studentId, creditTitle) {
+    var files = portfolioDriveArtifacts[studentId];
+    if (!files || !files.length) return null;
+    // Normalize: strip parentheticals, lowercase, keep only alphanumeric
+    var norm = function(s) { return s.replace(/\(.*?\)/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); };
+    var tNorm = norm(creditTitle);
+    if (tNorm.length < 3) return null;
+    var best = null;
+    for (var i = 0; i < files.length; i++) {
+        var fNorm = norm(files[i].name);
+        if (fNorm.indexOf(tNorm) !== -1 || (tNorm.length >= 5 && fNorm.indexOf(tNorm.slice(0, Math.ceil(tNorm.length * 0.75))) !== -1)) {
+            var d = parseDateFromFilename(files[i].name);
+            if (d) { best = d; break; }
+        }
+    }
+    return best;
 }
 
 function getInitials(name) {
@@ -3424,7 +3447,7 @@ function renderPortfolioOverview() {
     // Filter bar: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;">';
     html += '<div class="toggle-group" style="background:none;padding:0;gap:0;">';
-    html += '<button class="toggle-btn' + (portfolioAutonomyFilter === 'all' ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'all\';renderPortfolioOverview()">All</button>';
+    html += '<button class="toggle-btn' + (portfolioAutonomyFilter === 'all' ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'all\';renderPortfolioOverview()">all</button>';
     autonomyGroups.forEach(function(g) {
         var active = portfolioAutonomyFilter === g;
         html += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'' + g + '\';renderPortfolioOverview()">' + g + '</button>';
@@ -3539,7 +3562,7 @@ function renderPortfolioStudent(studentId) {
 
     // Subject filter toggle bar
     html += '<div class="toggle-group" style="margin-bottom:1.25rem;flex-wrap:wrap;">';
-    html += '<button class="toggle-btn' + (portfolioSubjectFilter === 'all' ? ' active' : '') + '" onclick="portfolioSubjectFilter=\'all\';renderPortfolioStudent(\'' + studentId + '\')">All</button>';
+    html += '<button class="toggle-btn' + (portfolioSubjectFilter === 'all' ? ' active' : '') + '" onclick="portfolioSubjectFilter=\'all\';renderPortfolioStudent(\'' + studentId + '\')">all</button>';
     presentSubjects.forEach(function(subj) {
         var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
         var active = portfolioSubjectFilter === subj;
@@ -3788,6 +3811,10 @@ function loadPortfolioDriveArtifacts(studentId) {
         portfolioDriveArtifacts[studentId] = files || [];
         portfolioDriveArtifactsLoading[studentId] = false;
         if (portfolioStudent === studentId) renderPortfolioStudent(studentId);
+        if (currentTab === 'earned') {
+            var earnedSel = document.getElementById('st-student');
+            if (earnedSel && earnedSel.value === studentId) renderEarnedCredits();
+        }
     };
 
     // Find the student's top-level folder anywhere in the shared drive,
@@ -4180,7 +4207,7 @@ function renderGoalTrackerForm(studentId) {
 
     function sectionOpen(num, label) {
         return '<div style="background:#e8e8ed;border-radius:14px;padding:1rem 1.1rem 0.25rem;margin-bottom:1.25rem;">'
-             + '<div style="font-size:0.7rem;font-weight:700;color:#FF8200;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">' + num + '. ' + label + '</div>';
+             + '<div style="font-size:0.92rem;font-weight:700;color:#FF8200;margin-bottom:0.75rem;">' + num + '. ' + label + '</div>';
     }
     function sectionClose() { return '</div>'; }
     function subsection(label) {
@@ -4330,7 +4357,7 @@ function renderStudentTabPicker() {
     // Filter bar row 1: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;flex-wrap:nowrap;">';
     html += '<div class="toggle-group" style="background:none;padding:0;gap:0;">';
-    html += '<button class="toggle-btn' + (studentTabAutonomyFilter === 'all' ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'all\';renderStudentTabPicker()">All</button>';
+    html += '<button class="toggle-btn' + (studentTabAutonomyFilter === 'all' ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'all\';renderStudentTabPicker()">all</button>';
     autonomyGroups.forEach(function(g) {
         var active = studentTabAutonomyFilter === g;
         html += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'' + g + '\';renderStudentTabPicker()">' + g + '</button>';
@@ -4396,7 +4423,7 @@ function renderStudentTabLibrary() {
         sHtml += '</div>';
         sHtml += '<div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap;">';
         sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
-        sHtml += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
+        sHtml += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">all</button>';
         usedSubjects.forEach(function(subj) {
             var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
             var active = studentTabSubjectFilter === subj;
@@ -4404,7 +4431,7 @@ function renderStudentTabLibrary() {
         });
         sHtml += '</div>';
         sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
-        sHtml += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
+        sHtml += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">all</button>';
         stages.forEach(function(st) {
             sHtml += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTab()" style="' + btnStyle + '">' + st + '</button>';
         });
@@ -4769,7 +4796,7 @@ function renderAvailable() {
         var ai = subjects.indexOf(a), bi = subjects.indexOf(b);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     });
-    var subjHtml = '<button class="toggle-btn' + (avFilterSubject === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'subject\',\'all\')">All</button>';
+    var subjHtml = '<button class="toggle-btn' + (avFilterSubject === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'subject\',\'all\')">all</button>';
     usedSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = avFilterSubject === s;
@@ -4784,7 +4811,7 @@ function renderAvailable() {
         { key: 'middle', label: 'Middle' },
         { key: 'late', label: 'Late' }
     ];
-    var stageHtml = '<button class="toggle-btn' + (avFilterStage === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'all\')">All</button>';
+    var stageHtml = '<button class="toggle-btn' + (avFilterStage === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'all\')">all</button>';
     stageMap.forEach(function(st) {
         var active = avFilterStage === st.key;
         stageHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'' + st.key + '\')">' + st.label + '</button>';
@@ -4793,7 +4820,7 @@ function renderAvailable() {
 
     // Build type filter buttons (toggle-group)
     var typeMap = [{ key: 'fluency', label: 'Fluency' }, { key: 'concept', label: 'Concept' }];
-    var typeHtml = '<button class="toggle-btn' + (avFilterType === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'all\')">All</button>';
+    var typeHtml = '<button class="toggle-btn' + (avFilterType === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'all\')">all</button>';
     typeMap.forEach(function(t) {
         var active = avFilterType === t.key;
         typeHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'' + t.key + '\')">' + t.label + '</button>';
@@ -5044,7 +5071,7 @@ function renderEarnedGroup(period, container) {
         html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">';
         html += '<h3 style="font-size:1rem;font-weight:600;margin:0;">' + stageName + '</h3>';
         html += '<div class="toggle-group" style="font-size:0.72rem;">';
-        html += '<button class="toggle-btn' + (sf === 'all' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'all\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">All</button>';
+        html += '<button class="toggle-btn' + (sf === 'all' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'all\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">all</button>';
         html += '<button class="toggle-btn' + (sf === 'earned' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'earned\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">Earned</button>';
         html += '<button class="toggle-btn' + (sf === 'not' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'not\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">Not Yet</button>';
         html += '</div></div>';
@@ -5070,7 +5097,8 @@ function renderEarnedGroup(period, container) {
                     studentTotal++;
                     var fd = formatDate(e.date);
                     var gArt = artifacts[artifactKey(s.id, c.id)];
-                    var gArtDate = gArt ? parseDateFromFilename(gArt.name) : null;
+                    var gDriveDate = driveArtifactDateFor(s.id, c.title);
+                    var gArtDate = gDriveDate || (gArt ? parseDateFromFilename(gArt.name) : null);
                     var gDateStr = gArtDate ? gArtDate.display : fd;
                     html += `<td style="text-align:center;"><span class="earned-icon earned-yes" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')"${fd ? ' title="Earned ' + fd + '"' : ''}>&#10003;</span>${gDateStr ? '<br><span style="font-size:0.62rem;color:#86868b;white-space:nowrap;">'+gDateStr+'</span>' : ''}</td>`;
                 } else if (att) {
@@ -5109,6 +5137,11 @@ function setEarnedStudentFilter(key, value) {
 function renderEarnedStudent(period, container) {
     const studentId = document.getElementById('st-student').value;
     const student = students.find(s => s.id === studentId);
+    // Kick off Drive artifact load so dates can be parsed from filenames
+    if (studentId && portfolioDriveArtifacts[studentId] === undefined && !portfolioDriveArtifactsLoading[studentId]) {
+        portfolioDriveArtifactsLoading[studentId] = true;
+        loadPortfolioDriveArtifacts(studentId);
+    }
     if (!student) {
         var sorted = students.slice().sort(function(a, b) { return a.name.localeCompare(b.name); }).filter(function(s) {
             if (earnedAutonomyFilter !== 'all' && studentAutonomyLevel[s.name] !== earnedAutonomyFilter) return false;
@@ -5169,7 +5202,7 @@ function renderEarnedStudent(period, container) {
 
     // Subject filter bar
     html += '<div class="toggle-group" style="flex:2;flex-wrap:nowrap;">';
-    html += '<button class="toggle-btn' + (earnedStudentSubject === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'subject\',\'all\')">All</button>';
+    html += '<button class="toggle-btn' + (earnedStudentSubject === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'subject\',\'all\')">all</button>';
     usedSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = earnedStudentSubject === s;
@@ -5179,7 +5212,7 @@ function renderEarnedStudent(period, container) {
 
     // Stage filter bar
     html += '<div class="toggle-group" style="flex:1;flex-wrap:nowrap;">';
-    html += '<button class="toggle-btn' + (earnedStudentStage === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'stage\',\'all\')">All</button>';
+    html += '<button class="toggle-btn' + (earnedStudentStage === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'stage\',\'all\')">all</button>';
     stageList.forEach(function(st) {
         var key = st.toLowerCase();
         var active = earnedStudentStage === key;
@@ -5240,11 +5273,12 @@ function renderEarnedStudent(period, container) {
                 html += '<span class="earned-icon earned-no" style="cursor:pointer;" onclick="toggleEarned(\'' + studentId + '\',\'' + c.id + '\')">&#10007;</span>';
             }
             html += '</td>';
-            // Date cell — try artifact filename first, fall back to earned date
+            // Date cell — try Drive artifacts (fuzzy title match), then in-session artifact, then earned date
             var aKey = artifactKey(studentId, c.id);
             var art = artifacts[aKey];
-            var artDate = art ? parseDateFromFilename(art.name) : null;
-            var dateDisplay = artDate ? artDate.display : (fd || '');
+            var dateResult = driveArtifactDateFor(studentId, c.title)
+                          || (art ? parseDateFromFilename(art.name) : null);
+            var dateDisplay = dateResult ? dateResult.display : (fd || '');
             html += '<td style="text-align:center;font-size:0.72rem;color:#555;white-space:nowrap;">' + (dateDisplay || '<span style="color:#d2d2d7;">—</span>') + '</td>';
             html += '<td style="text-align:center;">';
             if (art) {
@@ -5298,7 +5332,7 @@ function renderManageCombined() {
 
     // Build subject buttons (same style as drafting progress)
     var manageSubjects = ['Computation','Reading','Writing','Observation','CTWS'];
-    var subjHtml = '<button class="toggle-btn' + (manageSubjectFilter === 'all' ? ' active' : '') + '" onclick="setManageSubjectFilter(\'all\')">All</button>';
+    var subjHtml = '<button class="toggle-btn' + (manageSubjectFilter === 'all' ? ' active' : '') + '" onclick="setManageSubjectFilter(\'all\')">all</button>';
     manageSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = manageSubjectFilter === s;
@@ -6170,7 +6204,7 @@ function renderDrafting() {
     var usedAreas = [];
     draftingData.forEach(function(d) { if (usedAreas.indexOf(d.area) === -1) usedAreas.push(d.area); });
     usedAreas.sort(function(a,b) { var ai = subjects.indexOf(a); var bi = subjects.indexOf(b); return (ai===-1?999:ai)-(bi===-1?999:bi); });
-    var subjHtml = '<button class="toggle-btn' + (drFilterSubject === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'subject\',\'all\')">All</button>';
+    var subjHtml = '<button class="toggle-btn' + (drFilterSubject === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'subject\',\'all\')">all</button>';
     usedAreas.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = drFilterSubject === s;
@@ -6180,7 +6214,7 @@ function renderDrafting() {
 
     // Build stage buttons (toggle-group style)
     var stageList = [{key:'emergent',label:'Emergent'},{key:'early',label:'Early'},{key:'middle',label:'Middle'},{key:'late',label:'Late'}];
-    var stageHtml = '<button class="toggle-btn' + (drFilterStage === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'all\')">All</button>';
+    var stageHtml = '<button class="toggle-btn' + (drFilterStage === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'all\')">all</button>';
     stageList.forEach(function(st) {
         var active = drFilterStage === st.key;
         stageHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'' + st.key + '\')">' + st.label + '</button>';
@@ -6914,7 +6948,7 @@ function renderMatSelect() {
 
     // Subject filter
     html += '<div style="margin-bottom:0.6rem;"><div class="toggle-group" style="flex-wrap:wrap;">';
-    html += '<button class="toggle-btn' + (sf==='all'?' active':'') + '" onclick="matBot.selectSubjectFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">All</button>';
+    html += '<button class="toggle-btn' + (sf==='all'?' active':'') + '" onclick="matBot.selectSubjectFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">all</button>';
     docSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg:'#86868b', ic:'#86868b', tc:'#fff' };
         html += '<button class="toggle-btn" onclick="matBot.selectSubjectFilter=\'' + s.replace(/'/g,"\\'") + '\';renderMatModal()" style="padding:0.3rem 0.6rem;' + (sf===s ? 'background:'+sc.bg+';color:'+(sc.tc||'#fff')+';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:'+(sc.ic||sc.bg)+';') + '">' + subjLabel(s) + '</button>';
@@ -9505,11 +9539,20 @@ function renderCore() {
     var el = document.getElementById('core-content');
     if (!el) return;
     var key = coreAL;
-    if (!coreData[key]) {
-        loadCoreData(key, renderCore);
-        return;
+    if (key === 'all') {
+        // Combine all AL groups
+        var allKeys = ['al1','al2','al34'];
+        var missing = allKeys.filter(function(k) { return !coreData[k]; });
+        if (missing.length) {
+            var loaded = 0;
+            missing.forEach(function(k) { loadCoreData(k, function() { if (++loaded === missing.length) renderCore(); }); });
+            return;
+        }
+        var students = [].concat(coreData['al1']||[], coreData['al2']||[], coreData['al34']||[]);
+    } else {
+        if (!coreData[key]) { loadCoreData(key, renderCore); return; }
+        var students = coreData[key];
     }
-    var students = coreData[key];
     if (!students.length) {
         el.innerHTML = '<div style="padding:3rem;text-align:center;color:#86868b;font-size:0.85rem;">No data found.</div>';
         return;
@@ -10168,6 +10211,7 @@ var mapMathView              = 'class';
 var mapElaView               = 'class';
 var mapMathSelectedStudent   = '';
 var mapElaSelectedStudent    = '';
+var mapElaStudentSearch      = '';
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -10602,7 +10646,17 @@ function renderMapElaStudentGraphs() {
     }
 
     // ── Grid view — all (or AL-filtered) students, 4 per row ──
-    var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;padding:1.25rem;">';
+    if (mapElaStudentSearch) {
+        var q = mapElaStudentSearch.toLowerCase();
+        all = all.filter(function(s) { return fullName(s.name).toLowerCase().indexOf(q) !== -1; });
+    }
+    var html = '<div style="padding:0.75rem 1.25rem 0;"><input id="map-ela-search" type="text" placeholder="Search student…" value="' + mapElaStudentSearch.replace(/"/g,'&quot;') + '" '
+        + 'oninput="mapElaStudentSearch=this.value;renderMapElaStudentGraphs();" '
+        + 'style="width:220px;padding:0.35rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;outline:none;box-sizing:border-box;" '
+        + 'onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#d2d2d7\'">'
+        + (mapElaStudentSearch ? '<button onclick="mapElaStudentSearch=\'\';renderMapElaStudentGraphs();" style="margin-left:6px;padding:0.3rem 0.7rem;border:none;background:none;cursor:pointer;font-size:0.78rem;color:#86868b;">✕</button>' : '')
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;padding:1.25rem;">';
     all.forEach(function(s, si) {
         var latestScore = '', latestPct = 0;
         for (var j = MAP_ELA_COUNT - 1; j >= 0; j--) {
@@ -10620,7 +10674,7 @@ function renderMapElaStudentGraphs() {
             + '<canvas id="map-ela-grid-' + si + '" width="400" height="120" style="width:100%;height:120px;border-radius:6px;display:block;"></canvas>'
             + '</div>';
     });
-    html += '</div>';
+    html += '</div></div>';
     el.innerHTML = html;
 
     all.forEach(function(s, si) {
@@ -10631,6 +10685,8 @@ function renderMapElaStudentGraphs() {
         var canvas = document.getElementById('map-ela-grid-' + si);
         if (canvas && pts.length > 1) drawMapLineGraph(canvas, pts, '#FFC8BB');
     });
+    var inp = document.getElementById('map-ela-search');
+    if (inp && mapElaStudentSearch) { inp.focus(); var l = inp.value.length; inp.setSelectionRange(l, l); }
 }
 
 function mapElaSelectStudent(name) {
@@ -10840,7 +10896,7 @@ function renderFactFluencyTable() {
         var th = '';
         if (als.length > 1) {
             th += '<div class="toggle-group">';
-            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">All</button>';
+            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">all</button>';
             als.forEach(function(a) {
                 th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter===a?' active':'') + '" onclick="ffAlFilter=\'' + a.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">AL' + a.replace(/</g,'&lt;') + '</button>';
             });
@@ -11032,7 +11088,7 @@ function renderSTMathTable() {
     if (toolbar) {
         var th = '<div style="display:flex;align-items:center;gap:0.6rem;width:100%;">';
         th += '<div class="toggle-group">';
-        th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">All</button>';
+        th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">all</button>';
         stmathData.forEach(function(s) {
             var g = s.grade;
             th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter===g?' active':'') + '" onclick="stmathGradeFilter=\'' + g.replace(/'/g,"\\'") + '\';renderSTMathTable()">' + g.replace(/</g,'&lt;') + '</button>';
@@ -11331,7 +11387,7 @@ function doRenderBeastAcademy(el) {
     });
     html += '</div></div>';
     html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Group</span><div style="display:flex;gap:4px;">';
-    html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">All</button>';
+    html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">all</button>';
     groups.forEach(function(g) {
         html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter===g?' active':'') + '" data-group="' + g + '" onclick="setBaGroup(\'' + g.replace(/'/g,"\\'") + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + g + '</button>';
     });
@@ -12404,7 +12460,7 @@ function renderLexiaProg() {
     var BOX = 18;
     var GROUP_COLORS = ['#e8f4ea','#dbeafe','#fef9e7','#fdf2f8','#f9ebf7','#fef5e4','#e8f8f5'];
 
-    var html = '<div style="padding:12px 1.25rem 1.5rem;">';
+    var html = '<div class="core-table-wrap" style="padding:12px 1.25rem 1.5rem;margin:1.25rem;">';
 
     // Group legend
     html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:0.69rem;color:#86868b;">';
@@ -13269,7 +13325,7 @@ function buildSurveyALButtons() {
     var levels = [];
     surveyData.forEach(function(s) { if (s.al && levels.indexOf(s.al) === -1) levels.push(s.al); });
     levels.sort();
-    var html = '<button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL(\'all\')">All</button>';
+    var html = '<button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL(\'all\')">all</button>';
     levels.forEach(function(al) {
         html += '<button class="toggle-btn survey-al-btn" data-al="' + al + '" onclick="setSurveyAL(\'' + al + '\')">' + al + '</button>';
     });
