@@ -5396,7 +5396,13 @@ function renderEarnedStudent(period, container) {
             var dateResult = driveArtifactDateFor(studentId, c.title)
                           || (art ? parseDateFromFilename(art.name) : null);
             var dateDisplay = dateResult ? dateResult.display : (fd || '');
-            html += '<td style="text-align:center;font-size:0.72rem;color:#555;white-space:nowrap;">' + (dateDisplay || '<span style="color:#d2d2d7;">—</span>') + '</td>';
+            if (dateDisplay) {
+                html += '<td style="text-align:center;font-size:0.72rem;color:#555;white-space:nowrap;cursor:pointer;" onclick="editEarnedDate(\'' + studentId + '\',\'' + c.id + '\')" title="Edit date">' + dateDisplay + '</td>';
+            } else if (e) {
+                html += '<td style="text-align:center;font-size:0.72rem;white-space:nowrap;"><span style="color:#d2d2d7;cursor:pointer;" onclick="editEarnedDate(\'' + studentId + '\',\'' + c.id + '\')" title="Set earned date">+ date</span></td>';
+            } else {
+                html += '<td style="text-align:center;"><span style="color:#d2d2d7;">—</span></td>';
+            }
             html += '<td style="text-align:center;">';
             if (art) {
                 html += '<div class="artifact-preview">';
