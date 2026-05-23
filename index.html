@@ -1050,7 +1050,7 @@
         <div class="view-container">
             <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:nowrap;">
                 <div class="toggle-group" style="background:none;padding:0;gap:0;">
-                    <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">all</button>
+                    <button class="toggle-btn active" id="earned-al-all" onclick="earnedAutonomyFilter='all';document.querySelectorAll('.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">All</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL1';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL1</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL2';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL2</button>
                     <button class="toggle-btn earned-al-btn" onclick="earnedAutonomyFilter='AL3';document.querySelectorAll('#earned-al-all,.earned-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderEarnedCredits()">AL3</button>
@@ -1059,7 +1059,7 @@
                 <div class="toggle-group" id="earned-mode-toggle" style="flex-shrink:0;">
                     <button class="toggle-btn active" data-value="student" onclick="setToggle('earned-mode-toggle', 'student'); renderEarnedCredits()">Student</button>
                     <button class="toggle-btn" data-value="group" onclick="setToggle('earned-mode-toggle', 'group'); renderEarnedCredits()">Group</button>
-                    <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">all</button>
+                    <button class="toggle-btn" data-value="school" onclick="setToggle('earned-mode-toggle', 'school'); renderEarnedCredits()">All</button>
                 </div>
                 <div id="earned-group-filter" style="flex-shrink:0;">
                     <select id="gp-group" onchange="renderEarnedCredits()" style="padding:0.4rem 0.6rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;"></select>
@@ -1069,7 +1069,7 @@
                 </div>
                 <div id="earned-period-toggle-wrap" style="flex-shrink:0;">
                     <div class="toggle-group" id="earned-period-toggle">
-                        <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">all time</button>
+                        <button class="toggle-btn active" data-value="all" onclick="setToggle('earned-period-toggle', 'all'); renderEarnedCredits()">All time</button>
                         <button class="toggle-btn" data-value="2026" onclick="setToggle('earned-period-toggle', '2026'); renderEarnedCredits()">This Year</button>
                         <button class="toggle-btn" data-value="previous" onclick="setToggle('earned-period-toggle', 'previous'); renderEarnedCredits()">Previous Years</button>
                     </div>
@@ -1127,7 +1127,7 @@
             <div id="manage-student-search" style="display:none;align-items:center;gap:0.6rem;flex-wrap:wrap;">
                 <input type="text" id="manage-student-search-input" placeholder="Search students..." oninput="registrySearch=this.value; renderStudentsLeft()" style="padding:0.4rem 0.8rem;border:1px solid #d2d2d7;border-radius:8px;font-size:0.82rem;font-family:inherit;width:180px;">
                 <div class="toggle-group" id="manage-al-filter" style="background:none;padding:0;gap:0;">
-                    <button class="toggle-btn active" id="manage-al-all" onclick="registryALFilter='all';document.querySelectorAll('.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">all</button>
+                    <button class="toggle-btn active" id="manage-al-all" onclick="registryALFilter='all';document.querySelectorAll('.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">All</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL1';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL1</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL2';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL2</button>
                     <button class="toggle-btn manage-al-btn" onclick="registryALFilter='AL3';document.querySelectorAll('#manage-al-all,.manage-al-btn').forEach(function(b){b.classList.remove('active')});this.classList.add('active');renderStudentsLeft()" style="padding:0.3rem 0.6rem;font-size:0.78rem;">AL3</button>
@@ -1208,7 +1208,7 @@
             <div id="reading-panel-core">
                 <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
-                        <button class="toggle-btn core-al-btn active" data-al="all" onclick="setCoreAL('all')">all</button>
+                        <button class="toggle-btn core-al-btn active" data-al="all" onclick="setCoreAL('all')">All</button>
                         <button class="toggle-btn core-al-btn" data-al="al1" onclick="setCoreAL('al1')">AL1</button>
                         <button class="toggle-btn core-al-btn" data-al="al2" onclick="setCoreAL('al2')">AL2</button>
                         <button class="toggle-btn core-al-btn" data-al="al34" onclick="setCoreAL('al34')">AL3/4</button>
@@ -1217,7 +1217,7 @@
                         <button class="toggle-btn core-period-btn active" data-period="fall" onclick="setCorePeriod('fall')">BOY</button>
                         <button class="toggle-btn core-period-btn" data-period="winter" onclick="setCorePeriod('winter')">MOY</button>
                         <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
-                        <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">all</button>
+                        <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                     </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
                         <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
@@ -1229,7 +1229,7 @@
             <div id="reading-panel-fp" style="display:none;">
                 <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
                     <div class="toggle-group">
-                        <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">all</button>
+                        <button class="toggle-btn fp-al-btn active" data-al="all" onclick="setFpAL('all')">All</button>
                         <button class="toggle-btn fp-al-btn" data-al="1" onclick="setFpAL('1')">AL1</button>
                         <button class="toggle-btn fp-al-btn" data-al="2" onclick="setFpAL('2')">AL2</button>
                         <button class="toggle-btn fp-al-btn" data-al="3" onclick="setFpAL('3')">AL3</button>
@@ -1253,7 +1253,7 @@
                         <button class="toggle-btn lexia-view-btn" data-view="standards" onclick="setLexiaView('standards')">Standards</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn lexia-al-btn active" data-al="all" onclick="setLexiaAL('all')">all</button>
+                        <button class="toggle-btn lexia-al-btn active" data-al="all" onclick="setLexiaAL('all')">All</button>
                         <button class="toggle-btn lexia-al-btn" data-al="1" onclick="setLexiaAL('1')">AL1</button>
                         <button class="toggle-btn lexia-al-btn" data-al="2" onclick="setLexiaAL('2')">AL2</button>
                         <button class="toggle-btn lexia-al-btn" data-al="3" onclick="setLexiaAL('3')">AL3</button>
@@ -1279,7 +1279,7 @@
                         <button class="toggle-btn map-ela-view-btn" data-view="student" onclick="setMapElaView('student')">Student Growth</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">all</button>
+                        <button class="toggle-btn map-ela-al-btn active" data-al="all" onclick="setMapElaAL('all')">All</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="1" onclick="setMapElaAL('1')">AL1</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="2" onclick="setMapElaAL('2')">AL2</button>
                         <button class="toggle-btn map-ela-al-btn" data-al="3" onclick="setMapElaAL('3')">AL3</button>
@@ -1348,7 +1348,7 @@
                         <button class="toggle-btn map-math-view-btn" data-view="student" onclick="setMapMathView('student')">Student Growth</button>
                     </div>
                     <div class="toggle-group">
-                        <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">all</button>
+                        <button class="toggle-btn map-math-al-btn active" data-al="all" onclick="setMapMathAL('all')">All</button>
                         <button class="toggle-btn map-math-al-btn" data-al="1" onclick="setMapMathAL('1')">AL1</button>
                         <button class="toggle-btn map-math-al-btn" data-al="2" onclick="setMapMathAL('2')">AL2</button>
                         <button class="toggle-btn map-math-al-btn" data-al="3" onclick="setMapMathAL('3')">AL3</button>
@@ -1405,7 +1405,7 @@
                 <div id="xref-area-toggle" style="display:none;align-items:center;gap:0.4rem;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Subject</span>
                     <div class="toggle-group">
-                        <button class="toggle-btn xref-area-btn active" data-area="all" onclick="xrefSetArea('all')">all</button>
+                        <button class="toggle-btn xref-area-btn active" data-area="all" onclick="xrefSetArea('all')">All</button>
                         <button class="toggle-btn xref-area-btn" data-area="Computation" onclick="xrefSetArea('Computation')">Math</button>
                         <button class="toggle-btn xref-area-btn" data-area="Reading" onclick="xrefSetArea('Reading')">Reading</button>
                         <button class="toggle-btn xref-area-btn" data-area="Writing" onclick="xrefSetArea('Writing')">Writing</button>
@@ -1414,7 +1414,7 @@
                 <div id="xref-grade-toggle" style="display:none;align-items:center;gap:0.4rem;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">Grade</span>
                     <div class="toggle-group">
-                        <button class="toggle-btn xref-grade-btn active" data-grade="all" onclick="xrefSetGrade('all')">all</button>
+                        <button class="toggle-btn xref-grade-btn active" data-grade="all" onclick="xrefSetGrade('all')">All</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="K" onclick="xrefSetGrade('K')">K</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="1" onclick="xrefSetGrade('1')">1</button>
                         <button class="toggle-btn xref-grade-btn" data-grade="2" onclick="xrefSetGrade('2')">2</button>
@@ -1451,7 +1451,7 @@
                 <div id="wd-root">
                     <div id="wd-nav">
                         <div class="toggle-group">
-                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">all</button>
+                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">All</button>
                             <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
                             <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
                             <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
@@ -1485,7 +1485,7 @@
                 <div id="survey-filter-bar" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
                     <span style="font-size:0.72rem;font-weight:600;color:#6b7280;">AL</span>
                     <div id="survey-al-btns" class="toggle-group">
-                        <button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL('all')">all</button>
+                        <button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL('all')">All</button>
                     </div>
                 </div>
                 <div id="survey-content" style="padding:1.25rem;"></div>
@@ -3450,7 +3450,7 @@ function renderPortfolioOverview() {
     // Filter bar: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;">';
     html += '<div class="toggle-group" style="background:none;padding:0;gap:0;">';
-    html += '<button class="toggle-btn' + (portfolioAutonomyFilter === 'all' ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'all\';renderPortfolioOverview()">all</button>';
+    html += '<button class="toggle-btn' + (portfolioAutonomyFilter === 'all' ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'all\';renderPortfolioOverview()">All</button>';
     autonomyGroups.forEach(function(g) {
         var active = portfolioAutonomyFilter === g;
         html += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="portfolioAutonomyFilter=\'' + g + '\';renderPortfolioOverview()">' + g + '</button>';
@@ -3565,7 +3565,7 @@ function renderPortfolioStudent(studentId) {
 
     // Subject filter toggle bar
     html += '<div class="toggle-group" style="margin-bottom:1.25rem;flex-wrap:wrap;">';
-    html += '<button class="toggle-btn' + (portfolioSubjectFilter === 'all' ? ' active' : '') + '" onclick="portfolioSubjectFilter=\'all\';renderPortfolioStudent(\'' + studentId + '\')">all</button>';
+    html += '<button class="toggle-btn' + (portfolioSubjectFilter === 'all' ? ' active' : '') + '" onclick="portfolioSubjectFilter=\'all\';renderPortfolioStudent(\'' + studentId + '\')">All</button>';
     presentSubjects.forEach(function(subj) {
         var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
         var active = portfolioSubjectFilter === subj;
@@ -4360,7 +4360,7 @@ function renderStudentTabPicker() {
     // Filter bar row 1: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.5rem;flex-wrap:nowrap;">';
     html += '<div class="toggle-group" style="background:none;padding:0;gap:0;">';
-    html += '<button class="toggle-btn' + (studentTabAutonomyFilter === 'all' ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'all\';renderStudentTabPicker()">all</button>';
+    html += '<button class="toggle-btn' + (studentTabAutonomyFilter === 'all' ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'all\';renderStudentTabPicker()">All</button>';
     autonomyGroups.forEach(function(g) {
         var active = studentTabAutonomyFilter === g;
         html += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="studentTabAutonomyFilter=\'' + g + '\';renderStudentTabPicker()">' + g + '</button>';
@@ -4426,7 +4426,7 @@ function renderStudentTabLibrary() {
         sHtml += '</div>';
         sHtml += '<div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap;">';
         sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
-        sHtml += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">all</button>';
+        sHtml += '<button class="toggle-btn' + (studentTabSubjectFilter === 'all' ? ' active' : '') + '" onclick="studentTabSubjectFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
         usedSubjects.forEach(function(subj) {
             var sc = avSubjectColors[subj] || { bg: '#86868b', ic: '#86868b' };
             var active = studentTabSubjectFilter === subj;
@@ -4434,7 +4434,7 @@ function renderStudentTabLibrary() {
         });
         sHtml += '</div>';
         sHtml += '<div class="toggle-group" style="margin-bottom:0;">';
-        sHtml += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">all</button>';
+        sHtml += '<button class="toggle-btn' + (studentTabStageFilter === 'all' ? ' active' : '') + '" onclick="studentTabStageFilter=\'all\';renderStudentTab()" style="' + btnStyle + '">All</button>';
         stages.forEach(function(st) {
             sHtml += '<button class="toggle-btn' + (studentTabStageFilter === st ? ' active' : '') + '" onclick="studentTabStageFilter=\'' + st + '\';renderStudentTab()" style="' + btnStyle + '">' + st + '</button>';
         });
@@ -4799,7 +4799,7 @@ function renderAvailable() {
         var ai = subjects.indexOf(a), bi = subjects.indexOf(b);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     });
-    var subjHtml = '<button class="toggle-btn' + (avFilterSubject === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'subject\',\'all\')">all</button>';
+    var subjHtml = '<button class="toggle-btn' + (avFilterSubject === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'subject\',\'all\')">All</button>';
     usedSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = avFilterSubject === s;
@@ -4814,7 +4814,7 @@ function renderAvailable() {
         { key: 'middle', label: 'Middle' },
         { key: 'late', label: 'Late' }
     ];
-    var stageHtml = '<button class="toggle-btn' + (avFilterStage === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'all\')">all</button>';
+    var stageHtml = '<button class="toggle-btn' + (avFilterStage === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'all\')">All</button>';
     stageMap.forEach(function(st) {
         var active = avFilterStage === st.key;
         stageHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setAvFilter(\'stage\',\'' + st.key + '\')">' + st.label + '</button>';
@@ -4823,7 +4823,7 @@ function renderAvailable() {
 
     // Build type filter buttons (toggle-group)
     var typeMap = [{ key: 'fluency', label: 'Fluency' }, { key: 'concept', label: 'Concept' }];
-    var typeHtml = '<button class="toggle-btn' + (avFilterType === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'all\')">all</button>';
+    var typeHtml = '<button class="toggle-btn' + (avFilterType === 'all' ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'all\')">All</button>';
     typeMap.forEach(function(t) {
         var active = avFilterType === t.key;
         typeHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setAvFilter(\'type\',\'' + t.key + '\')">' + t.label + '</button>';
@@ -5074,7 +5074,7 @@ function renderEarnedGroup(period, container) {
         html += '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">';
         html += '<h3 style="font-size:1rem;font-weight:600;margin:0;">' + stageName + '</h3>';
         html += '<div class="toggle-group" style="font-size:0.72rem;">';
-        html += '<button class="toggle-btn' + (sf === 'all' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'all\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">all</button>';
+        html += '<button class="toggle-btn' + (sf === 'all' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'all\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">All</button>';
         html += '<button class="toggle-btn' + (sf === 'earned' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'earned\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">Earned</button>';
         html += '<button class="toggle-btn' + (sf === 'not' ? ' active' : '') + '" onclick="setEarnedGroupStageFilter(\'' + stageName + '\',\'not\')" style="padding:0.15rem 0.5rem;font-size:0.72rem;">Not Yet</button>';
         html += '</div></div>';
@@ -5205,7 +5205,7 @@ function renderEarnedStudent(period, container) {
 
     // Subject filter bar
     html += '<div class="toggle-group" style="flex:2;flex-wrap:nowrap;">';
-    html += '<button class="toggle-btn' + (earnedStudentSubject === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'subject\',\'all\')">all</button>';
+    html += '<button class="toggle-btn' + (earnedStudentSubject === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'subject\',\'all\')">All</button>';
     usedSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = earnedStudentSubject === s;
@@ -5215,7 +5215,7 @@ function renderEarnedStudent(period, container) {
 
     // Stage filter bar
     html += '<div class="toggle-group" style="flex:1;flex-wrap:nowrap;">';
-    html += '<button class="toggle-btn' + (earnedStudentStage === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'stage\',\'all\')">all</button>';
+    html += '<button class="toggle-btn' + (earnedStudentStage === 'all' ? ' active' : '') + '" style="' + cpt + '" onclick="setEarnedStudentFilter(\'stage\',\'all\')">All</button>';
     stageList.forEach(function(st) {
         var key = st.toLowerCase();
         var active = earnedStudentStage === key;
@@ -5335,7 +5335,7 @@ function renderManageCombined() {
 
     // Build subject buttons (same style as drafting progress)
     var manageSubjects = ['Computation','Reading','Writing','Observation','CTWS'];
-    var subjHtml = '<button class="toggle-btn' + (manageSubjectFilter === 'all' ? ' active' : '') + '" onclick="setManageSubjectFilter(\'all\')">all</button>';
+    var subjHtml = '<button class="toggle-btn' + (manageSubjectFilter === 'all' ? ' active' : '') + '" onclick="setManageSubjectFilter(\'all\')">All</button>';
     manageSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = manageSubjectFilter === s;
@@ -6207,7 +6207,7 @@ function renderDrafting() {
     var usedAreas = [];
     draftingData.forEach(function(d) { if (usedAreas.indexOf(d.area) === -1) usedAreas.push(d.area); });
     usedAreas.sort(function(a,b) { var ai = subjects.indexOf(a); var bi = subjects.indexOf(b); return (ai===-1?999:ai)-(bi===-1?999:bi); });
-    var subjHtml = '<button class="toggle-btn' + (drFilterSubject === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'subject\',\'all\')">all</button>';
+    var subjHtml = '<button class="toggle-btn' + (drFilterSubject === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'subject\',\'all\')">All</button>';
     usedAreas.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg: '#86868b', letter: s[0] };
         var active = drFilterSubject === s;
@@ -6217,7 +6217,7 @@ function renderDrafting() {
 
     // Build stage buttons (toggle-group style)
     var stageList = [{key:'emergent',label:'Emergent'},{key:'early',label:'Early'},{key:'middle',label:'Middle'},{key:'late',label:'Late'}];
-    var stageHtml = '<button class="toggle-btn' + (drFilterStage === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'all\')">all</button>';
+    var stageHtml = '<button class="toggle-btn' + (drFilterStage === 'all' ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'all\')">All</button>';
     stageList.forEach(function(st) {
         var active = drFilterStage === st.key;
         stageHtml += '<button class="toggle-btn' + (active ? ' active' : '') + '" onclick="setDrFilter(\'stage\',\'' + st.key + '\')">' + st.label + '</button>';
@@ -6951,7 +6951,7 @@ function renderMatSelect() {
 
     // Subject filter
     html += '<div style="margin-bottom:0.6rem;"><div class="toggle-group" style="flex-wrap:wrap;">';
-    html += '<button class="toggle-btn' + (sf==='all'?' active':'') + '" onclick="matBot.selectSubjectFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">all</button>';
+    html += '<button class="toggle-btn' + (sf==='all'?' active':'') + '" onclick="matBot.selectSubjectFilter=\'all\';renderMatModal()" style="padding:0.3rem 0.6rem;">All</button>';
     docSubjects.forEach(function(s) {
         var sc = avSubjectColors[s] || { bg:'#86868b', ic:'#86868b', tc:'#fff' };
         html += '<button class="toggle-btn" onclick="matBot.selectSubjectFilter=\'' + s.replace(/'/g,"\\'") + '\';renderMatModal()" style="padding:0.3rem 0.6rem;' + (sf===s ? 'background:'+sc.bg+';color:'+(sc.tc||'#fff')+';box-shadow:0 1px 3px rgba(0,0,0,0.12);' : 'color:'+(sc.ic||sc.bg)+';') + '">' + subjLabel(s) + '</button>';
@@ -10933,7 +10933,7 @@ function renderFactFluencyTable() {
         var th = '';
         if (als.length > 1) {
             th += '<div class="toggle-group">';
-            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">all</button>';
+            th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter==='all'?' active':'') + '" onclick="ffAlFilter=\'all\';renderFactFluencyTable()">All</button>';
             als.forEach(function(a) {
                 th += '<button class="toggle-btn ff-al-btn' + (ffAlFilter===a?' active':'') + '" onclick="ffAlFilter=\'' + a.replace(/'/g,"\\'") + '\';renderFactFluencyTable()">AL' + a.replace(/</g,'&lt;') + '</button>';
             });
@@ -11125,7 +11125,7 @@ function renderSTMathTable() {
     if (toolbar) {
         var th = '<div style="display:flex;align-items:center;gap:0.6rem;width:100%;">';
         th += '<div class="toggle-group">';
-        th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">all</button>';
+        th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter==='all'?' active':'') + '" onclick="stmathGradeFilter=\'all\';renderSTMathTable()">All</button>';
         stmathData.forEach(function(s) {
             var g = s.grade;
             th += '<button class="toggle-btn stmath-g-btn' + (stmathGradeFilter===g?' active':'') + '" onclick="stmathGradeFilter=\'' + g.replace(/'/g,"\\'") + '\';renderSTMathTable()">' + g.replace(/</g,'&lt;') + '</button>';
@@ -11420,11 +11420,11 @@ function doRenderBeastAcademy(el) {
     html += '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
     html += '<div style="display:flex;gap:4px;">';
     als.forEach(function(al) {
-        html += '<button class="toggle-btn ba-al-btn' + (baALFilter===al?' active':'') + '" data-al="' + al + '" onclick="setBaAL(\'' + al + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + (al==='all'?'all':'AL'+al) + '</button>';
+        html += '<button class="toggle-btn ba-al-btn' + (baALFilter===al?' active':'') + '" data-al="' + al + '" onclick="setBaAL(\'' + al + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + (al==='all'?'All':'AL'+al) + '</button>';
     });
     html += '</div>';
     html += '<div style="display:flex;gap:4px;">';
-    html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">all</button>';
+    html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter==='all'?' active':'') + '" data-group="all" onclick="setBaGroup(\'all\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">All</button>';
     groups.forEach(function(g) {
         html += '<button class="toggle-btn ba-group-btn' + (baGroupFilter===g?' active':'') + '" data-group="' + g + '" onclick="setBaGroup(\'' + g.replace(/'/g,"\\'") + '\')" style="padding:0.25rem 0.65rem;font-size:.75rem;">' + g + '</button>';
     });
@@ -13376,7 +13376,7 @@ function buildSurveyALButtons() {
     var levels = [];
     surveyData.forEach(function(s) { if (s.al && levels.indexOf(s.al) === -1) levels.push(s.al); });
     levels.sort();
-    var html = '<button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL(\'all\')">all</button>';
+    var html = '<button class="toggle-btn survey-al-btn active" data-al="all" onclick="setSurveyAL(\'all\')">All</button>';
     levels.forEach(function(al) {
         html += '<button class="toggle-btn survey-al-btn" data-al="' + al + '" onclick="setSurveyAL(\'' + al + '\')">' + al + '</button>';
     });
