@@ -3233,6 +3233,39 @@ function formatDate(d) {
     return (m < 10 ? '0' + m : m) + '/' + (d2 < 10 ? '0' + d2 : d2) + '/' + y;
 }
 
+// Parse a human-readable date from an artifact filename.
+// Returns { display: "Mar 2023" or "Mar 15, 2023", hasDay: bool } or null.
+function parseDateFromFilename(name) {
+    if (!name) return null;
+    var MN = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,
+               jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var s = name;
+    var m;
+
+    // YYYY-MM-DD (ISO)
+    m = s.match(/\b(20\d\d)[.\-](0?[1-9]|1[0-2])[.\-](0?[1-9]|[12]\d|3[01])\b/);
+    if (m) { var mo=parseInt(m[2])-1; return { display: MON[mo]+' '+parseInt(m[3])+', '+m[1], hasDay:true }; }
+
+    // M/D/YYYY or M-D-YYYY
+    m = s.match(/\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](20\d\d)\b/);
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true }; }
+
+    // Month name + day + year: "March 15, 2023" / "March 15 2023"
+    m = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(20\d\d)\b/i);
+    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+parseInt(m[2])+', '+m[3], hasDay:true }; }
+
+    // Month name + year: "March 2023"
+    m = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(20\d\d)\b/i);
+    if (m) { var mo=MN[m[1].toLowerCase()]-1; return { display: MON[mo]+' '+m[2], hasDay:false }; }
+
+    // M.YYYY or M/YYYY (no day)
+    m = s.match(/\b(0?[1-9]|1[0-2])[.\\/](20\d\d)\b/);
+    if (m) { var mo=parseInt(m[1])-1; return { display: MON[mo]+' '+m[2], hasDay:false }; }
+
+    return null;
+}
+
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('');
 }
@@ -4068,6 +4101,8 @@ function gtSave(studentId) {
     if (btn) { btn.textContent = 'Saved ✓'; setTimeout(function(){ btn.textContent = 'Save'; }, 1500); }
 }
 
+var gtALFilter = 'all';
+
 function renderGoalTracker() {
     var el = document.getElementById('goaltracker-content');
     if (!el) return;
@@ -4082,8 +4117,25 @@ function renderGoalTrackerOverview() {
     var el = document.getElementById('goaltracker-content');
     if (!el) return;
     var html = '<div style="padding:1.25rem;">';
+
+    // AL toggle bar
+    html += '<div style="display:flex;gap:0.4rem;margin-bottom:1rem;">';
+    ['all','AL1','AL2','AL3','AL4'].forEach(function(al) {
+        var active = gtALFilter === al;
+        html += '<button onclick="gtALFilter=\'' + al + '\';renderGoalTrackerOverview();" '
+              + 'style="padding:0.3rem 0.85rem;border:1.5px solid ' + (active ? '#FF8200' : '#d2d2d7') + ';border-radius:20px;'
+              + 'background:' + (active ? '#FF8200' : '#fff') + ';color:' + (active ? '#fff' : '#86868b') + ';'
+              + 'font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">'
+              + (al === 'all' ? 'All' : al) + '</button>';
+    });
+    html += '</div>';
+
     html += '<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:0.75rem;">';
-    students.forEach(function(s) {
+    var filtered = students.filter(function(s) {
+        if (gtALFilter === 'all') return true;
+        return (studentAutonomyLevel[s.name] || s.al || '').toUpperCase() === gtALFilter;
+    });
+    filtered.forEach(function(s) {
         var portrait = studentPortraitBlobMap[s.name];
         html += '<div onclick="gtStudent=\'' + s.id + '\';renderGoalTracker();" style="cursor:pointer;background:#fff;border:1px solid #e8e8ed;border-radius:12px;padding:0.9rem 0.5rem;text-align:center;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.10)\'" onmouseout="this.style.boxShadow=\'none\'">';
         if (portrait) {
@@ -5017,10 +5069,13 @@ function renderEarnedGroup(period, container) {
                 if (e) {
                     studentTotal++;
                     var fd = formatDate(e.date);
-                    html += `<td style="text-align:center;"><span class="earned-icon earned-yes" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')"${fd ? ' title="Earned ' + fd + '"' : ''}>&#10003;</span>${fd ? '<span class="earned-date" style="cursor:pointer;" onclick="event.stopPropagation();editEarnedDate(\'' + s.id + '\',\'' + c.id + '\')">'+fd+'</span>' : ''}</td>`;
+                    var gArt = artifacts[artifactKey(s.id, c.id)];
+                    var gArtDate = gArt ? parseDateFromFilename(gArt.name) : null;
+                    var gDateStr = gArtDate ? gArtDate.display : fd;
+                    html += `<td style="text-align:center;"><span class="earned-icon earned-yes" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')"${fd ? ' title="Earned ' + fd + '"' : ''}>&#10003;</span>${gDateStr ? '<br><span style="font-size:0.62rem;color:#86868b;white-space:nowrap;">'+gDateStr+'</span>' : ''}</td>`;
                 } else if (att) {
                     var afd = formatDate(att.date);
-                    html += `<td style="text-align:center;"><span class="earned-icon attempted-icon" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')"${afd ? ' title="Attempted ' + afd + '"' : ''}>a</span>${afd ? '<span class="earned-date" style="cursor:pointer;" onclick="event.stopPropagation();editAttemptedDate(\'' + s.id + '\',\'' + c.id + '\')">'+afd+'</span>' : ''}</td>`;
+                    html += `<td style="text-align:center;"><span class="earned-icon attempted-icon" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')"${afd ? ' title="Attempted ' + afd + '"' : ''}>a</span>${afd ? '<br><span style="font-size:0.62rem;color:#86868b;white-space:nowrap;">'+afd+'</span>' : ''}</td>`;
                 } else {
                     html += `<td style="text-align:center;"><span class="earned-icon earned-no" style="cursor:pointer;" onclick="toggleEarned('${s.id}','${c.id}')">&#10007;</span></td>`;
                 }
@@ -5163,7 +5218,7 @@ function renderEarnedStudent(period, container) {
         html += '<div style="margin-bottom:2rem;">';
         html += '<h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">' + stageName + ' <span style="font-size:0.82rem;font-weight:400;color:#86868b;">' + stageEarnedCount + ' / ' + stageCredits.length + ' earned</span></h3>';
         html += '<div class="progress-table-wrapper"><table><thead><tr>';
-        html += '<th>Credit</th><th>Subject</th><th style="text-align:center;">Status</th><th style="text-align:center;">Artifact</th>';
+        html += '<th>Credit</th><th>Subject</th><th style="text-align:center;">Status</th><th style="text-align:center;">Date</th><th style="text-align:center;">Artifact</th>';
         html += '</tr></thead><tbody>';
 
         stageCredits.forEach(function(c) {
@@ -5185,9 +5240,12 @@ function renderEarnedStudent(period, container) {
                 html += '<span class="earned-icon earned-no" style="cursor:pointer;" onclick="toggleEarned(\'' + studentId + '\',\'' + c.id + '\')">&#10007;</span>';
             }
             html += '</td>';
-            // Artifact cell
+            // Date cell — try artifact filename first, fall back to earned date
             var aKey = artifactKey(studentId, c.id);
             var art = artifacts[aKey];
+            var artDate = art ? parseDateFromFilename(art.name) : null;
+            var dateDisplay = artDate ? artDate.display : (fd || '');
+            html += '<td style="text-align:center;font-size:0.72rem;color:#555;white-space:nowrap;">' + (dateDisplay || '<span style="color:#d2d2d7;">—</span>') + '</td>';
             html += '<td style="text-align:center;">';
             if (art) {
                 html += '<div class="artifact-preview">';
