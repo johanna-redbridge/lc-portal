@@ -4972,48 +4972,38 @@ function showPracticeOptions(creditId, creditTitle) {
             return;
         }
 
-        // Build grid with placeholder slots first
         var grid = document.createElement('div');
-        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;';
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;';
         body.innerHTML = '';
         body.appendChild(grid);
 
         matched.forEach(function(f) {
             var viewUrl = f.webViewLink || ('https://drive.google.com/file/d/' + f.id + '/view');
-            var card = document.createElement('a');
-            card.href = viewUrl;
-            card.target = '_blank';
-            card.style.cssText = 'display:block;border-radius:10px;overflow:hidden;border:1px solid #e8e8ed;text-decoration:none;background:#f5f5f7;transition:box-shadow 0.15s;';
-            card.onmouseover = function(){ this.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'; };
-            card.onmouseout  = function(){ this.style.boxShadow = 'none'; };
+
+            var card = document.createElement('div');
+            card.style.cssText = 'border-radius:10px;overflow:hidden;border:1px solid #e8e8ed;background:#f5f5f7;';
 
             var img = document.createElement('img');
-            img.alt = '';
-            img.style.cssText = 'width:100%;display:block;aspect-ratio:3/4;object-fit:cover;background:#e8e8ed;';
-            img.onerror = function(){ this.style.display = 'none'; };
+            img.alt = f.name;
+            img.style.cssText = 'width:100%;display:block;object-fit:contain;background:#e8e8ed;cursor:pointer;';
+            img.title = 'Click to open in Drive';
+            img.onclick = function(){ window.open(viewUrl, '_blank'); };
+            img.onerror = function(){ this.parentNode.style.display = 'none'; };
 
-            var label = document.createElement('div');
-            label.style.cssText = 'padding:6px 8px;font-size:0.68rem;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-            label.title = f.name;
-            label.textContent = f.name;
+            // thumbnailLink is a signed Google URL — usable directly, bump size to 800px wide
+            if (f.thumbnailLink) {
+                img.src = f.thumbnailLink.replace(/=s\d+/, '=s800');
+            } else {
+                // fallback: fetch blob with auth header
+                fetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {
+                    headers: { 'Authorization': 'Bearer ' + gDriveToken }
+                }).then(function(r) { return r.blob(); })
+                  .then(function(blob) { img.src = URL.createObjectURL(blob); })
+                  .catch(function() { card.style.display = 'none'; });
+            }
 
             card.appendChild(img);
-            card.appendChild(label);
             grid.appendChild(card);
-
-            // Fetch image blob with auth token so it actually renders
-            fetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {
-                headers: { 'Authorization': 'Bearer ' + gDriveToken }
-            }).then(function(r) {
-                if (!r.ok) throw new Error('fetch failed');
-                return r.blob();
-            }).then(function(blob) {
-                var url = URL.createObjectURL(blob);
-                img.src = url;
-                img.onload = function(){ /* blob URL stays valid for session */ };
-            }).catch(function() {
-                img.style.display = 'none';
-            });
         });
     });
 }
