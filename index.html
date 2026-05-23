@@ -4126,9 +4126,11 @@ function renderGoalTrackerForm(studentId) {
           + '<button id="gt-save-btn" onclick="gtSave(\'' + studentId + '\');" style="margin-left:auto;padding:0.4rem 1.1rem;background:#FF8200;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:inherit;font-weight:600;">Save</button>'
           + '</div>';
 
-    function section(num, label) {
-        return '<div style="font-size:0.7rem;font-weight:700;color:#FF8200;text-transform:uppercase;letter-spacing:0.06em;margin:1.5rem 0 0.75rem;">' + num + '. ' + label + '</div>';
+    function sectionOpen(num, label) {
+        return '<div style="background:#e8e8ed;border-radius:14px;padding:1rem 1.1rem 0.25rem;margin-bottom:1.25rem;">'
+             + '<div style="font-size:0.7rem;font-weight:700;color:#FF8200;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">' + num + '. ' + label + '</div>';
     }
+    function sectionClose() { return '</div>'; }
     function subsection(label) {
         return '<div style="font-size:0.8rem;font-weight:700;color:#1d1d1f;margin-bottom:0.35rem;">' + label + '</div>';
     }
@@ -4140,11 +4142,11 @@ function renderGoalTrackerForm(studentId) {
              + val + '</textarea>';
     }
     function card(content) {
-        return '<div style="background:#fff;border:1px solid #e8e8ed;border-radius:12px;padding:1rem 1.1rem;margin-bottom:0.75rem;">' + content + '</div>';
+        return '<div style="background:#fff;border:1px solid #d8d8dc;border-radius:10px;padding:1rem 1.1rem;margin-bottom:0.75rem;">' + content + '</div>';
     }
 
     // ── 1. Habit Goals ──
-    html += section('1', 'Habit Goals');
+    html += sectionOpen('1', 'Habit Goals');
 
     // 1a Work Habit
     var whVal = data['wh_goal'] || '';
@@ -4182,8 +4184,10 @@ function renderGoalTrackerForm(studentId) {
       + textarea('pg_notes', 'Enter personal goal…', 2)
     );
 
+    html += sectionClose();
+
     // ── 2. Task-Based Work Plan ──
-    html += section('2', 'Task-Based Work Plan');
+    html += sectionOpen('2', 'Task-Based Work Plan');
     var twpItems = [
         { key: 'twp_reading',     label: 'a) Reading' },
         { key: 'twp_writing',     label: 'b) Writing' },
@@ -4200,8 +4204,8 @@ function renderGoalTrackerForm(studentId) {
     twpItems.forEach(function(item) {
         var statusKey = item.key + '_status';
         var curStatus = data[statusKey] || '';
-        var statusBtns = '<input type="hidden" data-gtfield="' + statusKey + '" value="' + curStatus + '">';
-        statusBtns += '<div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">';
+        var hidden = '<input type="hidden" data-gtfield="' + statusKey + '" value="' + curStatus + '">';
+        var statusBtns = '<div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem;">';
         twpStatuses.forEach(function(st) {
             var active = curStatus === st.value;
             var bg = active ? st.color : '#f5f5f7';
@@ -4209,20 +4213,29 @@ function renderGoalTrackerForm(studentId) {
             var border = active ? st.color : '#e8e8ed';
             statusBtns += '<button data-gtstatus="' + statusKey + '" data-gtvalue="' + st.value + '" '
                 + 'onclick="gtSetStatus(this,\'' + statusKey + '\',\'' + st.value + '\')" '
-                + 'style="padding:0.3rem 0.85rem;border:1.5px solid ' + border + ';border-radius:20px;background:' + bg + ';color:' + col + ';font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">'
+                + 'style="padding:0.3rem 0.6rem;border:1.5px solid ' + border + ';border-radius:20px;background:' + bg + ';color:' + col + ';font-size:0.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:center;">'
                 + st.label + '</button>';
         });
         statusBtns += '</div>';
         html += card(
-            subsection(item.label)
-          + statusBtns
-          + '<div style="font-size:0.75rem;color:#86868b;margin-bottom:0.35rem;">' + twpQ + '</div>'
-          + textarea(item.key, 'Enter notes…', 3)
+            hidden
+          + '<div style="display:flex;gap:1rem;align-items:stretch;">'
+          +   '<div style="flex:1;display:flex;flex-direction:column;">'
+          +     subsection(item.label)
+          +     statusBtns
+          +   '</div>'
+          +   '<div style="flex:3;display:flex;flex-direction:column;">'
+          +     '<div style="font-size:0.75rem;color:#86868b;margin-bottom:0.35rem;">' + twpQ + '</div>'
+          +     textarea(item.key, 'Enter notes…', 4)
+          +   '</div>'
+          + '</div>'
         );
     });
 
+    html += sectionClose();
+
     // ── 3. Summaries ──
-    html += section('3', 'Summaries');
+    html += sectionOpen('3', 'Summaries');
     html += card(
         subsection('a) Learning Guide Comments')
       + textarea('sum_lg', 'Enter comments…', 3)
@@ -4231,6 +4244,8 @@ function renderGoalTrackerForm(studentId) {
         subsection('b) Parent Reflection / Comments to Student')
       + textarea('sum_parent', 'Enter comments…', 3)
     );
+
+    html += sectionClose();
 
     html += '</div>';
     el.innerHTML = html;
