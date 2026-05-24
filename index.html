@@ -1026,6 +1026,7 @@
         <button class="data-subtab-btn active" data-subtab="available" onclick="switchLCSubtab('available')">Available</button>
         <button class="data-subtab-btn" data-subtab="earned" onclick="switchLCSubtab('earned')">Earned</button>
         <button class="data-subtab-btn" data-subtab="drafting" onclick="switchLCSubtab('drafting')">Draft Bot</button>
+        <button class="data-subtab-btn" data-subtab="analytics" onclick="switchLCSubtab('analytics')">Average Earnings</button>
     </div>
 
     <!-- Available sub-panel -->
@@ -1110,6 +1111,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Average Earnings sub-panel -->
+    <div id="lc-subtab-analytics" class="lc-subtab-panel" style="display:none;">
+        <div id="lc-analytics-content" style="padding:0;"></div>
+    </div>
+
 </div>
 
 <!-- (kept for JS backward-compat) -->
@@ -4600,6 +4607,7 @@ function switchLCSubtab(name) {
     if (name === 'available') renderAvailable();
     if (name === 'earned') { loadEarnedFromSheet(); renderEarnedCredits(); }
     if (name === 'drafting') { loadDraftingFromSheet(); renderDrafting(); }
+    if (name === 'analytics') { loadEarnedFromSheet(); renderLCAnalytics(); }
 }
 
 // ── Browser history helpers ──────────────────────────────────────────────────
@@ -6365,6 +6373,149 @@ function setDrFilter(type, val) {
     if (type === 'subject') drFilterSubject = (val === 'all' || drFilterSubject === val) ? 'all' : val;
     if (type === 'stage') drFilterStage = (val === 'all' || drFilterStage === val) ? 'all' : val;
     renderDrafting();
+}
+
+/* =========================================================
+   LC Average Earnings Analytics
+   ========================================================= */
+function renderLCAnalytics() {
+    var el = document.getElementById('lc-analytics-content');
+    if (!el) return;
+    if (!earned || !earned.length) {
+        el.innerHTML = '<p style="padding:2rem;color:#aeaeb2;text-align:center;">No earned data loaded yet.</p>';
+        return;
+    }
+
+    var nStudents = students.length;
+
+    // 1. Per year
+    var yearCounts = {};
+    earned.forEach(function(e) {
+        var yr = e.date ? e.date.substring(0, 4) : '';
+        if (!yr || yr === '0000' || yr.length !== 4) yr = 'Undated';
+        yearCounts[yr] = (yearCounts[yr] || 0) + 1;
+    });
+    var yearBars = Object.keys(yearCounts).sort().map(function(yr) {
+        return { label: yr, avg: yearCounts[yr] / nStudents, total: yearCounts[yr] };
+    });
+
+    // 2. Per AL
+    var alStudents = {}, alCounts = {};
+    students.forEach(function(s) {
+        var al = (studentAutonomyLevel[s.name] || '').toUpperCase() || 'Unknown';
+        if (!alStudents[al]) alStudents[al] = 0;
+        alStudents[al]++;
+    });
+    earned.forEach(function(e) {
+        var s = students.find(function(st) { return st.id === e.studentId; });
+        if (!s) return;
+        var al = (studentAutonomyLevel[s.name] || '').toUpperCase() || 'Unknown';
+        alCounts[al] = (alCounts[al] || 0) + 1;
+    });
+    var AL_ORDER = ['AL1','AL2','AL3','AL4'];
+    var alBars = Object.keys(alStudents).sort(function(a, b) {
+        var ai = AL_ORDER.indexOf(a), bi = AL_ORDER.indexOf(b);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    }).map(function(al) {
+        var n = alStudents[al];
+        return { label: al, avg: n > 0 ? (alCounts[al] || 0) / n : 0, total: alCounts[al] || 0, n: n };
+    });
+
+    // 3. Per subject
+    var subjectCounts = {};
+    earned.forEach(function(e) {
+        var credit = credits.find(function(c) { return c.id === e.creditId; });
+        var sub = (credit && credit.subject) ? credit.subject : 'Other';
+        subjectCounts[sub] = (subjectCounts[sub] || 0) + 1;
+    });
+    var subjectBars = Object.keys(subjectCounts).sort().map(function(sub) {
+        return { label: sub, avg: subjectCounts[sub] / nStudents, total: subjectCounts[sub] };
+    });
+
+    var cardStyle = 'flex:1;min-width:280px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;';
+    var hdrStyle = 'background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.82rem;';
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:1.25rem;padding:1.25rem;">'
+        + '<div style="' + cardStyle + '"><div style="' + hdrStyle + '">Avg Credits Earned per Student · by Year</div>'
+        + '<canvas id="lc-year-canvas" style="display:block;width:100%;height:260px;"></canvas></div>'
+        + '<div style="' + cardStyle + '"><div style="' + hdrStyle + '">Avg Credits Earned per Student · by Autonomy Level</div>'
+        + '<canvas id="lc-al-canvas" style="display:block;width:100%;height:260px;"></canvas></div>'
+        + '<div style="' + cardStyle + '"><div style="' + hdrStyle + '">Avg Credits Earned per Student · by Subject</div>'
+        + '<canvas id="lc-sub-canvas" style="display:block;width:100%;height:260px;"></canvas></div>'
+        + '</div>';
+    el.innerHTML = html;
+
+    [['lc-year-canvas', yearBars], ['lc-al-canvas', alBars], ['lc-sub-canvas', subjectBars]].forEach(function(pair) {
+        var canvas = document.getElementById(pair[0]);
+        if (!canvas) return;
+        canvas.width = Math.min(520, canvas.parentElement.clientWidth - 4 || 460);
+        canvas.height = 260;
+        drawLCAvgBar(canvas, pair[1]);
+    });
+}
+
+function drawLCAvgBar(canvas, bars) {
+    if (!bars || !bars.length) return;
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
+    var padL = 44, padR = 16, padT = 24, padB = 54;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+    var maxVal = Math.max.apply(null, bars.map(function(b) { return b.avg; }));
+    var yMax = Math.max(maxVal * 1.3, 1);
+
+    function xCenter(i) { return padL + (i + 0.5) * plotW / bars.length; }
+    var bw = Math.min(plotW / bars.length * 0.6, 52);
+    function yOf(v) { return padT + plotH * (1 - v / yMax); }
+    var y0 = padT + plotH;
+
+    // Grid
+    for (var gi = 0; gi <= 4; gi++) {
+        var gv = yMax * gi / 4;
+        var gy = yOf(gv);
+        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
+        ctx.fillStyle = '#8e8e93'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(Math.round(gv * 10) / 10, padL - 5, gy + 4);
+    }
+
+    bars.forEach(function(b, i) {
+        var cx = xCenter(i);
+        var topY = yOf(b.avg);
+        var barH = Math.max(y0 - topY, 2);
+
+        ctx.fillStyle = '#FF8200';
+        ctx.beginPath();
+        if (ctx.roundRect) { ctx.roundRect(cx - bw/2, topY, bw, barH, [4, 4, 0, 0]); }
+        else { ctx.rect(cx - bw/2, topY, bw, barH); }
+        ctx.fill();
+
+        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 11px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(Math.round(b.avg * 10) / 10, cx, topY - 6);
+
+        var lbl = b.label;
+        ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
+        if (lbl.length > 7) {
+            ctx.save(); ctx.translate(cx, y0 + 8); ctx.rotate(-Math.PI / 4);
+            ctx.textAlign = 'right'; ctx.fillText(lbl, 0, 0); ctx.restore();
+        } else {
+            ctx.fillText(lbl, cx, y0 + 16);
+        }
+
+        if (b.n != null) {
+            ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('n=' + b.n, cx, y0 + 32);
+        }
+    });
+
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, y0); ctx.lineTo(padL + plotW, y0); ctx.stroke();
 }
 
 function renderDrafting() {
