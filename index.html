@@ -7539,10 +7539,13 @@ function renderReadingStudentOverview() {
 
     function tierChipStyle(tier) {
         if (!tier) return 'background:#f3f4f6;color:#374151;';
-        var t = tier.toLowerCase();
-        if (t.indexOf('high') !== -1 || t === '3' || t.indexOf('risk') !== -1) return 'background:#fee2e2;color:#b91c1c;';
-        if (t.indexOf('some') !== -1 || t === '2' || t.indexOf('moderate') !== -1) return 'background:#fff3e0;color:#d97706;';
-        if (t.indexOf('benchmark') !== -1 || t.indexOf('above') !== -1 || t.indexOf('low') !== -1 || t === '1') return 'background:#dcfce7;color:#15803d;';
+        var t = tier.toLowerCase().trim();
+        if (t === 'tier 1' || t === '1') return 'background:#dcfce7;color:#15803d;';
+        if (t === 'tier 2' || t === '2') return 'background:#fef9c3;color:#854d0e;';
+        if (t === 'tier 3' || t === '3') return 'background:#fee2e2;color:#b91c1c;';
+        if (t.indexOf('high') !== -1 || t.indexOf('risk') !== -1) return 'background:#fee2e2;color:#b91c1c;';
+        if (t.indexOf('some') !== -1 || t.indexOf('moderate') !== -1) return 'background:#fef9c3;color:#854d0e;';
+        if (t.indexOf('benchmark') !== -1 || t.indexOf('above') !== -1) return 'background:#dcfce7;color:#15803d;';
         return 'background:#f3f4f6;color:#374151;';
     }
     function smallChipR(txt, extraStyle) {
@@ -7562,12 +7565,16 @@ function renderReadingStudentOverview() {
         + (readOvMoyTier ? smallChipR('MOY Tier: ' + readOvMoyTier, tierChipStyle(readOvMoyTier)) : '');
 
     if (readOvIntPlan) {
-        html += '<div style="margin-left:auto;max-width:340px;background:#fff;border:1px solid #e8e8ed;border-radius:10px;padding:6px 12px;flex-shrink:0;">'
-            + '<div style="font-size:0.6rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Intervention Plan</div>'
-            + '<div style="font-size:0.72rem;color:#1d1d1f;line-height:1.4;">' + readOvIntPlan.replace(/</g,'&lt;') + '</div>'
-            + '</div>';
+        html += '<button onclick="var p=document.getElementById(\'read-ov-int-plan\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';" '
+            + 'style="margin-left:auto;padding:4px 12px;border-radius:8px;border:1.5px solid #FF8200;background:#fff;color:#FF8200;font-size:0.75rem;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;">Intervention Plan</button>';
     }
     html += '</div>';
+
+    if (readOvIntPlan) {
+        html += '<div id="read-ov-int-plan" style="display:none;padding:10px 1.25rem;background:#fffbf5;border-bottom:1px solid #ffe0b2;">'
+            + '<div style="font-size:0.72rem;color:#1d1d1f;line-height:1.6;max-width:860px;">' + readOvIntPlan.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>'
+            + '</div>';
+    }
 
     html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;" id="stu-ov-body">';
 
@@ -8021,10 +8028,13 @@ function renderCompStudentOverview() {
 
     function compTierChipStyle(tier) {
         if (!tier) return 'background:#f3f4f6;color:#374151;';
-        var t = tier.toLowerCase();
-        if (t.indexOf('high') !== -1 || t === '3' || t.indexOf('risk') !== -1) return 'background:#fee2e2;color:#b91c1c;';
-        if (t.indexOf('some') !== -1 || t === '2' || t.indexOf('moderate') !== -1) return 'background:#fff3e0;color:#d97706;';
-        if (t.indexOf('benchmark') !== -1 || t.indexOf('above') !== -1 || t.indexOf('low') !== -1 || t === '1') return 'background:#dcfce7;color:#15803d;';
+        var t = tier.toLowerCase().trim();
+        if (t === 'tier 1' || t === '1') return 'background:#dcfce7;color:#15803d;';
+        if (t === 'tier 2' || t === '2') return 'background:#fef9c3;color:#854d0e;';
+        if (t === 'tier 3' || t === '3') return 'background:#fee2e2;color:#b91c1c;';
+        if (t.indexOf('high') !== -1 || t.indexOf('risk') !== -1) return 'background:#fee2e2;color:#b91c1c;';
+        if (t.indexOf('some') !== -1 || t.indexOf('moderate') !== -1) return 'background:#fef9c3;color:#854d0e;';
+        if (t.indexOf('benchmark') !== -1 || t.indexOf('above') !== -1) return 'background:#dcfce7;color:#15803d;';
         return 'background:#f3f4f6;color:#374151;';
     }
     function smallChip(txt, extraStyle) {
@@ -8044,12 +8054,16 @@ function renderCompStudentOverview() {
         + (compOvMoyTier ? smallChip('MOY Tier: ' + compOvMoyTier, compTierChipStyle(compOvMoyTier)) : '');
 
     if (compOvIntPlan) {
-        html += '<div style="margin-left:auto;max-width:340px;background:#fff;border:1px solid #e8e8ed;border-radius:10px;padding:6px 12px;flex-shrink:0;">'
-            + '<div style="font-size:0.6rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Intervention Plan</div>'
-            + '<div style="font-size:0.72rem;color:#1d1d1f;line-height:1.4;">' + compOvIntPlan.replace(/</g,'&lt;') + '</div>'
-            + '</div>';
+        html += '<button onclick="var p=document.getElementById(\'comp-ov-int-plan\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';" '
+            + 'style="margin-left:auto;padding:4px 12px;border-radius:8px;border:1.5px solid #FF8200;background:#fff;color:#FF8200;font-size:0.75rem;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;">Intervention Plan</button>';
     }
     html += '</div>';
+
+    if (compOvIntPlan) {
+        html += '<div id="comp-ov-int-plan" style="display:none;padding:10px 1.25rem;background:#fffbf5;border-bottom:1px solid #ffe0b2;">'
+            + '<div style="font-size:0.72rem;color:#1d1d1f;line-height:1.6;max-width:860px;">' + compOvIntPlan.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>'
+            + '</div>';
+    }
 
     html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;">';
 
