@@ -2984,10 +2984,16 @@ function parseCellDate(str) {
     if (!str) return '';
     str = str.trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    // MM/YYYY or M/YYYY (month + year only)
+    var mm = str.match(/^(\d{1,2})\/(\d{4})$/);
+    if (mm) return mm[2] + '-' + String(mm[1]).padStart(2,'0') + '-01';
+    // MM/DD/YYYY
     var m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (m) return m[3] + '-' + String(m[1]).padStart(2,'0') + '-' + String(m[2]).padStart(2,'0');
+    // M/D/YY (2-digit year)
     var m2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
     if (m2) { var yr = parseInt(m2[3]) < 50 ? '20' + m2[3] : '19' + m2[3]; return yr + '-' + String(m2[1]).padStart(2,'0') + '-' + String(m2[2]).padStart(2,'0'); }
+    // MM-DD-YYYY
     var m3 = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
     if (m3) return m3[3] + '-' + String(m3[1]).padStart(2,'0') + '-' + String(m3[2]).padStart(2,'0');
     return '';
