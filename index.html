@@ -10306,6 +10306,7 @@ var FP_YEAR_BANDS = [
 var fpLongData = null;
 var fpLongSelected = '';
 var fpViewMode = 'table';
+var fpWholeSchoolMode = false;
 
 function setFpViewMode(mode) {
     fpViewMode = mode;
@@ -10353,35 +10354,52 @@ function renderFPGrowthView() {
         fpLongSelected = student.name;
 
         var selHtml = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-            + '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
-            + '<select id="fp-long-sel" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
-            + students.map(function(s){ return '<option value="' + s.name.replace(/"/g,'&quot;') + '"' + (s.name===sel?' selected':'') + '>' + fullName(s.name).replace(/</g,'&lt;') + (s.al?' — AL'+s.al:'') + '</option>'; }).join('')
-            + '</select>'
-            + '<span style="font-size:.72rem;color:#94a3b8;margin-left:4px;">Click any student name in the table to jump here</span></div>';
+            + (fpWholeSchoolMode ? '' :
+                '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
+                + '<select id="fp-long-sel" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
+                + students.map(function(s){ return '<option value="' + s.name.replace(/"/g,'&quot;') + '"' + (s.name===sel?' selected':'') + '>' + fullName(s.name).replace(/</g,'&lt;') + (s.al?' — AL'+s.al:'') + '</option>'; }).join('')
+                + '</select>')
+            + '<button onclick="fpWholeSchoolMode=!fpWholeSchoolMode;renderFPGrowthView();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #FFC8BB;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;'
+            + (fpWholeSchoolMode ? 'background:#FFC8BB;color:#1d1d1f;' : 'background:#fff;color:#1d1d1f;')
+            + '">Whole School Growth</button>'
+            + (fpWholeSchoolMode ? '' : '<span style="font-size:.72rem;color:#94a3b8;margin-left:4px;">Click any student name in the table to jump here</span>')
+            + '</div>';
+
+        var cardTitle = fpWholeSchoolMode
+            ? 'Whole School Average · F&amp;P Reading Level · 2021–2026'
+            : student.name + ' · F&amp;P Reading Level · 2021–2026';
+        var legend = fpWholeSchoolMode
+            ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:28px;height:8px;background:#FFC8BB55;border:1px solid #FFC8BB;border-radius:2px;display:inline-block;"></span>Range</span>'
+              + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2.5px solid #FF8200;display:inline-block;vertical-align:middle;"></span>Average</span>'
+            : '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#d1d1d6;border:2px solid #FFC8BB;display:inline-block;"></span>BOY</span>'
+              + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#8e8e93;border:2px solid #FFC8BB;display:inline-block;"></span>MOY</span>'
+              + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#1c1c1e;border:2px solid #FFC8BB;display:inline-block;"></span>EOY</span>'
+              + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2px dashed #16a34a;display:inline-block;vertical-align:middle;"></span>EOY Target</span>';
 
         var cardHtml = '<div style="padding:1.25rem;">'
             + '<div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:20px 24px;">'
             + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px;">'
-            + '<div><div style="font-size:1.1rem;font-weight:800;color:#1d1d1f;">' + student.name + '</div>'
-            + '<div style="font-size:.75rem;color:#94a3b8;margin-top:2px;">F&amp;P Reading Level · Multi-year progression · 2021–2026</div></div>'
-            + '<div style="display:flex;gap:14px;font-size:.72rem;align-items:center;">'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#d1d1d6;border:2px solid #FFC8BB;display:inline-block;"></span>BOY</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#8e8e93;border:2px solid #FFC8BB;display:inline-block;"></span>MOY</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#1c1c1e;border:2px solid #FFC8BB;display:inline-block;"></span>EOY</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2px dashed #16a34a;display:inline-block;vertical-align:middle;"></span>EOY Target</span>'
-            + '</div></div>'
+            + '<div><div style="font-size:1.1rem;font-weight:800;color:#1d1d1f;">' + (fpWholeSchoolMode ? 'Whole School Growth' : student.name) + '</div>'
+            + '<div style="font-size:.75rem;color:#94a3b8;margin-top:2px;">' + cardTitle + '</div></div>'
+            + '<div style="display:flex;gap:14px;font-size:.72rem;align-items:center;">' + legend + '</div></div>'
             + '<div id="fp-long-wrap" style="overflow-x:auto;"><canvas id="fp-long-canvas" style="display:block;"></canvas></div>'
             + '</div></div>';
 
         el.innerHTML = selHtml + cardHtml;
-        document.getElementById('fp-long-sel').addEventListener('change', function(e){ fpLongSelected = e.target.value; renderFPGrowthView(); });
+        if (!fpWholeSchoolMode) {
+            document.getElementById('fp-long-sel').addEventListener('change', function(e){ fpLongSelected = e.target.value; renderFPGrowthView(); });
+        }
 
         var canvas = document.getElementById('fp-long-canvas');
         var wrap   = document.getElementById('fp-long-wrap');
         if (canvas && wrap) {
             canvas.width  = Math.min(920, wrap.clientWidth - 4 || 760);
             canvas.height = 600;
-            drawFpGrowthGraph(canvas, student.points, student.gle);
+            if (fpWholeSchoolMode) {
+                drawFpWholeSchoolGraph(canvas, students);
+            } else {
+                drawFpGrowthGraph(canvas, student.points, student.gle);
+            }
         }
     }
 
@@ -10494,6 +10512,138 @@ function drawFpGrowthGraph(canvas, points, gle) {
     ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1;
     points.forEach(function(p, i) {
+        var x = xOf(i);
+        ctx.beginPath(); ctx.moveTo(x, padT + plotH); ctx.lineTo(x, padT + plotH + 4); ctx.stroke();
+        ctx.save(); ctx.translate(x, padT + plotH + 8); ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right'; ctx.fillText(p.label, 0, 0); ctx.restore();
+    });
+
+    // Axes
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+}
+
+function scoreToApproxLevel(score) {
+    var sorted = Object.keys(fpLevelScoreMap).sort(function(a,b){ return fpLevelScoreMap[a]-fpLevelScoreMap[b]; });
+    var best = sorted[0];
+    var bestDist = Infinity;
+    for (var i = 0; i < sorted.length; i++) {
+        var d = Math.abs(fpLevelScoreMap[sorted[i]] - score);
+        if (d < bestDist) { bestDist = d; best = sorted[i]; }
+    }
+    return best.toUpperCase();
+}
+
+function drawFpWholeSchoolGraph(canvas, students) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
+    var padL = 50, padR = 22, padT = 22, padB = 62;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = FP_LONG_COLS.length;
+
+    // Per-timepoint stats
+    var pts = [];
+    for (var i = 0; i < n; i++) {
+        var scores = [];
+        students.forEach(function(s) {
+            var p = s.points[i];
+            if (p && p.score !== null) scores.push(p.score);
+        });
+        if (!scores.length) { pts.push({ avg: null, min: null, max: null, count: 0, label: FP_LONG_COLS[i].label, season: FP_LONG_COLS[i].season }); continue; }
+        scores.sort(function(a,b){ return a-b; });
+        var avg = scores.reduce(function(a,b){return a+b;},0) / scores.length;
+        pts.push({ avg: avg, min: scores[0], max: scores[scores.length-1], count: scores.length, label: FP_LONG_COLS[i].label, season: FP_LONG_COLS[i].season });
+    }
+
+    var validPts = pts.filter(function(p){ return p.avg !== null; });
+    if (!validPts.length) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '13px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('No data', W/2, H/2); return;
+    }
+    var allVals = [];
+    validPts.forEach(function(p){ allVals.push(p.avg, p.min, p.max); });
+    var minS = Math.min.apply(null, allVals), maxS = Math.max.apply(null, allVals);
+    var rng = maxS - minS || 0.5;
+    var yMin = Math.max(0, minS - rng * 0.2), yMax = maxS + rng * 0.2;
+
+    function xOf(i){ return padL + (i / (n - 1)) * plotW; }
+    function yOf(s){ return padT + plotH * (1 - (s - yMin) / (yMax - yMin)); }
+
+    // Background
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+    // Year band shading
+    FP_YEAR_BANDS.forEach(function(band, bi) {
+        var x1 = bi === 0 ? padL : (xOf(band.s) + xOf(band.s - 1)) / 2;
+        var x2 = band.e >= n - 1 ? padL + plotW : (xOf(band.e) + xOf(band.e + 1)) / 2;
+        if (bi % 2 === 0) { ctx.fillStyle = 'rgba(0,0,0,.025)'; ctx.fillRect(x1, padT, x2 - x1, plotH); }
+        ctx.fillStyle = '#c7c7cc'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(band.label, (x1 + x2) / 2, padT + 10);
+    });
+
+    // Grid + Y labels
+    var allLvls = Object.keys(fpLevelScoreMap).sort(function(a,b){ return fpLevelScoreMap[a]-fpLevelScoreMap[b]; });
+    allLvls.forEach(function(lv) {
+        var s = fpLevelScoreMap[lv];
+        if (s < yMin - 0.01 || s > yMax + 0.01) return;
+        var y = yOf(s);
+        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+        ctx.fillStyle = '#8e8e93'; ctx.font = '11px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(lv.toUpperCase(), padL - 6, y + 4);
+    });
+
+    // Range band (min–max)
+    ctx.beginPath();
+    var started = false;
+    for (var i = 0; i < n; i++) {
+        if (pts[i].avg === null) continue;
+        if (!started) { ctx.moveTo(xOf(i), yOf(pts[i].max)); started = true; }
+        else ctx.lineTo(xOf(i), yOf(pts[i].max));
+    }
+    for (var i = n - 1; i >= 0; i--) {
+        if (pts[i].avg === null) continue;
+        ctx.lineTo(xOf(i), yOf(pts[i].min));
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,200,187,0.25)';
+    ctx.fill();
+
+    // Average line
+    ctx.strokeStyle = '#FF8200'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.setLineDash([]);
+    var inLine = false;
+    pts.forEach(function(p, i) {
+        if (p.avg === null) { if (inLine) { ctx.stroke(); inLine = false; } return; }
+        if (!inLine) { ctx.beginPath(); ctx.moveTo(xOf(i), yOf(p.avg)); inLine = true; }
+        else ctx.lineTo(xOf(i), yOf(p.avg));
+    });
+    if (inLine) ctx.stroke();
+
+    // Average data points + level labels
+    pts.forEach(function(p, i) {
+        if (p.avg === null) return;
+        var x = xOf(i), y = yOf(p.avg);
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI);
+        ctx.fillStyle = '#FF8200'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        var lv = scoreToApproxLevel(p.avg);
+        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(lv, x, y - 11);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif';
+        ctx.fillText('n=' + p.count, x, y + 18);
+    });
+
+    // X axis labels
+    ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1;
+    pts.forEach(function(p, i) {
         var x = xOf(i);
         ctx.beginPath(); ctx.moveTo(x, padT + plotH); ctx.lineTo(x, padT + plotH + 4); ctx.stroke();
         ctx.save(); ctx.translate(x, padT + plotH + 8); ctx.rotate(-Math.PI / 4);
