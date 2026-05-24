@@ -2980,6 +2980,19 @@ function loadEarnedFromSheet() {
     .catch(function(e) { console.warn('[Sheet] CSV load failed:', e); });
 }
 
+function parseCellDate(str) {
+    if (!str) return '';
+    str = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    var m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return m[3] + '-' + String(m[1]).padStart(2,'0') + '-' + String(m[2]).padStart(2,'0');
+    var m2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+    if (m2) { var yr = parseInt(m2[3]) < 50 ? '20' + m2[3] : '19' + m2[3]; return yr + '-' + String(m2[1]).padStart(2,'0') + '-' + String(m2[2]).padStart(2,'0'); }
+    var m3 = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (m3) return m3[3] + '-' + String(m3[1]).padStart(2,'0') + '-' + String(m3[2]).padStart(2,'0');
+    return '';
+}
+
 function buildCreditsAndEarned(rows, headerRow) {
     var titleRow = rows[headerRow] || [];
     // Row 0 is the subject row (if header is not row 0)
@@ -3029,7 +3042,8 @@ function buildCreditsAndEarned(rows, headerRow) {
                 var key = sid + '_' + colMap[c];
                 if (!seen[key]) {
                     seen[key] = true;
-                    newEarned.push({ studentId: sid, creditId: colMap[c], date: '' });
+                    var earnedDate = parseCellDate((row[c + 1] || '').trim());
+                    newEarned.push({ studentId: sid, creditId: colMap[c], date: earnedDate });
                     studentCounts[sid] = (studentCounts[sid] || 0) + 1;
                 }
             }
@@ -3130,7 +3144,8 @@ function processEarnedSheetData(rows, colMap, headerRow) {
                 var key = sid + '_' + colMap[c];
                 if (!seen[key]) {
                     seen[key] = true;
-                    newEarned.push({ studentId: sid, creditId: colMap[c], date: '' });
+                    var earnedDate = parseCellDate((row[c + 1] || '').trim());
+                    newEarned.push({ studentId: sid, creditId: colMap[c], date: earnedDate });
                     studentCounts[sid] = (studentCounts[sid] || 0) + 1;
                 }
             }
