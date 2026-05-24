@@ -10412,7 +10412,7 @@ function renderFPGrowthView() {
             ? 'Average BOY→EOY F&amp;P Level Growth · Per Year'
             : student.name + ' · F&amp;P Reading Level · 2021–2026';
         var legend = fpWholeSchoolMode
-            ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;background:#FF8200;border-radius:3px;display:inline-block;"></span>Growth points gained (avg)</span>'
+            ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;background:#FFC8BB;border-radius:3px;display:inline-block;"></span>Growth points gained (avg)</span>'
             : '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#d1d1d6;border:2px solid #FFC8BB;display:inline-block;"></span>BOY</span>'
               + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#8e8e93;border:2px solid #FFC8BB;display:inline-block;"></span>MOY</span>'
               + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#1c1c1e;border:2px solid #FFC8BB;display:inline-block;"></span>EOY</span>'
@@ -10493,7 +10493,7 @@ function renderFPGrowthView() {
             if (targetCanvas) {
                 targetCanvas.width = Math.min(520, targetCanvas.parentElement.clientWidth - 4 || 440);
                 targetCanvas.height = 280;
-                drawMeetingTargetChart(targetCanvas, fpTargetBars, '#FF8200');
+                drawMeetingTargetChart(targetCanvas, fpTargetBars, '#FFC8BB');
             }
         }
     }
@@ -10691,7 +10691,7 @@ function drawFpWholeSchoolGraph(canvas, students) {
         var topY = b.avg >= 0 ? yOf(b.avg) : y0;
         var botY = b.avg >= 0 ? y0 : yOf(b.avg);
         var barH = Math.max(Math.abs(botY - topY), 2);
-        ctx.fillStyle = b.avg >= 0 ? '#FF8200' : '#ff3b30';
+        ctx.fillStyle = b.avg >= 0 ? '#FFC8BB' : '#ff3b30';
         ctx.beginPath();
         if (ctx.roundRect) {
             ctx.roundRect(cx - bw/2, topY, bw, barH, [4, 4, 0, 0]);
