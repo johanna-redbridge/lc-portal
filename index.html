@@ -12698,7 +12698,7 @@ function drawMeetingTargetChart(canvas, bars, accentColor) {
                 if (h >= 14) {
                     ctx.fillStyle = TIER_TEXT[ti];
                     ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
-                    ctx.fillText(count, cx, yTop + h/2 + 4);
+                    ctx.fillText(Math.round(count / d.total * 100) + '%', cx, yTop + h/2 + 4);
                 }
                 yBottom = yTop;
             });
