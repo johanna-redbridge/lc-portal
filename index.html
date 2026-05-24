@@ -10361,7 +10361,7 @@ function renderFPGrowthView() {
                 + '</select>')
             + '<button onclick="fpWholeSchoolMode=!fpWholeSchoolMode;renderFPGrowthView();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #FFC8BB;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;'
             + (fpWholeSchoolMode ? 'background:#FFC8BB;color:#1d1d1f;' : 'background:#fff;color:#1d1d1f;')
-            + '">Whole School Growth</button>'
+            + '">Average Growth</button>'
             + (fpWholeSchoolMode ? '' : '<span style="font-size:.72rem;color:#94a3b8;margin-left:4px;">Click any student name in the table to jump here</span>')
             + '</div>';
 
@@ -10379,7 +10379,7 @@ function renderFPGrowthView() {
         var cardHtml = '<div style="padding:1.25rem;">'
             + '<div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:20px 24px;">'
             + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px;">'
-            + '<div><div style="font-size:1.1rem;font-weight:800;color:#1d1d1f;">' + (fpWholeSchoolMode ? 'Whole School Growth' : student.name) + '</div>'
+            + '<div><div style="font-size:1.1rem;font-weight:800;color:#1d1d1f;">' + (fpWholeSchoolMode ? 'Average Growth' : student.name) + '</div>'
             + '<div style="font-size:.75rem;color:#94a3b8;margin-top:2px;">' + cardTitle + '</div></div>'
             + '<div style="display:flex;gap:14px;font-size:.72rem;align-items:center;">' + legend + '</div></div>'
             + '<div id="fp-long-wrap" style="overflow-x:auto;"><canvas id="fp-long-canvas" style="display:block;"></canvas></div>'
