@@ -7919,12 +7919,39 @@ function renderMathSubtab() {
     if (mathSubtab === 'map-math')         renderMapMath();
     if (mathSubtab === 'fact-fluency')     renderFactFluency();
     if (mathSubtab === 'stmath')           renderSTMath();
-    if (mathSubtab === 'student-overview') renderCompStudentOverview();
+    if (mathSubtab === 'student-overview') { loadCompTierData(); renderCompStudentOverview(); }
     if (mathSubtab === 'beast-academy')    renderBeastAcademy();
     if (mathSubtab === 'xref-comp')        renderCompXref();
 }
 
 // ── Computation Student Overview ──────────────────────────────────────────────
+var COMP_TIER_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRvA3HUXEnfrsThbgpHRNPiZs4-L5lRFT8wSuqjsFGAJV_2kEGQW9wJAJazlDFJuQ/pub?gid=72030747&single=true&output=csv';
+var compTierData = null;
+
+function loadCompTierData() {
+    if (compTierData !== null) return;
+    compTierData = [];
+    fetch(COMP_TIER_CSV_URL)
+    .then(function(r){ return r.text(); })
+    .then(function(text) {
+        var rows = parseCSV(text);
+        for (var i = 3; i < rows.length; i++) {
+            var r = rows[i];
+            var name = (r[1] || '').trim();
+            if (!name) continue;
+            compTierData.push({
+                name: name,
+                grade: (r[3] || '').trim(),
+                boyTier: (r[5] || '').trim(),
+                moyTier: (r[7] || '').trim(),
+                interventionPlan: (r[12] || '').trim()
+            });
+        }
+        if (mathSubtab === 'student-overview') renderCompStudentOverview();
+    })
+    .catch(function() { compTierData = []; });
+}
+
 var compStudOverviewName = '';
 
 function renderCompStudentOverview() {
@@ -7974,21 +8001,55 @@ function renderCompStudentOverview() {
     // Resolve to the comp spreadsheet key for mastery lookups
     var compSel = compNameFor[sel] || sel;
 
-    // AL / GLE chips for comp selector bar
+    // AL, GLE, MAP Math, tier chips
     var compOvAL = compStudentAL(sel) || '';
     var compOvLongRec = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
     var compOvGLE = compOvLongRec && compOvLongRec.gle ? compOvLongRec.gle : '';
-    function smallChip(txt) { return '<span style="display:inline-block;background:#e8e8ed;color:#3a3a3c;border-radius:6px;padding:2px 7px;font-size:0.68rem;font-weight:600;white-space:nowrap;">'+txt+'</span>'; }
+
+    var compOvMapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var compOvMapChip = '';
+    if (compOvMapRec && compOvMapRec.mathScores) {
+        var _cValidMath = compOvMapRec.mathScores.map(function(sc,i){ return {score:parseFloat(sc)||null, pct:parseFloat((compOvMapRec.mathPcts||[])[i])||null}; }).filter(function(x){ return x.score!==null; });
+        var _cLatest = _cValidMath.length ? _cValidMath[_cValidMath.length-1] : null;
+        if (_cLatest) compOvMapChip = 'MAP Math: ' + _cLatest.score + (_cLatest.pct !== null ? ' (' + _cLatest.pct + '%ile)' : '');
+    }
+
+    var compOvTierRec = compTierData ? compTierData.find(function(r){ return xrefNorm(r.name)===norm; }) : null;
+    var compOvBoyTier = compOvTierRec ? compOvTierRec.boyTier : '';
+    var compOvMoyTier = compOvTierRec ? compOvTierRec.moyTier : '';
+    var compOvIntPlan = compOvTierRec ? compOvTierRec.interventionPlan : '';
+
+    function compTierChipStyle(tier) {
+        if (!tier) return 'background:#f3f4f6;color:#374151;';
+        var t = tier.toLowerCase();
+        if (t.indexOf('high') !== -1 || t === '3' || t.indexOf('risk') !== -1) return 'background:#fee2e2;color:#b91c1c;';
+        if (t.indexOf('some') !== -1 || t === '2' || t.indexOf('moderate') !== -1) return 'background:#fff3e0;color:#d97706;';
+        if (t.indexOf('benchmark') !== -1 || t.indexOf('above') !== -1 || t.indexOf('low') !== -1 || t === '1') return 'background:#dcfce7;color:#15803d;';
+        return 'background:#f3f4f6;color:#374151;';
+    }
+    function smallChip(txt, extraStyle) {
+        return '<span style="display:inline-block;border-radius:6px;padding:2px 7px;font-size:0.68rem;font-weight:600;white-space:nowrap;' + (extraStyle||'background:#e8e8ed;color:#3a3a3c;') + '">'+txt+'</span>';
+    }
 
     // ── selector bar ──
-    var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    var html = '<div style="padding:.75rem 1.25rem;background:#f5f5f7;border-bottom:1px solid #e8e8ed;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
         + '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
         + '<select id="comp-stu-ov-sel" class="redact-select" onchange="compStudOverviewName=this.value;renderCompStudentOverview();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;min-width:180px;">'
         + nameList.map(function(n){ return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join('')
         + '</select>'
-        + (compOvAL ? smallChip(compOvAL) : '')
-        + (compOvGLE ? smallChip('GLE&nbsp;'+compOvGLE) : '')
-        + '</div>';
+        + (compOvAL ? smallChip(compOvAL, 'background:#fff3e0;color:#FF8200;') : '')
+        + (compOvGLE ? smallChip('GLE ' + compOvGLE, 'background:#f3f4f6;color:#374151;') : '')
+        + (compOvMapChip ? smallChip(compOvMapChip, 'background:#e0faff;color:#0369a1;') : '')
+        + (compOvBoyTier ? smallChip('BOY Tier: ' + compOvBoyTier, compTierChipStyle(compOvBoyTier)) : '')
+        + (compOvMoyTier ? smallChip('MOY Tier: ' + compOvMoyTier, compTierChipStyle(compOvMoyTier)) : '');
+
+    if (compOvIntPlan) {
+        html += '<div style="margin-left:auto;max-width:340px;background:#fff;border:1px solid #e8e8ed;border-radius:10px;padding:6px 12px;flex-shrink:0;">'
+            + '<div style="font-size:0.6rem;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Intervention Plan</div>'
+            + '<div style="font-size:0.72rem;color:#1d1d1f;line-height:1.4;">' + compOvIntPlan.replace(/</g,'&lt;') + '</div>'
+            + '</div>';
+    }
+    html += '</div>';
 
     html += '<div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.5rem;">';
 
