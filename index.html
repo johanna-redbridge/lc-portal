@@ -7561,8 +7561,8 @@ function renderReadingStudentOverview() {
         + (readOvAL ? smallChipR(readOvAL, 'background:#fff3e0;color:#FF8200;') : '')
         + (readOvGLE ? smallChipR('GLE ' + readOvGLE, 'background:#f3f4f6;color:#374151;') : '')
         + (readOvMapChip ? smallChipR(readOvMapChip, 'background:#fff0ed;color:#c2410c;') : '')
-        + (readOvBoyTier ? smallChipR('BOY Tier: ' + readOvBoyTier, tierChipStyle(readOvBoyTier)) : '')
-        + (readOvMoyTier ? smallChipR('MOY Tier: ' + readOvMoyTier, tierChipStyle(readOvMoyTier)) : '');
+        + (readOvBoyTier ? smallChipR('BOY Tier: ' + readOvBoyTier.replace(/^tier\s*/i,''), tierChipStyle(readOvBoyTier)) : '')
+        + (readOvMoyTier ? smallChipR('MOY Tier: ' + readOvMoyTier.replace(/^tier\s*/i,''), tierChipStyle(readOvMoyTier)) : '');
 
     if (readOvIntPlan) {
         html += '<button onclick="var p=document.getElementById(\'read-ov-int-plan\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';" '
@@ -8050,8 +8050,8 @@ function renderCompStudentOverview() {
         + (compOvAL ? smallChip(compOvAL, 'background:#fff3e0;color:#FF8200;') : '')
         + (compOvGLE ? smallChip('GLE ' + compOvGLE, 'background:#f3f4f6;color:#374151;') : '')
         + (compOvMapChip ? smallChip(compOvMapChip, 'background:#e0faff;color:#0369a1;') : '')
-        + (compOvBoyTier ? smallChip('BOY Tier: ' + compOvBoyTier, compTierChipStyle(compOvBoyTier)) : '')
-        + (compOvMoyTier ? smallChip('MOY Tier: ' + compOvMoyTier, compTierChipStyle(compOvMoyTier)) : '');
+        + (compOvBoyTier ? smallChip('BOY Tier: ' + compOvBoyTier.replace(/^tier\s*/i,''), compTierChipStyle(compOvBoyTier)) : '')
+        + (compOvMoyTier ? smallChip('MOY Tier: ' + compOvMoyTier.replace(/^tier\s*/i,''), compTierChipStyle(compOvMoyTier)) : '');
 
     if (compOvIntPlan) {
         html += '<button onclick="var p=document.getElementById(\'comp-ov-int-plan\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';" '
