@@ -9998,6 +9998,10 @@ var FP_LEVELS_FALLBACK = [
 ];
 // fpLevelScoreMap: level (lowercase) → numeric score; populated from reference sheet
 var fpLevelScoreMap = {};
+// fpGrowthNumMap: level (lowercase) → growth number from column G of growth-number reference sheet
+var FP_GROWTH_NUM_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1704150323&single=true&output=csv';
+var fpGrowthNumMap = {};
+var fpGrowthNumLoaded = false;
 FP_LEVELS_FALLBACK.forEach(function(lv, i) { fpLevelScoreMap[lv.toLowerCase()] = i * 0.1; });
 
 function fpScore(level) {
@@ -10137,6 +10141,24 @@ function loadFpData(cb) {
             onDone();
         });
     }
+}
+
+function loadFpGrowthNumData(cb) {
+    if (fpGrowthNumLoaded) { cb(); return; }
+    fetch(FP_GROWTH_NUM_URL).then(function(r){ return r.text(); }).then(function(text) {
+        var rows = parseCSVFull(text);
+        rows.forEach(function(r) {
+            var lv = (r[5] || '').trim().toLowerCase();
+            var gn = parseFloat(r[6]);
+            if (lv && !isNaN(gn)) fpGrowthNumMap[lv] = gn;
+        });
+        fpGrowthNumLoaded = true;
+        cb();
+    }).catch(function(e) {
+        console.error('FP growth num fetch error', e);
+        fpGrowthNumLoaded = true;
+        cb();
+    });
 }
 
 function setFpAL(al) {
@@ -10366,11 +10388,10 @@ function renderFPGrowthView() {
             + '</div>';
 
         var cardTitle = fpWholeSchoolMode
-            ? 'Whole School Average · F&amp;P Reading Level · 2021–2026'
+            ? 'Average BOY→EOY F&amp;P Level Growth · Per Year'
             : student.name + ' · F&amp;P Reading Level · 2021–2026';
         var legend = fpWholeSchoolMode
-            ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:28px;height:8px;background:#FFC8BB55;border:1px solid #FFC8BB;border-radius:2px;display:inline-block;"></span>Range</span>'
-              + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2.5px solid #FF8200;display:inline-block;vertical-align:middle;"></span>Average</span>'
+            ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;background:#FF8200;border-radius:3px;display:inline-block;"></span>Growth points gained (avg)</span>'
             : '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#d1d1d6;border:2px solid #FFC8BB;display:inline-block;"></span>BOY</span>'
               + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#8e8e93;border:2px solid #FFC8BB;display:inline-block;"></span>MOY</span>'
               + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#1c1c1e;border:2px solid #FFC8BB;display:inline-block;"></span>EOY</span>'
@@ -10403,11 +10424,19 @@ function renderFPGrowthView() {
         }
     }
 
-    if (fpLongData) { doRender(); return; }
+    function ensureAndRender() {
+        if (fpWholeSchoolMode && !fpGrowthNumLoaded) {
+            loadFpGrowthNumData(doRender);
+        } else {
+            doRender();
+        }
+    }
+
+    if (fpLongData) { ensureAndRender(); return; }
     fetch(FP_LONG_URL).then(function(r){ return r.text(); }).then(function(text) {
         loadFpData(function() {
             fpLongData = parseFpLongitudinalCsv(text);
-            doRender();
+            ensureAndRender();
         });
     }).catch(function(e){ el.innerHTML = '<p style="padding:1rem;color:#f87171;">Error: ' + e.message + '</p>'; });
 }
@@ -10523,134 +10552,95 @@ function drawFpGrowthGraph(canvas, points, gle) {
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
 }
 
-function scoreToApproxLevel(score) {
-    var sorted = Object.keys(fpLevelScoreMap).sort(function(a,b){ return fpLevelScoreMap[a]-fpLevelScoreMap[b]; });
-    var best = sorted[0];
-    var bestDist = Infinity;
-    for (var i = 0; i < sorted.length; i++) {
-        var d = Math.abs(fpLevelScoreMap[sorted[i]] - score);
-        if (d < bestDist) { bestDist = d; best = sorted[i]; }
-    }
-    return best.toUpperCase();
-}
-
 function drawFpWholeSchoolGraph(canvas, students) {
+    var bars = [];
+    FP_YEAR_BANDS.forEach(function(band) {
+        if (band.s === band.e) return;
+        var growths = [];
+        students.forEach(function(s) {
+            var boyPt = s.points[band.s], eoyPt = s.points[band.e];
+            if (!boyPt || !boyPt.level || !eoyPt || !eoyPt.level) return;
+            var boyKey = boyPt.level.trim().toLowerCase();
+            var eoyKey = eoyPt.level.trim().toLowerCase();
+            var boyGn = fpGrowthNumMap[boyKey], eoyGn = fpGrowthNumMap[eoyKey];
+            if (boyGn == null || eoyGn == null) return;
+            growths.push(eoyGn - boyGn);
+        });
+        if (!growths.length) return;
+        var avg = growths.reduce(function(a,b){return a+b;},0) / growths.length;
+        bars.push({ label: band.label, avg: avg, count: growths.length });
+    });
+
     var dpr = window.devicePixelRatio || 1;
     var cssW = canvas.width, cssH = canvas.height;
-    canvas.width  = cssW * dpr;
-    canvas.height = cssH * dpr;
-    canvas.style.width  = cssW + 'px';
-    canvas.style.height = cssH + 'px';
+    canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
     var ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     var W = cssW, H = cssH;
-    var padL = 50, padR = 22, padT = 22, padB = 62;
+    var padL = 50, padR = 24, padT = 36, padB = 54;
     var plotW = W - padL - padR, plotH = H - padT - padB;
-    var n = FP_LONG_COLS.length;
 
-    // Per-timepoint stats
-    var pts = [];
-    for (var i = 0; i < n; i++) {
-        var scores = [];
-        students.forEach(function(s) {
-            var p = s.points[i];
-            if (p && p.score !== null) scores.push(p.score);
-        });
-        if (!scores.length) { pts.push({ avg: null, min: null, max: null, count: 0, label: FP_LONG_COLS[i].label, season: FP_LONG_COLS[i].season }); continue; }
-        scores.sort(function(a,b){ return a-b; });
-        var avg = scores.reduce(function(a,b){return a+b;},0) / scores.length;
-        pts.push({ avg: avg, min: scores[0], max: scores[scores.length-1], count: scores.length, label: FP_LONG_COLS[i].label, season: FP_LONG_COLS[i].season });
-    }
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
 
-    var validPts = pts.filter(function(p){ return p.avg !== null; });
-    if (!validPts.length) {
+    if (!bars.length) {
         ctx.fillStyle = '#94a3b8'; ctx.font = '13px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText('No data', W/2, H/2); return;
     }
-    var allVals = [];
-    validPts.forEach(function(p){ allVals.push(p.avg, p.min, p.max); });
-    var minS = Math.min.apply(null, allVals), maxS = Math.max.apply(null, allVals);
-    var rng = maxS - minS || 0.5;
-    var yMin = Math.max(0, minS - rng * 0.2), yMax = maxS + rng * 0.2;
 
-    function xOf(i){ return padL + (i / (n - 1)) * plotW; }
-    function yOf(s){ return padT + plotH * (1 - (s - yMin) / (yMax - yMin)); }
+    var maxVal = Math.max.apply(null, bars.map(function(b){ return Math.abs(b.avg); }));
+    var yMax = Math.max(maxVal * 1.35, 3);
+    var yMin = Math.min(0, Math.min.apply(null, bars.map(function(b){ return b.avg; })) - 0.5);
 
-    // Background
-    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
-
-    // Year band shading
-    FP_YEAR_BANDS.forEach(function(band, bi) {
-        var x1 = bi === 0 ? padL : (xOf(band.s) + xOf(band.s - 1)) / 2;
-        var x2 = band.e >= n - 1 ? padL + plotW : (xOf(band.e) + xOf(band.e + 1)) / 2;
-        if (bi % 2 === 0) { ctx.fillStyle = 'rgba(0,0,0,.025)'; ctx.fillRect(x1, padT, x2 - x1, plotH); }
-        ctx.fillStyle = '#c7c7cc'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(band.label, (x1 + x2) / 2, padT + 10);
-    });
+    function xCenter(i){ return padL + (i + 0.5) * plotW / bars.length; }
+    var bw = plotW / bars.length * 0.55;
+    function yOf(v){ return padT + plotH * (1 - (v - yMin) / (yMax - yMin)); }
+    var y0 = yOf(0);
 
     // Grid + Y labels
-    var allLvls = Object.keys(fpLevelScoreMap).sort(function(a,b){ return fpLevelScoreMap[a]-fpLevelScoreMap[b]; });
-    allLvls.forEach(function(lv) {
-        var s = fpLevelScoreMap[lv];
-        if (s < yMin - 0.01 || s > yMax + 0.01) return;
-        var y = yOf(s);
+    for (var gi = 0; gi <= 5; gi++) {
+        var gv = yMin + (yMax - yMin) * gi / 5;
+        var gy = yOf(gv);
         ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
-        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
         ctx.fillStyle = '#8e8e93'; ctx.font = '11px -apple-system,sans-serif'; ctx.textAlign = 'right';
-        ctx.fillText(lv.toUpperCase(), padL - 6, y + 4);
-    });
-
-    // Range band (min–max)
-    ctx.beginPath();
-    var started = false;
-    for (var i = 0; i < n; i++) {
-        if (pts[i].avg === null) continue;
-        if (!started) { ctx.moveTo(xOf(i), yOf(pts[i].max)); started = true; }
-        else ctx.lineTo(xOf(i), yOf(pts[i].max));
+        ctx.fillText(Math.round(gv * 10) / 10, padL - 6, gy + 4);
     }
-    for (var i = n - 1; i >= 0; i--) {
-        if (pts[i].avg === null) continue;
-        ctx.lineTo(xOf(i), yOf(pts[i].min));
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255,200,187,0.25)';
-    ctx.fill();
 
-    // Average line
-    ctx.strokeStyle = '#FF8200'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.setLineDash([]);
-    var inLine = false;
-    pts.forEach(function(p, i) {
-        if (p.avg === null) { if (inLine) { ctx.stroke(); inLine = false; } return; }
-        if (!inLine) { ctx.beginPath(); ctx.moveTo(xOf(i), yOf(p.avg)); inLine = true; }
-        else ctx.lineTo(xOf(i), yOf(p.avg));
-    });
-    if (inLine) ctx.stroke();
+    // Zero line
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(padL + plotW, y0); ctx.stroke();
 
-    // Average data points + level labels
-    pts.forEach(function(p, i) {
-        if (p.avg === null) return;
-        var x = xOf(i), y = yOf(p.avg);
-        ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI);
-        ctx.fillStyle = '#FF8200'; ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-        var lv = scoreToApproxLevel(p.avg);
-        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(lv, x, y - 11);
+    // Bars
+    bars.forEach(function(b, i) {
+        var cx = xCenter(i);
+        var topY = b.avg >= 0 ? yOf(b.avg) : y0;
+        var botY = b.avg >= 0 ? y0 : yOf(b.avg);
+        var barH = Math.max(Math.abs(botY - topY), 2);
+        ctx.fillStyle = b.avg >= 0 ? '#FF8200' : '#ff3b30';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(cx - bw/2, topY, bw, barH, [4, 4, 0, 0]);
+        } else {
+            ctx.rect(cx - bw/2, topY, bw, barH);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 12px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.avg.toFixed(1), cx, topY - 7);
+
         ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif';
-        ctx.fillText('n=' + p.count, x, y + 18);
+        ctx.fillText('n=' + b.count, cx, padT + plotH + 14);
+
+        ctx.fillStyle = '#64748b'; ctx.font = '12px -apple-system,sans-serif';
+        ctx.fillText(b.label, cx, padT + plotH + 30);
     });
 
-    // X axis labels
-    ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
-    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1;
-    pts.forEach(function(p, i) {
-        var x = xOf(i);
-        ctx.beginPath(); ctx.moveTo(x, padT + plotH); ctx.lineTo(x, padT + plotH + 4); ctx.stroke();
-        ctx.save(); ctx.translate(x, padT + plotH + 8); ctx.rotate(-Math.PI / 4);
-        ctx.textAlign = 'right'; ctx.fillText(p.label, 0, 0); ctx.restore();
-    });
+    // Y-axis label
+    ctx.save(); ctx.translate(13, padT + plotH / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Growth points gained (BOY→EOY)', 0, 0); ctx.restore();
 
-    // Axes
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
 }
@@ -12424,41 +12414,32 @@ function renderBenchStudentGrowth() {
         + '</div>';
 
     if (benchAvgGrowthMode) {
-        // Compute per-timepoint averages across all students
-        var allPeriods = [];
-        BENCH_LONG_YEARS.forEach(function(y) {
-            [['BOY', 'boy'], ['MOY', 'moy'], ['EOY', 'eoy']].forEach(function(pair) {
-                allPeriods.push({ label: y.label + ' ' + pair[0], ykey: y.key, skey: pair[1] });
-            });
-        });
-        var avgPts = allPeriods.map(function(p) {
-            var scores = [];
+        var avgBars = BENCH_LONG_YEARS.map(function(y) {
+            var growths = [];
             allStudents.forEach(function(s) {
-                var yd = s.years[p.ykey];
-                if (yd && yd[p.skey] !== null) scores.push(yd[p.skey]);
+                var yd = s.years[y.key];
+                if (yd && yd.boy !== null && yd.eoy !== null) growths.push(yd.eoy - yd.boy);
             });
-            if (!scores.length) return null;
-            scores.sort(function(a,b){return a-b;});
-            var avg = scores.reduce(function(a,b){return a+b;},0) / scores.length;
-            return { period: p.label, avg: avg, min: scores[0], max: scores[scores.length-1], count: scores.length };
+            if (!growths.length) return null;
+            var avg = growths.reduce(function(a,b){return a+b;},0) / growths.length;
+            return { label: y.label, avg: avg, count: growths.length };
         }).filter(Boolean);
 
         html += '<div style="padding:1.25rem;">'
             + '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;">'
             + '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;">'
-            + '<span>Average Growth — All Students</span>'
+            + '<span>Average BOY→EOY Growth — All Students</span>'
             + '<div style="display:flex;gap:14px;font-size:.72rem;font-weight:400;">'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:28px;height:8px;background:rgba(0,227,255,0.2);border:1px solid #00E3FF;border-radius:2px;display:inline-block;"></span>Range</span>'
-            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:0;border-top:2.5px solid #00E3FF;display:inline-block;vertical-align:middle;"></span>Average</span>'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;background:#00E3FF;border-radius:3px;display:inline-block;"></span>Score points gained (avg)</span>'
             + '</div></div>'
-            + '<canvas id="bench-avg-canvas" width="900" height="340" style="width:100%;height:340px;display:block;"></canvas>'
+            + '<canvas id="bench-avg-canvas" width="900" height="300" style="width:100%;height:300px;display:block;"></canvas>'
             + '</div></div>';
         el.innerHTML = html;
         var avgCanvas = document.getElementById('bench-avg-canvas');
         if (avgCanvas) {
             avgCanvas.width = Math.min(960, avgCanvas.parentElement.clientWidth - 4 || 860);
-            avgCanvas.height = 340;
-            drawBenchAvgGraph(avgCanvas, avgPts, '#00E3FF');
+            avgCanvas.height = 300;
+            drawBenchAvgGraph(avgCanvas, avgBars);
         }
         return;
     }
@@ -12503,7 +12484,7 @@ function renderBenchStudentGrowth() {
     });
 }
 
-function drawBenchAvgGraph(canvas, avgPts, lineColor) {
+function drawBenchAvgGraph(canvas, bars) {
     var dpr = window.devicePixelRatio || 1;
     var cssW = canvas.width, cssH = canvas.height;
     canvas.width = cssW * dpr; canvas.height = cssH * dpr;
@@ -12511,74 +12492,65 @@ function drawBenchAvgGraph(canvas, avgPts, lineColor) {
     var ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     var W = cssW, H = cssH;
-    var padL = 50, padR = 20, padT = 24, padB = 52;
+    var padL = 54, padR = 24, padT = 36, padB = 54;
     var plotW = W - padL - padR, plotH = H - padT - padB;
-    var n = avgPts.length;
-
-    var allVals = [];
-    avgPts.forEach(function(p){ allVals.push(p.avg, p.min, p.max); });
-    var minS = Math.min.apply(null, allVals), maxS = Math.max.apply(null, allVals);
-    var rng = maxS - minS || 10;
-    var yMin = minS - rng * 0.2, yMax = maxS + rng * 0.2;
-
-    function xOf(i){ return padL + (i / Math.max(n-1,1)) * plotW; }
-    function yOf(s){ return padT + plotH * (1 - (s - yMin) / (yMax - yMin)); }
 
     ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
 
-    // Year band shading (every 3 points = BOY/MOY/EOY per year)
-    BENCH_LONG_YEARS.forEach(function(y, bi) {
-        var s = bi * 3, e = s + 2;
-        var x1 = s === 0 ? padL : (xOf(s) + xOf(s-1)) / 2;
-        var x2 = e >= n-1 ? padL + plotW : (xOf(e) + xOf(e+1)) / 2;
-        if (bi % 2 === 0) { ctx.fillStyle = 'rgba(0,0,0,.025)'; ctx.fillRect(x1, padT, x2-x1, plotH); }
-        ctx.fillStyle = '#c7c7cc'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(y.label, (x1+x2)/2, padT+10);
-    });
-
-    // Grid + Y labels
-    for (var gi = 0; gi <= 5; gi++) {
-        var gv = yMin + (yMax-yMin)*gi/5;
-        var gy = yOf(gv);
-        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
-        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL+plotW, gy); ctx.stroke();
-        ctx.fillStyle = '#8e8e93'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
-        ctx.fillText(Math.round(gv), padL-5, gy+4);
+    if (!bars.length) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '13px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('No data', W/2, H/2); return;
     }
 
-    // Range band
-    var r = parseInt(lineColor.slice(1,3),16), g2 = parseInt(lineColor.slice(3,5),16), b2 = parseInt(lineColor.slice(5,7),16);
-    ctx.beginPath();
-    avgPts.forEach(function(p,i){ i===0 ? ctx.moveTo(xOf(i),yOf(p.max)) : ctx.lineTo(xOf(i),yOf(p.max)); });
-    for (var i=n-1;i>=0;i--) ctx.lineTo(xOf(i),yOf(avgPts[i].min));
-    ctx.closePath();
-    ctx.fillStyle = 'rgba('+r+','+g2+','+b2+',0.15)'; ctx.fill();
+    var maxVal = Math.max.apply(null, bars.map(function(b){ return Math.abs(b.avg); }));
+    var yMax = Math.max(maxVal * 1.35, 5);
+    var yMin = Math.min(0, Math.min.apply(null, bars.map(function(b){ return b.avg; })) - 1);
 
-    // Average line
-    ctx.beginPath(); ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5; ctx.setLineDash([]);
-    avgPts.forEach(function(p,i){ i===0 ? ctx.moveTo(xOf(i),yOf(p.avg)) : ctx.lineTo(xOf(i),yOf(p.avg)); });
-    ctx.stroke();
+    function xCenter(i){ return padL + (i + 0.5) * plotW / bars.length; }
+    var bw = plotW / bars.length * 0.55;
+    function yOf(v){ return padT + plotH * (1 - (v - yMin) / (yMax - yMin)); }
+    var y0 = yOf(0);
 
-    // Dots + labels
-    avgPts.forEach(function(p,i) {
-        var x=xOf(i), y=yOf(p.avg);
-        var pUp=(p.period||'').toUpperCase();
-        var dotFill = pUp.indexOf('EOY')>=0 ? '#1c1c1e' : pUp.indexOf('MOY')>=0 ? '#8e8e93' : '#d1d1d6';
-        ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
-        ctx.fillStyle=dotFill; ctx.fill();
-        ctx.strokeStyle=lineColor; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle='#1d1d1f'; ctx.font='bold 10px -apple-system,sans-serif'; ctx.textAlign='center';
-        ctx.fillText(Math.round(p.avg), x, y-10);
-        ctx.fillStyle='#94a3b8'; ctx.font='8px -apple-system,sans-serif';
-        ctx.fillText('n='+p.count, x, y+18);
+    for (var gi = 0; gi <= 5; gi++) {
+        var gv = yMin + (yMax - yMin) * gi / 5;
+        var gy = yOf(gv);
+        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
+        ctx.fillStyle = '#8e8e93'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(Math.round(gv), padL - 5, gy + 4);
+    }
+
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(padL + plotW, y0); ctx.stroke();
+
+    bars.forEach(function(b, i) {
+        var cx = xCenter(i);
+        var topY = b.avg >= 0 ? yOf(b.avg) : y0;
+        var botY = b.avg >= 0 ? y0 : yOf(b.avg);
+        var barH = Math.max(Math.abs(botY - topY), 2);
+        ctx.fillStyle = b.avg >= 0 ? '#00E3FF' : '#ff3b30';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(cx - bw/2, topY, bw, barH, [4, 4, 0, 0]);
+        } else {
+            ctx.rect(cx - bw/2, topY, bw, barH);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 12px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.avg.toFixed(1), cx, topY - 7);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif';
+        ctx.fillText('n=' + b.count, cx, padT + plotH + 14);
+        ctx.fillStyle = '#64748b'; ctx.font = '12px -apple-system,sans-serif';
+        ctx.fillText(b.label, cx, padT + plotH + 30);
     });
 
-    // X labels
-    ctx.fillStyle='#8e8e93'; ctx.font='9px -apple-system,sans-serif'; ctx.textAlign='center';
-    avgPts.forEach(function(p,i){ ctx.fillText(p.period, xOf(i), padT+plotH+28); });
+    ctx.save(); ctx.translate(13, padT + plotH / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Score points gained (BOY→EOY)', 0, 0); ctx.restore();
 
-    ctx.strokeStyle='#d1d1d6'; ctx.lineWidth=1; ctx.setLineDash([]);
-    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(padL+plotW,padT+plotH); ctx.stroke();
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
 }
 
 function setBenchView(view) {
@@ -14032,6 +14004,8 @@ function doRenderSurvey() {
 var WB_LONG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1136667408&single=true&output=csv';
 var wbLongData  = null;
 var wbViewMode  = 'overview';
+var wbAvgGrowthMode = false;
+var wbSgSelectedStudent = '';
 
 // Column map (0-indexed): rows 0=date-headers, 1=sub-headers, 2+=data
 var WB_LONG_YEARS = [
@@ -14243,12 +14217,59 @@ function renderWbStudentGrowth() {
         });
         return;
     }
-    var students = wbLongData || [];
-    if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
+    var allStudents = wbLongData || [];
+    if (!allStudents.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
     var WB_LINE_COLOR = '#E87BB0';
 
-    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;padding:1.25rem;">';
+    var html = '<div style="padding:0.75rem 1.25rem 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        + '<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
+        + '<select id="wb-sg-sel" onchange="wbSgSelectedStudent=this.value;wbAvgGrowthMode=false;renderWbStudentGrowth();"'
+        + ' style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
+        + '<option value="">— All students —</option>'
+        + allStudents.map(function(s){ return '<option value="' + s.name.replace(/"/g,'&quot;') + '"' + (s.name===wbSgSelectedStudent?' selected':'') + '>' + fullName(s.name).replace(/</g,'&lt;') + (s.al?' — AL'+s.al:'') + '</option>'; }).join('')
+        + '</select>'
+        + '<button onclick="wbAvgGrowthMode=!wbAvgGrowthMode;renderWbStudentGrowth();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #E87BB0;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;'
+        + (wbAvgGrowthMode ? 'background:#E87BB0;color:#fff;' : 'background:#fff;color:#1d1d1f;')
+        + '">Average Growth</button>'
+        + '</div>';
+
+    if (wbAvgGrowthMode) {
+        var avgBars = WB_LONG_YEARS.map(function(y) {
+            var growths = [];
+            allStudents.forEach(function(s) {
+                var yd = s.years[y.key];
+                if (yd && yd.boy !== null && yd.eof !== null) growths.push(yd.eof - yd.boy);
+            });
+            if (!growths.length) return null;
+            var avg = growths.reduce(function(a,b){return a+b;},0) / growths.length;
+            return { label: y.label, avg: avg, count: growths.length };
+        }).filter(Boolean);
+
+        html += '<div style="padding:1.25rem;">'
+            + '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;">'
+            + '<div style="background:#5c5b5a;color:#fff;padding:0.7rem 1.25rem;font-weight:700;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;">'
+            + '<span>Average BOY→EOY Growth — All Students</span>'
+            + '<div style="display:flex;gap:14px;font-size:.72rem;font-weight:400;">'
+            + '<span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;background:#E87BB0;border-radius:3px;display:inline-block;"></span>Score points gained (avg)</span>'
+            + '</div></div>'
+            + '<canvas id="wb-avg-canvas" width="900" height="300" style="width:100%;height:300px;display:block;"></canvas>'
+            + '</div></div>';
+        el.innerHTML = html;
+        var avgCanvas = document.getElementById('wb-avg-canvas');
+        if (avgCanvas) {
+            avgCanvas.width = Math.min(960, avgCanvas.parentElement.clientWidth - 4 || 860);
+            avgCanvas.height = 300;
+            drawWbAvgGraph(avgCanvas, avgBars);
+        }
+        return;
+    }
+
+    var students = (wbSgSelectedStudent && !wbAvgGrowthMode)
+        ? allStudents.filter(function(s){ return s.name === wbSgSelectedStudent; })
+        : allStudents;
+
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;padding:1.25rem;">';
     students.forEach(function(s, si) {
         html += '<div style="background:#fff;border-radius:12px;border:1px solid #e8e8ed;padding:14px 16px;overflow:hidden;">'
             + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">'
@@ -14273,6 +14294,75 @@ function renderWbStudentGrowth() {
         var canvas = document.getElementById('wb-sg-' + si);
         if (canvas && pts.length > 1) drawMapLineGraph(canvas, pts, WB_LINE_COLOR);
     });
+}
+
+function drawWbAvgGraph(canvas, bars) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
+    var padL = 54, padR = 24, padT = 36, padB = 54;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+    if (!bars.length) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '13px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('No data', W/2, H/2); return;
+    }
+
+    var maxVal = Math.max.apply(null, bars.map(function(b){ return Math.abs(b.avg); }));
+    var yMax = Math.max(maxVal * 1.35, 5);
+    var yMin = Math.min(0, Math.min.apply(null, bars.map(function(b){ return b.avg; })) - 1);
+
+    function xCenter(i){ return padL + (i + 0.5) * plotW / bars.length; }
+    var bw = plotW / bars.length * 0.55;
+    function yOf(v){ return padT + plotH * (1 - (v - yMin) / (yMax - yMin)); }
+    var y0 = yOf(0);
+
+    for (var gi = 0; gi <= 5; gi++) {
+        var gv = yMin + (yMax - yMin) * gi / 5;
+        var gy = yOf(gv);
+        ctx.strokeStyle = '#ebebf0'; ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
+        ctx.fillStyle = '#8e8e93'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(Math.round(gv), padL - 5, gy + 4);
+    }
+
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(padL + plotW, y0); ctx.stroke();
+
+    bars.forEach(function(b, i) {
+        var cx = xCenter(i);
+        var topY = b.avg >= 0 ? yOf(b.avg) : y0;
+        var botY = b.avg >= 0 ? y0 : yOf(b.avg);
+        var barH = Math.max(Math.abs(botY - topY), 2);
+        ctx.fillStyle = b.avg >= 0 ? '#E87BB0' : '#ff3b30';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(cx - bw/2, topY, bw, barH, [4, 4, 0, 0]);
+        } else {
+            ctx.rect(cx - bw/2, topY, bw, barH);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 12px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.avg.toFixed(1), cx, topY - 7);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif';
+        ctx.fillText('n=' + b.count, cx, padT + plotH + 14);
+        ctx.fillStyle = '#64748b'; ctx.font = '12px -apple-system,sans-serif';
+        ctx.fillText(b.label, cx, padT + plotH + 30);
+    });
+
+    ctx.save(); ctx.translate(13, padT + plotH / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Score points gained (BOY→EOY)', 0, 0); ctx.restore();
+
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
 }
 
 function renderWbDrilldown() {
