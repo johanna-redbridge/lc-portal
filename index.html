@@ -11174,7 +11174,7 @@ function drawMapAvgPctGraph(canvas, bars, color) {
     var ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     var W = cssW, H = cssH;
-    var padL = 46, padR = 16, padT = 28, padB = 54;
+    var padL = 46, padR = 16, padT = 42, padB = 54;
     var plotW = W - padL - padR, plotH = H - padT - padB;
 
     ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
@@ -11194,8 +11194,10 @@ function drawMapAvgPctGraph(canvas, bars, color) {
     });
 
     var bw = Math.min(plotW / bars.length * 0.6, 36);
+    var barCXs = [];
     bars.forEach(function(b, i) {
         var cx = padL + (i + 0.5) * (plotW / bars.length);
+        barCXs.push(cx);
         var barH = (b.avg / 100) * plotH;
         var yTop = padT + plotH - barH;
         var barColor = b.label.indexOf('EOY') >= 0 ? hexDarken(color, 0.35) : color;
@@ -11213,6 +11215,20 @@ function drawMapAvgPctGraph(canvas, bars, color) {
             ctx.fillText('n=' + b.count, cx, padT + plotH + 26);
         }
     });
+
+    // Growth annotations: for each consecutive BOY→EOY pair, show ▲/▼ growth
+    for (var gi = 0; gi < bars.length - 1; gi++) {
+        if (bars[gi].label.indexOf('BOY') >= 0 && bars[gi+1].label.indexOf('EOY') >= 0
+                && bars[gi].count > 0 && bars[gi+1].count > 0) {
+            var growth = Math.round(bars[gi+1].avg - bars[gi].avg);
+            var midX = (barCXs[gi] + barCXs[gi+1]) / 2;
+            var arrow = growth >= 0 ? '▲' : '▼';
+            var growthColor = growth >= 0 ? '#16a34a' : '#dc2626';
+            ctx.fillStyle = growthColor;
+            ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(arrow + ' ' + Math.abs(growth) + '%ile', midX, padT - 8);
+        }
+    }
 
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
