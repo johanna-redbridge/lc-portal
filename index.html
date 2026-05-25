@@ -10807,8 +10807,7 @@ function drawFpWholeSchoolGraph(canvas, students) {
             if (boyGn == null || eoyGn == null) return;
             growths.push(eoyGn - boyGn);
         });
-        if (!growths.length) return;
-        var avg = growths.reduce(function(a,b){return a+b;},0) / growths.length;
+        var avg = growths.length ? growths.reduce(function(a,b){return a+b;},0) / growths.length : 0;
         bars.push({ label: band.label, avg: avg, count: growths.length });
     });
 
