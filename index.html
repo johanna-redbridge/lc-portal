@@ -3015,6 +3015,15 @@ function buildCreditsAndEarned(rows, headerRow) {
     var SKIP_COLS = { 'al': true, 'gle': true, 'earned': true, 'att.': true, 'att': true,
                       'attempted': true, 'student name': true, 'name': true };
 
+    // Build fill-forward subject map from row 0
+    var currentSubject = '';
+    var subjectAtCol = {};
+    for (var si = 0; si < subjectRow.length; si++) {
+        var sv = (subjectRow[si] || '').trim();
+        if (sv && !SKIP_COLS[sv.toLowerCase()]) currentSubject = sv;
+        subjectAtCol[si] = currentSubject;
+    }
+
     // Build credits and column→creditId map directly from sheet headers
     var colMap = {};
     var newCredits = [];
@@ -3023,7 +3032,7 @@ function buildCreditsAndEarned(rows, headerRow) {
         var title = (titleRow[col] || '').trim().replace(/\s+/g, ' ');
         if (!title || title.length < 2) continue;
         if (SKIP_COLS[title.toLowerCase()]) continue;
-        var subject = (subjectRow[col] || '').trim();
+        var subject = subjectAtCol[col] || '';
         if (subject.toLowerCase() === 'communication') subject = '';
         var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
         colMap[col] = id;
