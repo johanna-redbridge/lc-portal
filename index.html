@@ -10497,13 +10497,14 @@ var FP_LONG_COLS = [
 ];
 
 // Year bands for graph shading: [label, startIdx, endIdx] in FP_LONG_COLS
+// goalCol = column index in the raw CSV row for that year's F&P EOY GLE Goal
 var FP_YEAR_BANDS = [
-    { label:"20-21", s:0,  e:0  },
-    { label:"21-22", s:1,  e:3  },
-    { label:"22-23", s:4,  e:6  },
-    { label:"23-24", s:7,  e:9  },
-    { label:"24-25", s:10, e:12 },
-    { label:"25-26", s:13, e:15 }
+    { label:"20-21", s:0,  e:0,  goalCol:6  },
+    { label:"21-22", s:1,  e:3,  goalCol:11 },
+    { label:"22-23", s:4,  e:6,  goalCol:16 },
+    { label:"23-24", s:7,  e:9,  goalCol:21 },
+    { label:"24-25", s:10, e:12, goalCol:26 },
+    { label:"25-26", s:13, e:15, goalCol:32 }
 ];
 
 var fpLongData = null;
@@ -10539,7 +10540,12 @@ function parseFpLongitudinalCsv(text) {
         });
         var hasAny = points.some(function(p){ return p.score !== null; });
         if (!hasAny) continue;
-        students.push({ name: name, al: (row[2]||'').trim(), gle: (row[3]||'').trim(), points: points });
+        var yearGoals = {};
+        FP_YEAR_BANDS.forEach(function(band) {
+            var gl = (row[band.goalCol] || '').trim();
+            if (gl) yearGoals[band.label] = gl;
+        });
+        students.push({ name: name, al: (row[2]||'').trim(), gle: (row[3]||'').trim(), points: points, yearGoals: yearGoals });
     }
     return students.sort(function(a,b){ return a.name.localeCompare(b.name); });
 }
@@ -10586,7 +10592,8 @@ function renderFPGrowthView() {
                 function fpTierData(ptIdx) {
                     var t100=0, t90=0, t80=0, t60=0, tLow=0, total=0;
                     students.forEach(function(s) {
-                        var tLv = gleTargetLevel(s.gle); if (!tLv) return;
+                        var tLv = (s.yearGoals && s.yearGoals[band.label]) || gleTargetLevel(s.gle);
+                        if (!tLv) return;
                         var tS = fpScore(tLv.toLowerCase()); if (!tS) return;
                         var pt = s.points[ptIdx]; if (!pt || pt.score === null) return;
                         total++;
