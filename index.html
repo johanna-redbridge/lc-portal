@@ -1447,43 +1447,8 @@
             <div style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
                 <div class="toggle-group">
                     <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
-                    <button class="toggle-btn writing-sub-btn" data-wsub="benchmark-analytics" onclick="switchWritingSubtab('benchmark-analytics')">Writing Benchmark Analytics</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="survey" onclick="switchWritingSubtab('survey')">Writing Survey</button>
-                </div>
-            </div>
-
-            <!-- Benchmark Analytics panel (existing content) -->
-            <div id="writing-panel-benchmark-analytics" style="display:none;">
-                <div id="wd-root">
-                    <div id="wd-nav">
-                        <div class="toggle-group">
-                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">All</button>
-                            <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
-                            <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
-                            <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
-                            <button class="wd-nav-btn" data-level="ms" onclick="WD.setLevel('ms')">MS</button>
-                        </div>
-                        <div class="toggle-group">
-                            <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">Overview</button>
-                            <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">Student</button>
-                            <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">All Levels</button>
-                            <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">Category</button>
-                        </div>
-                        <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                            <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
-                            <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
-                        </div>
-                    </div>
-                    <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
-                        <div class="wd-spinner"></div><br>Loading writing data…
-                    </div>
-                    <div id="wd-main" style="display:none;padding:20px 24px;">
-                        <div id="wd-view-class"></div>
-                        <div id="wd-view-student" style="display:none;"></div>
-                        <div id="wd-view-groups"  style="display:none;"></div>
-                        <div id="wd-view-category" style="display:none;"></div>
-                    </div>
                 </div>
             </div>
 
@@ -1513,6 +1478,36 @@
                     <span style="font-size:0.8rem;color:#86868b;">Loading…</span>
                 </div>
                 <div id="wb-content"></div>
+                <div id="wd-root" style="display:none;">
+                    <div id="wd-nav">
+                        <div class="toggle-group">
+                            <button class="wd-nav-btn" data-level="all" onclick="WD.setLevel('all')">All</button>
+                            <button class="wd-nav-btn active" data-level="al1" onclick="WD.setLevel('al1')">AL1</button>
+                            <button class="wd-nav-btn" data-level="al2" onclick="WD.setLevel('al2')">AL2</button>
+                            <button class="wd-nav-btn" data-level="al34" onclick="WD.setLevel('al34')">AL3/4</button>
+                            <button class="wd-nav-btn" data-level="ms" onclick="WD.setLevel('ms')">MS</button>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="wd-nav-btn active" data-view="class" onclick="WD.switchView('class')">Overview</button>
+                            <button class="wd-nav-btn" data-view="student" onclick="WD.switchView('student')">Student</button>
+                            <button class="wd-nav-btn" data-view="groups" onclick="WD.switchView('groups')">All Levels</button>
+                            <button class="wd-nav-btn" data-view="category" onclick="WD.switchView('category')">Category</button>
+                        </div>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+                            <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
+                            <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
+                        </div>
+                    </div>
+                    <div id="wd-loading" style="padding:60px 28px;text-align:center;color:#94a3b8;">
+                        <div class="wd-spinner"></div><br>Loading writing data…
+                    </div>
+                    <div id="wd-main" style="display:none;padding:20px 24px;">
+                        <div id="wd-view-class"></div>
+                        <div id="wd-view-student" style="display:none;"></div>
+                        <div id="wd-view-groups"  style="display:none;"></div>
+                        <div id="wd-view-category" style="display:none;"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Writing Benchmark panel -->
@@ -8065,7 +8060,7 @@ function switchWritingSubtab(sub) {
     document.querySelectorAll('.writing-sub-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.wsub === sub);
     });
-    ['benchmark-analytics', 'writing-benchmark', 'wb', 'survey'].forEach(function(n) {
+    ['writing-benchmark', 'wb', 'survey'].forEach(function(n) {
         var p = document.getElementById('writing-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
     });
@@ -14566,7 +14561,15 @@ function renderWb() {
     if (wbViewMode === 'analytics')     { renderWbAnalytics(); return; }
 }
 
+function _wbShowContent() {
+    var el = document.getElementById('wb-content');
+    var wd = document.getElementById('wd-root');
+    if (el) el.style.display = '';
+    if (wd) wd.style.display = 'none';
+}
+
 function renderWbOverview() {
+    _wbShowContent();
     var el = document.getElementById('wb-content');
     if (!el) return;
     if (wbLongData) { doRenderWbOverview(el); return; }
@@ -14708,6 +14711,7 @@ function doRenderWbOverview(el) {
 }
 
 function renderWbStudentGrowth() {
+    _wbShowContent();
     var el = document.getElementById('wb-content');
     if (!el) return;
     if (!wbLongData) {
@@ -14898,6 +14902,7 @@ function drawWbAvgGraph(canvas, bars) {
 }
 
 function renderWbDrilldown() {
+    _wbShowContent();
     var el = document.getElementById('wb-content');
     if (!el) return;
     el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Drilldown view coming soon.</p>';
@@ -14905,8 +14910,9 @@ function renderWbDrilldown() {
 
 function renderWbAnalytics() {
     var el = document.getElementById('wb-content');
-    if (!el) return;
-    el.innerHTML = '<p style="padding:2.5rem;color:#aeaeb2;text-align:center;font-size:0.9rem;">Analytics view coming soon.</p>';
+    var wd = document.getElementById('wd-root');
+    if (el) el.style.display = 'none';
+    if (wd) { wd.style.display = ''; WD.init(); }
 }
 
 function updateStickyOffsets() {
