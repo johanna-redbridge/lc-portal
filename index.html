@@ -10189,7 +10189,7 @@ var FP_LEVELS_FALLBACK = [
 var fpLevelScoreMap = {};
 // fpGrowthNumMap: level (lowercase) → growth number from column G of growth-number reference sheet
 var FP_GROWTH_NUM_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1704150323&single=true&output=csv';
-var fpGrowthNumMap = {};
+var fpGrowthNumMap = { 'pre0': 0.0, 'pre1': 0.2, 'pre2': 0.5, 'pre3': 0.8 };
 var fpGrowthNumLoaded = false;
 FP_LEVELS_FALLBACK.forEach(function(lv, i) { fpLevelScoreMap[lv.toLowerCase()] = i * 0.1; });
 
