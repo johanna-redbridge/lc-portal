@@ -4830,6 +4830,14 @@ function hexLighten(hex, amount) {
     var b = Math.round(parseInt(c.slice(4,6),16) + (255 - parseInt(c.slice(4,6),16)) * amount);
     return 'rgb('+r+','+g+','+b+')';
 }
+function hexDarken(hex, amount) {
+    var c = hex.replace('#', '');
+    if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+    var r = Math.round(parseInt(c.slice(0,2),16) * (1 - amount));
+    var g = Math.round(parseInt(c.slice(2,4),16) * (1 - amount));
+    var b = Math.round(parseInt(c.slice(4,6),16) * (1 - amount));
+    return 'rgb('+r+','+g+','+b+')';
+}
 
 function renderAvailable() {
     var search = document.getElementById('av-search').value.toLowerCase();
@@ -11190,7 +11198,8 @@ function drawMapAvgPctGraph(canvas, bars, color) {
         var cx = padL + (i + 0.5) * (plotW / bars.length);
         var barH = (b.avg / 100) * plotH;
         var yTop = padT + plotH - barH;
-        ctx.fillStyle = color;
+        var barColor = b.label.indexOf('EOY') >= 0 ? hexDarken(color, 0.35) : color;
+        ctx.fillStyle = barColor;
         if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cx - bw/2, yTop, bw, barH, 4); ctx.fill(); }
         else { ctx.fillRect(cx - bw/2, yTop, bw, barH); }
         if (b.avg > 0) {
