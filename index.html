@@ -10908,6 +10908,8 @@ var mapElaView               = 'class';
 var mapMathSelectedStudent   = '';
 var mapElaSelectedStudent    = '';
 var mapElaStudentSearch      = '';
+var mapMathAvgMode           = false;
+var mapElaAvgMode            = false;
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -11156,6 +11158,57 @@ function renderMapMathTable() {
         function(s) { return s.mathPcts; });
 }
 
+function drawMapAvgPctGraph(canvas, bars, color) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.width, cssH = canvas.height;
+    canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = cssW, H = cssH;
+    var padL = 46, padR = 16, padT = 28, padB = 54;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+    if (!bars.length) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '13px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('No data', W/2, H/2); return;
+    }
+
+    [0, 25, 50, 75, 100].forEach(function(v) {
+        var y = padT + plotH - (v / 100) * plotH;
+        ctx.strokeStyle = '#e8e8ed'; ctx.lineWidth = 0.8; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(v, padL - 5, y + 3);
+    });
+
+    var bw = Math.min(plotW / bars.length * 0.6, 36);
+    bars.forEach(function(b, i) {
+        var cx = padL + (i + 0.5) * (plotW / bars.length);
+        var barH = (b.avg / 100) * plotH;
+        var yTop = padT + plotH - barH;
+        ctx.fillStyle = color;
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cx - bw/2, yTop, bw, barH, 4); ctx.fill(); }
+        else { ctx.fillRect(cx - bw/2, yTop, bw, barH); }
+        if (b.avg > 0) {
+            ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(Math.round(b.avg) + '%ile', cx, yTop - 5);
+        }
+        ctx.fillStyle = '#64748b'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.label, cx, padT + plotH + 14);
+        if (b.count > 0) {
+            ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif';
+            ctx.fillText('n=' + b.count, cx, padT + plotH + 26);
+        }
+    });
+
+    ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+}
+
 /* ── MAP Math Student Growth Graphs ─────────────────────────────────────────── */
 function renderMapMathStudentGraphs() {
     var el = document.getElementById('map-math-content');
@@ -11174,6 +11227,33 @@ function renderMapMathStudentGraphs() {
     var s = all.find(function(s) { return s.name === mapMathSelectedStudent; }) || all[0];
 
     var html = '<div style="padding:1rem 1.25rem 1.5rem;">';
+
+    // Average Growth toggle button
+    html += '<div style="margin-bottom:1.25rem;">'
+        + '<button onclick="mapMathAvgMode=!mapMathAvgMode;renderMapMathStudentGraphs();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #00E3FF;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;'
+        + (mapMathAvgMode ? 'background:#00E3FF;color:#1d1d1f;' : 'background:#fff;color:#1d1d1f;')
+        + '">Average Growth</button></div>';
+
+    if (mapMathAvgMode) {
+        // Compute average percentile per period
+        var avgBars = mp.map(function(label, j) {
+            var sum = 0, count = 0;
+            all.forEach(function(st) {
+                var pct = parseFloat(st.mathPcts[j]);
+                if (!isNaN(pct) && st.mathPcts[j] !== '') { sum += pct; count++; }
+            });
+            return { label: label, avg: count ? sum / count : 0, count: count };
+        }).filter(function(b) { return b.label; });
+        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;padding:1.25rem;max-width:720px;">'
+            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP Math Percentile · Per Assessment Period</div>'
+            + '<canvas id="map-math-avg-canvas" width="680" height="260" style="width:100%;height:260px;display:block;"></canvas>'
+            + '</div>';
+        html += '</div>';
+        el.innerHTML = html;
+        var avgCanvas = document.getElementById('map-math-avg-canvas');
+        if (avgCanvas) drawMapAvgPctGraph(avgCanvas, avgBars, '#00E3FF');
+        return;
+    }
 
     // Search bar
     html += '<div style="position:relative;max-width:380px;margin-bottom:1.25rem;">'
@@ -11323,6 +11403,28 @@ function renderMapElaStudentGraphs() {
 
     var ep = mapData.elaPeriods;
 
+    // ── Average Growth mode ──
+    if (mapElaAvgMode) {
+        var avgBars = ep.map(function(label, j) {
+            var sum = 0, count = 0;
+            all.forEach(function(st) {
+                var pct = parseFloat(st.elaPcts[j]);
+                if (!isNaN(pct) && st.elaPcts[j] !== '') { sum += pct; count++; }
+            });
+            return { label: label, avg: count ? sum / count : 0, count: count };
+        }).filter(function(b) { return b.label; });
+        var html = '<div style="padding:1rem 1.25rem 1.5rem;">'
+            + '<button onclick="mapElaAvgMode=false;renderMapElaStudentGraphs();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #FFC8BB;background:#FFC8BB;color:#1d1d1f;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;margin-bottom:1.25rem;">Average Growth</button>'
+            + '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;padding:1.25rem;max-width:720px;">'
+            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP ELA Percentile · Per Assessment Period</div>'
+            + '<canvas id="map-ela-avg-canvas" width="680" height="260" style="width:100%;height:260px;display:block;"></canvas>'
+            + '</div></div>';
+        el.innerHTML = html;
+        var avgCanvas = document.getElementById('map-ela-avg-canvas');
+        if (avgCanvas) drawMapAvgPctGraph(avgCanvas, avgBars, '#FFC8BB');
+        return;
+    }
+
     // ── Individual student view ──
     if (mapElaSelectedStudent) {
         var s = all.find(function(st) { return st.name === mapElaSelectedStudent; });
@@ -11346,7 +11448,10 @@ function renderMapElaStudentGraphs() {
         var q = mapElaStudentSearch.toLowerCase();
         all = all.filter(function(s) { return fullName(s.name).toLowerCase().indexOf(q) !== -1; });
     }
-    var html = '<div style="padding:0.75rem 1.25rem 0;"><input id="map-ela-search" type="text" placeholder="Search student…" value="' + mapElaStudentSearch.replace(/"/g,'&quot;') + '" '
+    var html = '<div style="padding:0.75rem 1.25rem 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        + '<button onclick="mapElaAvgMode=true;renderMapElaStudentGraphs();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #FFC8BB;background:#fff;color:#1d1d1f;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;">Average Growth</button>'
+        + '</div>'
+        + '<div style="padding:0.5rem 1.25rem 0;"><input id="map-ela-search" type="text" placeholder="Search student…" value="' + mapElaStudentSearch.replace(/"/g,'&quot;') + '" '
         + 'oninput="mapElaStudentSearch=this.value;renderMapElaStudentGraphs();" '
         + 'style="width:220px;padding:0.35rem 0.75rem;border:1.5px solid #d2d2d7;border-radius:20px;font-size:0.78rem;font-family:inherit;outline:none;box-sizing:border-box;" '
         + 'onfocus="this.style.borderColor=\'#FF8200\'" onblur="this.style.borderColor=\'#d2d2d7\'">'
