@@ -10584,16 +10584,16 @@ function renderFPGrowthView() {
                 if (band.s === band.e) return;
                 var moyIdx = band.s + 1;
                 function fpTierData(ptIdx) {
-                    var t100=0, t80=0, t60=0, tLow=0, total=0;
+                    var t100=0, t90=0, t80=0, t60=0, tLow=0, total=0;
                     students.forEach(function(s) {
                         var tLv = gleTargetLevel(s.gle); if (!tLv) return;
                         var tS = fpScore(tLv.toLowerCase()); if (!tS) return;
                         var pt = s.points[ptIdx]; if (!pt || pt.score === null) return;
                         total++;
                         var ratio = pt.score / tS;
-                        if (ratio >= 1.0) t100++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
+                        if (ratio >= 1.0) t100++; else if (ratio >= 0.9) t90++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
                     });
-                    return total > 0 ? {t100:t100,t80:t80,t60:t60,tLow:tLow,total:total} : null;
+                    return total > 0 ? {t100:t100,t90:t90,t80:t80,t60:t60,tLow:tLow,total:total} : null;
                 }
                 fpTargetBars.push({ label: band.label,
                     boy: fpTierData(band.s),
@@ -12661,15 +12661,15 @@ function renderBenchStudentGrowth() {
 
         var benchTargetBars = BENCH_LONG_YEARS.map(function(y) {
             function benchTierData(periodKey) {
-                var t100=0, t80=0, t60=0, tLow=0, total=0;
+                var t100=0, t90=0, t80=0, t60=0, tLow=0, total=0;
                 allStudents.forEach(function(s) {
                     var yd = s.years[y.key]; if (!yd || !yd.goal) return;
                     var score = yd[periodKey]; if (score === null) return;
                     total++;
                     var ratio = score / yd.goal;
-                    if (ratio >= 1.0) t100++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
+                    if (ratio >= 1.0) t100++; else if (ratio >= 0.9) t90++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
                 });
-                return total > 0 ? {t100:t100,t80:t80,t60:t60,tLow:tLow,total:total} : null;
+                return total > 0 ? {t100:t100,t90:t90,t80:t80,t60:t60,tLow:tLow,total:total} : null;
             }
             var boy = benchTierData('boy'), moy = benchTierData('moy'), eoy = benchTierData('eoy');
             if (!boy && !eoy) return null;
@@ -12817,11 +12817,11 @@ function drawBenchAvgGraph(canvas, bars) {
 }
 
 function drawMeetingTargetChart(canvas, bars, accentColor) {
-    // bars = [{label, boy:{t100,t80,t60,tLow,total}|null, moy:{...}|null, eoy:{...}|null}]
-    // Stacked bars: each period (BOY/MOY/EOY) shows 4 tiers from bottom to top:
-    //   <60% (red), ≥60% (yellow), ≥80% (light green), 100% (dark green)
-    var TIER_COLORS  = ['#f87171', '#fbbf24', '#86efac', '#15803d']; // <60, 60, 80, 100 (bottom→top)
-    var TIER_TEXT    = ['#1d1d1f', '#1d1d1f', '#1d1d1f', '#ffffff']; // text contrast per tier
+    // bars = [{label, boy:{t100,t90,t80,t60,tLow,total}|null, moy:{...}|null, eoy:{...}|null}]
+    // Stacked bars: each period (BOY/MOY/EOY) shows 5 tiers from bottom to top:
+    //   <60% (red), ≥60% (yellow), ≥80% (light green), ≥90% (medium green), 100% (dark green)
+    var TIER_COLORS  = ['#f87171', '#fbbf24', '#86efac', '#4ade80', '#15803d']; // <60, 60, 80, 90, 100 (bottom→top)
+    var TIER_TEXT    = ['#1d1d1f', '#1d1d1f', '#1d1d1f', '#1d1d1f', '#ffffff']; // text contrast per tier
 
     var dpr = window.devicePixelRatio || 1;
     var cssW = canvas.width, cssH = canvas.height;
@@ -12841,7 +12841,7 @@ function drawMeetingTargetChart(canvas, bars, accentColor) {
     }
 
     // Legend at top
-    var LEGEND = [['100% of target','#15803d'],['≥80%','#86efac'],['≥60%','#fbbf24'],['<60%','#f87171']];
+    var LEGEND = [['100% of target','#15803d'],['≥90%','#4ade80'],['≥80%','#86efac'],['≥60%','#fbbf24'],['<60%','#f87171']];
     var lx = padL;
     LEGEND.forEach(function(item) {
         ctx.fillStyle = item[1]; ctx.fillRect(lx, 13, 10, 10);
@@ -12867,8 +12867,8 @@ function drawMeetingTargetChart(canvas, bars, accentColor) {
         active.forEach(function(p, pi) {
             var cx = startX + pi * (bw + gap) + bw / 2;
             var d = p.data;
-            // draw tiers bottom→top: tLow, t60, t80, t100
-            var tierCounts = [d.tLow, d.t60, d.t80, d.t100];
+            // draw tiers bottom→top: tLow, t60, t80, t90, t100
+            var tierCounts = [d.tLow, d.t60, d.t80, d.t90||0, d.t100];
             var yBottom = padT + plotH;
             tierCounts.forEach(function(count, ti) {
                 if (!count) return;
@@ -14602,15 +14602,15 @@ function renderWbStudentGrowth() {
 
         var wbTargetBars = WB_LONG_YEARS.map(function(y) {
             function wbTierData(periodKey) {
-                var t100=0, t80=0, t60=0, tLow=0, total=0;
+                var t100=0, t90=0, t80=0, t60=0, tLow=0, total=0;
                 allStudents.forEach(function(s) {
                     var yd = s.years[y.key]; if (!yd || !yd.eoyGle) return;
                     var score = yd[periodKey]; if (score === null) return;
                     total++;
                     var ratio = score / yd.eoyGle;
-                    if (ratio >= 1.0) t100++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
+                    if (ratio >= 1.0) t100++; else if (ratio >= 0.9) t90++; else if (ratio >= 0.8) t80++; else if (ratio >= 0.6) t60++; else tLow++;
                 });
-                return total > 0 ? {t100:t100,t80:t80,t60:t60,tLow:tLow,total:total} : null;
+                return total > 0 ? {t100:t100,t90:t90,t80:t80,t60:t60,tLow:tLow,total:total} : null;
             }
             var boy = wbTierData('boy'), moy = wbTierData('moy'), eoy = wbTierData('eof');
             if (!boy && !eoy) return null;
