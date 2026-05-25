@@ -11270,7 +11270,7 @@ function renderMapMathStudentGraphs() {
             return { label: label, avg: count ? sum / count : 0, count: count };
         }).filter(function(b) { return b.label; });
         html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;padding:1.25rem;max-width:720px;">'
-            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP Math Percentile · Per Assessment Period</div>'
+            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP Math Percentile </div>'
             + '<canvas id="map-math-avg-canvas" width="680" height="260" style="width:100%;height:260px;display:block;"></canvas>'
             + '</div>';
         html += '</div>';
@@ -11441,7 +11441,7 @@ function renderMapElaStudentGraphs() {
         var html = '<div style="padding:1rem 1.25rem 1.5rem;">'
             + '<button onclick="mapElaAvgMode=false;renderMapElaStudentGraphs();" style="padding:5px 14px;border-radius:8px;border:1.5px solid #FFC8BB;background:#FFC8BB;color:#1d1d1f;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;margin-bottom:1.25rem;">Average Growth</button>'
             + '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;padding:1.25rem;max-width:720px;">'
-            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP ELA Percentile · Per Assessment Period</div>'
+            + '<div style="font-size:.82rem;font-weight:700;color:#1d1d1f;margin-bottom:.75rem;">Average MAP ELA Percentile </div>'
             + '<canvas id="map-ela-avg-canvas" width="680" height="260" style="width:100%;height:260px;display:block;"></canvas>'
             + '</div></div>';
         el.innerHTML = html;
