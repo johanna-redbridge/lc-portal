@@ -8395,10 +8395,12 @@ function renderCompStudentOverview() {
         if (!baData) {
             html += '<p style="color:#aeaeb2;font-size:.82rem;" id="comp-stu-ba-loading">Loading Beast Academy data...</p>';
         } else {
-            var baRec = baData.find(function(r){ return xrefNorm(r.name)===norm; });
+            var _baMatches = baData.filter(function(r){ return xrefNorm(r.name)===norm; });
+            var baRec = _baMatches.find(function(r){ return r.hasData; }) || _baMatches[0] || null;
             if (!baRec) {
                 var selFirst = sel.trim().split(/\s+/)[0].toLowerCase();
-                baRec = baData.find(function(r){ return (r.name||'').trim().split(/\s+/)[0].toLowerCase()===selFirst; });
+                var _baFirst = baData.filter(function(r){ return (r.name||'').trim().split(/\s+/)[0].toLowerCase()===selFirst; });
+                baRec = _baFirst.find(function(r){ return r.hasData; }) || _baFirst[0] || null;
             }
             if (!baRec || !baRec.hasData) {
                 html += '<p style="color:#aeaeb2;font-size:.82rem;">No Beast Academy data for this student.</p>';
