@@ -8551,10 +8551,365 @@ function switchDataSubtab(name) {
     if (name === 'promotion') renderPromotionDashboard();
 }
 
+// ── Promotion Dashboard ──────────────────────────────────────────────────────
+var PROMO_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREH7CGxdpEM7pfibQZSfZpaU1MpRcwLgjRtDofnSfd1FwabXggFQexhQTPaR7k--cuFldCD9pJ-s5n/pub?gid={GID}&single=true&output=csv';
+var PROMO_YEARS = [
+    { label: '20-21', gid: '108528412'  },
+    { label: '21-22', gid: '1486917606' },
+    { label: '22-23', gid: '687281519'  },
+    { label: '23-24', gid: '1330764322' },
+    { label: '24-25', gid: '2026983046' },
+    { label: '25-26', gid: '756749648'  }
+];
+var promoAllData    = null;
+var promoViewMode   = 'overview';
+var promoStudentSel = '';
+var PROMO_AL_LIGHT  = { 1:'#93c5fd', 2:'#6ee7b7', 3:'#fdba74', 4:'#c4b5fd' };
+var PROMO_AL_DARK   = { 1:'#1d4ed8', 2:'#059669', 3:'#ea580c', 4:'#7c3aed' };
+
+function parsePromoCsv(text) {
+    var rows = parseCSVFull(text);
+    if (rows.length < 3) return [];
+    function pb(v) { var u=(v||'').trim().toUpperCase(); return u==='TRUE'?true:u==='FALSE'?false:null; }
+    var out = [];
+    for (var i = 2; i < rows.length; i++) {
+        var r = rows[i];
+        var name = (r[1]||'').trim(); if (!name) continue;
+        out.push({ id:(r[0]||'').trim(), name:name, gender:(r[2]||'').trim(), ethnicity:(r[3]||'').trim(),
+            boyAL:parseInt(r[4])||null, midAttempted:pb(r[5]), midSuccess:pb(r[6]),
+            moyAL:parseInt(r[7])||null, eoyAttempted:pb(r[8]), eoySuccess:pb(r[9]) });
+    }
+    return out;
+}
+
+function loadAllPromoData(cb) {
+    if (promoAllData) { cb(); return; }
+    var result = {}, pending = PROMO_YEARS.length;
+    PROMO_YEARS.forEach(function(y) {
+        fetch(PROMO_BASE_URL.replace('{GID}', y.gid))
+            .then(function(r){ return r.text(); })
+            .then(function(t){ result[y.label]=parsePromoCsv(t); if(--pending===0){promoAllData=result;cb();} })
+            .catch(function(){  result[y.label]=[];              if(--pending===0){promoAllData=result;cb();} });
+    });
+}
+
 function renderPromotionDashboard() {
     var el = document.getElementById('promotion-content');
     if (!el) return;
-    el.innerHTML = '<p style="color:#aeaeb2;text-align:center;font-size:0.9rem;padding:3rem 0;">Promotion Dashboard coming soon.</p>';
+    el.innerHTML = '<p style="padding:3rem;color:#aeaeb2;text-align:center;">Loading promotion data…</p>';
+    loadAllPromoData(function(){ _doRenderPromo(); });
+}
+
+function _doRenderPromo() {
+    var el = document.getElementById('promotion-content');
+    if (!el || !promoAllData) return;
+    el.innerHTML =
+        '<div style="padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;display:flex;gap:0.5rem;align-items:center;">'
+        +'<div class="toggle-group">'
+        +'<button class="toggle-btn'+(promoViewMode==='overview'?' active':'')+'" onclick="promoViewMode=\'overview\';_renderPromoView()">School Overview</button>'
+        +'<button class="toggle-btn'+(promoViewMode==='student'?' active':'')+'" onclick="promoViewMode=\'student\';_renderPromoView()">Student View</button>'
+        +'</div></div>'
+        +'<div id="promo-body" style="padding:1.25rem;"></div>';
+    _renderPromoView();
+}
+
+function _renderPromoView() {
+    document.querySelectorAll('#promotion-content .toggle-btn').forEach(function(b){
+        b.classList.toggle('active', b.textContent.trim().startsWith(promoViewMode==='overview'?'School':'Student'));
+    });
+    if (promoViewMode === 'overview') _renderPromoOverview();
+    else _renderPromoStudent();
+}
+
+function _promoStats(label) {
+    var d = promoAllData[label]||[];
+    var s = { n:d.length, midAtt:0, midSuc:0, eoyAtt:0, eoySuc:0, alBoy:{1:0,2:0,3:0,4:0} };
+    d.forEach(function(r){
+        if (r.midAttempted===true){ s.midAtt++; if(r.midSuccess===true) s.midSuc++; }
+        if (r.eoyAttempted===true){ s.eoyAtt++; if(r.eoySuccess===true) s.eoySuc++; }
+        if (r.boyAL>=1&&r.boyAL<=4) s.alBoy[r.boyAL]++;
+    });
+    return s;
+}
+
+function _renderPromoOverview() {
+    var body = document.getElementById('promo-body'); if (!body) return;
+    var ys = PROMO_YEARS.map(function(y){ return {label:y.label,s:_promoStats(y.label)}; }).filter(function(y){return y.s.n>0;});
+    var cur = ys[ys.length-1], cs = cur.s;
+    var midPct = cs.midAtt ? Math.round(cs.midSuc/cs.midAtt*100)+'%' : '—';
+    var eoyPct = cs.eoyAtt ? Math.round(cs.eoySuc/cs.eoyAtt*100)+'%' : '—';
+
+    function kpi(v,lbl,sub,color){
+        return '<div style="background:#fff;border-radius:12px;border:1px solid #e8e8ed;padding:0.85rem 1rem;">'
+            +'<div style="font-size:1.55rem;font-weight:700;color:'+(color||'#1d1d1f')+';">'+v+'</div>'
+            +'<div style="font-size:.72rem;font-weight:600;color:#3a3a3c;margin-top:2px;">'+lbl+'</div>'
+            +'<div style="font-size:.65rem;color:#86868b;margin-top:1px;">'+sub+'</div></div>';
+    }
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:0.75rem;margin-bottom:1.25rem;">'
+        +kpi(cs.n,'Students',cur.label+' school year')
+        +kpi(cs.midAtt,'Mid-Year Attempts',midPct+' success rate','#60a5fa')
+        +kpi(cs.eoyAtt,'EOY Attempts',eoyPct+' success rate','#fb923c')
+        +kpi(cs.midSuc+cs.eoySuc,'Total Promoted','mid-year + EOY','#34c759')
+        +'</div>';
+
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">'
+        +'<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Attempts &amp; Successes by Year</div>'
+        +'<canvas id="promo-att-c" style="width:100%;height:230px;display:block;"></canvas></div>'
+        +'<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">AL Distribution at BOY by Year</div>'
+        +'<canvas id="promo-al-c" style="width:100%;height:230px;display:block;"></canvas></div></div>';
+
+    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Promotion Success Rate Over Time</div>'
+        +'<canvas id="promo-rate-c" style="width:100%;height:180px;display:block;"></canvas></div>';
+
+    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Year-by-Year Summary</div>'
+        +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.78rem;">'
+        +'<thead><tr style="background:#f5f5f7;">'
+        +['Year','Students','Mid Att','Mid Suc','Mid Rate','EOY Att','EOY Suc','EOY Rate','Promoted'].map(function(h){
+            return '<th style="padding:7px 10px;text-align:'+(h==='Year'?'left':'center')+';font-weight:700;color:#3a3a3c;">'+h+'</th>';
+        }).join('')+'</tr></thead><tbody>';
+    ys.forEach(function(y,i){
+        var s=y.s;
+        var mr=s.midAtt?Math.round(s.midSuc/s.midAtt*100)+'%':'—';
+        var er=s.eoyAtt?Math.round(s.eoySuc/s.eoyAtt*100)+'%':'—';
+        var mrC=s.midAtt?(s.midSuc/s.midAtt>=0.6?'#34c759':'#ff3b30'):'#aeaeb2';
+        var erC=s.eoyAtt?(s.eoySuc/s.eoyAtt>=0.6?'#34c759':'#ff3b30'):'#aeaeb2';
+        html+='<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
+            +'<td style="padding:6px 10px;font-weight:600;">'+y.label+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+s.n+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+s.midAtt+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+s.midSuc+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+mrC+';">'+mr+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+s.eoyAtt+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+s.eoySuc+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+erC+';">'+er+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;font-weight:700;">'+(s.midSuc+s.eoySuc)+'</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    body.innerHTML = html;
+
+    requestAnimationFrame(function(){
+        var c1=document.getElementById('promo-att-c');
+        var c2=document.getElementById('promo-al-c');
+        var c3=document.getElementById('promo-rate-c');
+        if(c1){c1.width=c1.offsetWidth||400;c1.height=230;_drawPromoAttChart(c1,ys);}
+        if(c2){c2.width=c2.offsetWidth||400;c2.height=230;_drawPromoALChart(c2,ys);}
+        if(c3){c3.width=c3.offsetWidth||800;c3.height=180;_drawPromoRateChart(c3,ys);}
+    });
+}
+
+function _renderPromoStudent() {
+    var body = document.getElementById('promo-body'); if (!body) return;
+    var byId = {};
+    PROMO_YEARS.forEach(function(y){
+        (promoAllData[y.label]||[]).forEach(function(r){
+            if (!byId[r.id]) byId[r.id]={id:r.id,name:r.name,years:{}};
+            byId[r.id].years[y.label]=r;
+        });
+    });
+    var students = Object.keys(byId).map(function(id){return byId[id];}).sort(function(a,b){return a.name.localeCompare(b.name);});
+    if (!promoStudentSel || !byId[promoStudentSel]) promoStudentSel = students[0]&&students[0].id||'';
+    var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">'
+        +'<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
+        +'<select id="promo-stu-sel" onchange="promoStudentSel=this.value;_renderPromoStuDetail();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">';
+    students.forEach(function(s){
+        html+='<option value="'+s.id+'"'+(s.id===promoStudentSel?' selected':'')+'>'+s.name+'</option>';
+    });
+    html+='</select></div><div id="promo-stu-detail"></div>';
+    body.innerHTML = html;
+    _renderPromoStuDetail();
+}
+
+function _renderPromoStuDetail() {
+    var el = document.getElementById('promo-stu-detail'); if (!el||!promoAllData) return;
+    var byId = {};
+    PROMO_YEARS.forEach(function(y){
+        (promoAllData[y.label]||[]).forEach(function(r){ if(!byId[r.id])byId[r.id]={}; byId[r.id][y.label]=r; });
+    });
+    var sy = PROMO_YEARS.map(function(y){
+        return (byId[promoStudentSel]&&byId[promoStudentSel][y.label])?{label:y.label,r:byId[promoStudentSel][y.label]}:null;
+    }).filter(Boolean);
+    if (!sy.length){ el.innerHTML='<p style="color:#aeaeb2;">No data for this student.</p>'; return; }
+    var sName=sy[0].r.name;
+
+    function badge(att,suc){
+        if(att===null) return '<span style="color:#aeaeb2;">—</span>';
+        if(!att)        return '<span style="color:#aeaeb2;">No</span>';
+        if(suc===true)  return '<span style="color:#34c759;font-weight:700;">✓ Success</span>';
+        if(suc===false) return '<span style="color:#ff3b30;font-weight:700;">✗ Unsuccessful</span>';
+        return '<span style="color:#ff9500;">Pending</span>';
+    }
+    function alBadge(al){
+        if(!al) return '<span style="color:#aeaeb2;">—</span>';
+        return '<span style="background:'+PROMO_AL_DARK[al]+';color:#fff;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.72rem;">AL'+al+'</span>';
+    }
+
+    var html = '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">'+sName+' — AL Progression</div>'
+        +'<canvas id="promo-stu-c" width="700" height="200" style="width:100%;height:200px;display:block;"></canvas></div>';
+
+    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Promotion History</div>'
+        +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.78rem;">'
+        +'<thead><tr style="background:#f5f5f7;">'
+        +['Year','BOY AL','Mid Attempt','Mid Result','MOY AL','EOY Attempt','EOY Result'].map(function(h){
+            return '<th style="padding:7px 10px;text-align:'+(h==='Year'?'left':'center')+';font-weight:700;color:#3a3a3c;">'+h+'</th>';
+        }).join('')+'</tr></thead><tbody>';
+    sy.forEach(function(y,i){
+        var r=y.r;
+        html+='<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
+            +'<td style="padding:6px 10px;font-weight:600;">'+y.label+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+alBadge(r.boyAL)+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+(r.midAttempted===true?'Yes':r.midAttempted===false?'No':'—')+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+badge(r.midAttempted,r.midSuccess)+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+alBadge(r.moyAL)+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+(r.eoyAttempted===true?'Yes':r.eoyAttempted===false?'No':'—')+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;">'+badge(r.eoyAttempted,r.eoySuccess)+'</td>'
+            +'</tr>';
+    });
+    html += '</tbody></table></div></div>';
+    el.innerHTML = html;
+    requestAnimationFrame(function(){
+        var c=document.getElementById('promo-stu-c');
+        if(c){c.width=c.offsetWidth||700;c.height=200;_drawPromoStuChart(c,sy);}
+    });
+}
+
+// ── Promotion chart helpers ──
+
+function _drawPromoAttChart(canvas, ys) {
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=40,pR=16,pT=34,pB=46, plotW=W-pL-pR, plotH=H-pT-pB;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+    var maxV=0; ys.forEach(function(y){maxV=Math.max(maxV,y.s.midAtt,y.s.midSuc,y.s.eoyAtt,y.s.eoySuc);});
+    maxV=Math.max(maxV,4)*1.25;
+    function yOf(v){return pT+plotH*(1-v/maxV);}
+    for(var g=0;g<=4;g++){var gv=maxV*g/4,gy=yOf(gv);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(gv),pL-4,gy+3);}
+    var colors=['#93c5fd','#1d4ed8','#fdba74','#ea580c'];
+    var lbls=['Mid Att','Mid Suc','EOY Att','EOY Suc'];
+    var n=ys.length, gW=plotW/n, bw=gW*0.17, gap=gW*0.025;
+    ys.forEach(function(y,i){
+        var cx=pL+(i+0.5)*gW;
+        var vals=[y.s.midAtt,y.s.midSuc,y.s.eoyAtt,y.s.eoySuc];
+        var totW=4*bw+3*gap;
+        vals.forEach(function(v,bi){
+            var bx=cx-totW/2+bi*(bw+gap);
+            var by=yOf(v),bh=pT+plotH-by; if(bh<1)bh=1;
+            ctx.fillStyle=colors[bi];
+            if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,[2,2,0,0]);ctx.fill();}else{ctx.fillRect(bx,by,bw,bh);}
+            if(v>0){ctx.fillStyle='#1d1d1f';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(v,bx+bw/2,by-3);}
+        });
+        ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,cx,pT+plotH+16);
+    });
+    var lx=pL;
+    colors.forEach(function(c,i){ctx.fillStyle=c;ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(lbls[i],lx+12,pT-13);lx+=54;});
+    ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
+}
+
+function _drawPromoALChart(canvas, ys) {
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=40,pR=16,pT=34,pB=46, plotW=W-pL-pR, plotH=H-pT-pB;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+    var maxN=Math.max.apply(null,ys.map(function(y){return y.s.n;}))||1;
+    function yOf(v){return pT+plotH*(1-v/maxN);}
+    for(var g=0;g<=4;g++){var gv=maxN*g/4,gy=yOf(gv);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(gv),pL-4,gy+3);}
+    var n=ys.length, gW=plotW/n, bw=gW*0.6;
+    ys.forEach(function(y,i){
+        var cx=pL+(i+0.5)*gW, bx=cx-bw/2, cumY=pT+plotH;
+        [1,2,3,4].forEach(function(al){
+            var cnt=y.s.alBoy[al]||0; if(!cnt) return;
+            var bh=plotH*cnt/maxN; cumY-=bh;
+            ctx.fillStyle=PROMO_AL_LIGHT[al]; ctx.fillRect(bx,cumY,bw,bh);
+            ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.strokeRect(bx,cumY,bw,bh);
+            if(bh>13){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('AL'+al+' ('+cnt+')',cx,cumY+bh/2+3);}
+        });
+        ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,cx,pT+plotH+16);
+        ctx.fillStyle='#1d1d1f';ctx.font='bold 10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.s.n,cx,cumY-4);
+    });
+    var lx=pL;
+    [1,2,3,4].forEach(function(al){ctx.fillStyle=PROMO_AL_LIGHT[al];ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText('AL'+al,lx+12,pT-13);lx+=36;});
+    ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
+}
+
+function _drawPromoRateChart(canvas, ys) {
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=36,pR=70,pT=22,pB=38, plotW=W-pL-pR, plotH=H-pT-pB;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+    var n=ys.length;
+    function xOf(i){return pL+(i/Math.max(n-1,1))*plotW;}
+    function yOf(v){return pT+plotH*(1-v/100);}
+    [0,25,50,75,100].forEach(function(v){var gy=yOf(v);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(v+'%',pL-4,gy+3);});
+    function drawLine(rates, color, lbl) {
+        ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.setLineDash([]);
+        ctx.beginPath(); var started=false;
+        rates.forEach(function(r,i){if(r===null){started=false;return;}if(!started){ctx.moveTo(xOf(i),yOf(r));started=true;}else ctx.lineTo(xOf(i),yOf(r));});
+        ctx.stroke();
+        var lastR=null,lastI=0;
+        rates.forEach(function(r,i){
+            if(r===null) return; lastR=r; lastI=i;
+            ctx.beginPath();ctx.arc(xOf(i),yOf(r),5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+            ctx.fillStyle='#1d1d1f';ctx.font='bold 10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(Math.round(r)+'%',xOf(i),yOf(r)-10);
+        });
+        if(lastR!==null){ctx.fillStyle=color;ctx.font='bold 10px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(lbl,xOf(lastI)+10,yOf(lastR)+4);}
+    }
+    drawLine(ys.map(function(y){return y.s.midAtt?y.s.midSuc/y.s.midAtt*100:null;}),'#60a5fa','Mid');
+    drawLine(ys.map(function(y){return y.s.eoyAtt?y.s.eoySuc/y.s.eoyAtt*100:null;}),'#fb923c','EOY');
+    ys.forEach(function(y,i){ctx.fillStyle='#8e8e93';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,xOf(i),pT+plotH+20);});
+    ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
+}
+
+function _drawPromoStuChart(canvas, sy) {
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=40,pR=16,pT=36,pB=38, plotW=W-pL-pR, plotH=H-pT-pB;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+    // Build point sequence: BOY then MOY for each year
+    var pts=[];
+    sy.forEach(function(y){
+        if(y.r.boyAL) pts.push({lbl:y.label+' BOY',al:y.r.boyAL,att:y.r.midAttempted,suc:y.r.midSuccess,isBoy:true});
+        if(y.r.moyAL) pts.push({lbl:y.label+' MOY',al:y.r.moyAL,att:y.r.eoyAttempted,suc:y.r.eoySuccess,isBoy:false});
+    });
+    if(!pts.length) return;
+    var n=pts.length;
+    function xOf(i){return pL+(i/Math.max(n-1,1))*plotW;}
+    function yOf(al){return pT+plotH*(1-(al-1)/3);}
+    [1,2,3,4].forEach(function(al){var gy=yOf(al);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('AL'+al,pL-4,gy+3);});
+    // Area fill
+    ctx.beginPath(); pts.forEach(function(p,i){i===0?ctx.moveTo(xOf(i),yOf(p.al)):ctx.lineTo(xOf(i),yOf(p.al));}); ctx.lineTo(xOf(n-1),pT+plotH); ctx.lineTo(xOf(0),pT+plotH); ctx.closePath(); ctx.fillStyle='rgba(92,91,90,0.08)'; ctx.fill();
+    // Line
+    ctx.beginPath();ctx.strokeStyle='#5c5b5a';ctx.lineWidth=2.5;ctx.setLineDash([]);
+    pts.forEach(function(p,i){i===0?ctx.moveTo(xOf(i),yOf(p.al)):ctx.lineTo(xOf(i),yOf(p.al));});
+    ctx.stroke();
+    // Dots + promotion markers
+    pts.forEach(function(p,i){
+        var x=xOf(i),y=yOf(p.al);
+        ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=PROMO_AL_DARK[p.al]||'#5c5b5a';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+        ctx.fillStyle='#1d1d1f';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('AL'+p.al,x,y-11);
+        if(p.att===true){
+            var mc=p.suc===true?'#34c759':p.suc===false?'#ff3b30':'#ff9500';
+            ctx.fillStyle=mc;ctx.font='bold 13px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('▲',x,y-23);
+        }
+    });
+    // X labels
+    pts.forEach(function(p,i){ctx.fillStyle='#8e8e93';ctx.font='8px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(p.lbl,xOf(i),pT+plotH+20);});
+    // Legend
+    var lx=pL;
+    [['#34c759','▲ Promoted'],['#ff3b30','▲ Not promoted'],['#ff9500','▲ Pending']].forEach(function(pair){
+        ctx.fillStyle=pair[0];ctx.font='bold 11px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(pair[1].slice(0,1),lx,pT-20);
+        ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.fillText(pair[1].slice(1),lx+10,pT-18);
+        lx+=110;
+    });
+    ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
 }
 
 // ── Analytics action modals ──
