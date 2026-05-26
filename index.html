@@ -1199,6 +1199,7 @@
             <button class="data-subtab-btn" data-subtab="comp" onclick="switchDataSubtab('comp')">Computation Dashboard</button>
             <button class="data-subtab-btn" data-subtab="writing" onclick="switchDataSubtab('writing')">Writing Dashboard</button>
             <button class="data-subtab-btn" data-subtab="lc" onclick="switchDataSubtab('lc')">Learning Credits</button>
+            <button class="data-subtab-btn" data-subtab="promotion" onclick="switchDataSubtab('promotion')">Promotion Dashboard</button>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -1525,6 +1526,11 @@
                     <iframe id="wb-iframe-ms" style="width:100%;border:none;display:block;min-height:1400px;" scrolling="yes"></iframe>
                 </div>
             </div>
+        <!-- Promotion Dashboard sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-promotion" style="display:none;">
+            <div id="promotion-content" style="padding:2rem;"></div>
+        </div>
+
         </div>
     </div>
 </div>
@@ -8542,6 +8548,13 @@ function switchDataSubtab(name) {
         if (_ss) _ss.style.display = 'none';
         renderXref();
     }
+    if (name === 'promotion') renderPromotionDashboard();
+}
+
+function renderPromotionDashboard() {
+    var el = document.getElementById('promotion-content');
+    if (!el) return;
+    el.innerHTML = '<p style="color:#aeaeb2;text-align:center;font-size:0.9rem;padding:3rem 0;">Promotion Dashboard coming soon.</p>';
 }
 
 // ── Analytics action modals ──
