@@ -1526,12 +1526,13 @@
                     <iframe id="wb-iframe-ms" style="width:100%;border:none;display:block;min-height:1400px;" scrolling="yes"></iframe>
                 </div>
             </div>
-        <!-- Promotion Dashboard sub-tab -->
-        <div class="data-subtab-panel" id="data-subtab-promotion" style="display:none;">
-            <div id="promotion-content" style="padding:2rem;"></div>
         </div>
 
+        <!-- Promotion Dashboard sub-tab -->
+        <div class="data-subtab-panel" id="data-subtab-promotion" style="display:none;">
+            <div id="promotion-content"></div>
         </div>
+
     </div>
 </div>
 
@@ -8635,6 +8636,7 @@ function _promoStats(label) {
 function _renderPromoOverview() {
     var body = document.getElementById('promo-body'); if (!body) return;
     var ys = PROMO_YEARS.map(function(y){ return {label:y.label,s:_promoStats(y.label)}; }).filter(function(y){return y.s.n>0;});
+    if (!ys.length) { body.innerHTML='<p style="padding:2rem;color:#aeaeb2;text-align:center;">No promotion data available.</p>'; return; }
     var cur = ys[ys.length-1], cs = cur.s;
     var midPct = cs.midAtt ? Math.round(cs.midSuc/cs.midAtt*100)+'%' : '—';
     var eoyPct = cs.eoyAtt ? Math.round(cs.eoySuc/cs.eoyAtt*100)+'%' : '—';
