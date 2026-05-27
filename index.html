@@ -14577,10 +14577,7 @@ function renderCategoryView() {
         +'</div>'
         +'</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
-        +'<div class="wd-cat-kpi"><div class="ck-label">BOY Avg</div><div class="ck-value">'+fmtScore(clsFall)+'</div></div>'
-        +'<div class="wd-cat-kpi"><div class="ck-label">MOY Avg</div><div class="ck-value">'+fmtScore(clsWin)+'</div></div>'
-        +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">BOY→MOY Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'')
-        +'<div class="wd-cat-kpi"><div class="ck-label">Students</div><div class="ck-value">'+rows.length+'</div></div>'
+        +(clsGrow!=null?'<div class="wd-cat-kpi" style="background:'+gc.bg+'"><div class="ck-label" style="color:'+gc.text+'">BOY→MOY Growth</div><div class="ck-value" style="color:'+gc.text+'">'+(clsGrow>0?'+':'')+clsGrow.toFixed(2)+'</div></div>':'<div class="wd-cat-kpi"><div class="ck-label">BOY→MOY Growth</div><div class="ck-value" style="color:#94a3b8;font-size:.9rem">No data yet</div></div>')
         +'</div>'
         +'<div class="wd-card"><div class="wd-section-title">'+CATS[catDiveIdx]+' · click header to sort</div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-catdive"><thead><tr>'
