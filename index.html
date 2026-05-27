@@ -14432,10 +14432,9 @@ function renderClassOverview() {
     var sortedRoster=sortRows(rosterData,sortState.roster.col,sortState.roster.dir,function(r,c){return{name:r.name,goal:r.goal,fallAvg:r.fallAvg,winterAvg:r.winterAvg,springAvg:r.springAvg,fw:r.fw,ws:r.ws,fs:r.fs}[c];});
     var gcFW=growthColors(overallFW,'half'),gcWS=growthColors(overallWS,'half'),gcFS=growthColors(overallFS,'full');
     var html='<div class="wd-kpi-grid">'
-        +'<div class="wd-kpi-card"><div class="wd-kpi-label">Students</div><div class="wd-kpi-value">'+students.length+'</div><div class="wd-kpi-sub">'+currentLevelCfg().label+'</div></div>'
         +'<div class="wd-kpi-card" style="background:'+gcFW.bg+'"><div class="wd-kpi-label" style="color:'+gcFW.text+'">BOY→MOY Growth</div><div class="wd-kpi-value" style="color:'+gcFW.text+'">'+(overallFW!=null?gcFW.symbol+' '+(overallFW>0?'+':'')+overallFW.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
-        +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">MOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
-        +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">BOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'—')+'</div><div class="wd-kpi-sub">avg of diffs</div></div>'
+        +'<div class="wd-kpi-card" style="background:'+gcWS.bg+'"><div class="wd-kpi-label" style="color:'+gcWS.text+'">MOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcWS.text+'">'+(overallWS!=null?gcWS.symbol+' '+(overallWS>0?'+':'')+overallWS.toFixed(1):'No data yet')+'</div>'+(overallWS!=null?'<div class="wd-kpi-sub">avg of diffs</div>':'')+'</div>'
+        +'<div class="wd-kpi-card" style="background:'+gcFS.bg+'"><div class="wd-kpi-label" style="color:'+gcFS.text+'">BOY→EOY Growth</div><div class="wd-kpi-value" style="color:'+gcFS.text+'">'+(overallFS!=null?gcFS.symbol+' '+(overallFS>0?'+':'')+overallFS.toFixed(1):'No data yet')+'</div>'+(overallFS!=null?'<div class="wd-kpi-sub">avg of diffs</div>':'')+'</div>'
         +'</div>'
         +'<div class="wd-card"><div class="wd-section-title">Avg Growth by Category — click header to sort</div><div class="wd-tbl-wrap"><table id="wd-tbl-cat"><thead><tr>'
         +makeSortTh('Category','label','cat')+makeSortTh('BOY→MOY','fw','cat',true)+makeSortTh('MOY→EOY','ws','cat',true)+makeSortTh('BOY→EOY','fs','cat',true)
@@ -14451,27 +14450,21 @@ function renderClassOverview() {
             +'<td class="center">'+diffBadge(0,row.fs,'full',true)+'</td></tr>';}).join('')
         +'</tbody></table></div></div>'
         +'<div class="wd-card">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">'
-        +'<div class="wd-section-title" style="margin-bottom:0">All Students Snapshot</div>'
-        +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase">Growth</span>'
-        +'<div style="display:flex;border:1px solid #d1d1d6;border-radius:8px;overflow:hidden">'
-        +[['fw','BOY→MOY'],['ws','MOY→EOY'],['fs','BOY→EOY']].map(function(p){return'<button onclick="WD.setRosterGrowth(\''+p[0]+'\')" style="padding:3px 10px;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;background:'+(rosterGrowthCol===p[0]?'#1d1d1f':'transparent')+';color:'+(rosterGrowthCol===p[0]?'#fff':'#64748b')+'">'+p[1]+'</button>';}).join('')
-        +'</div></div></div>'
+        +'<div class="wd-section-title" style="margin-bottom:10px">All Students Snapshot</div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-roster"><thead><tr>'
         +makeSortTh('Student','name','roster')
         +(currentLevelCfg().hasGoal?makeSortTh('Goal','goal','roster',true):'')
-        +makeSortTh('BOY','fallAvg','roster',true)+makeSortTh('MOY','winterAvg','roster',true)+makeSortTh('EOY','springAvg','roster',true)
-        +makeSortTh(rosterGrowthCol==='fw'?'BOY→MOY':rosterGrowthCol==='ws'?'MOY→EOY':'BOY→EOY',rosterGrowthCol,'roster',true)
+        +makeSortTh('BOY→MOY','fw','roster',true)
+        +makeSortTh('MOY→EOY','ws','roster',true)
+        +makeSortTh('BOY→EOY','fs','roster',true)
         +'</tr></thead><tbody>'
         +sortedRoster.map(function(s,i){
-            var gv=s[rosterGrowthCol],tf=rosterGrowthCol==='fs'?'full':'half';
             return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
                 +'<td data-redact="name"><strong>'+fullName(s.name).replace(/</g,'&lt;')+'</strong></td>'
                 +(currentLevelCfg().hasGoal?'<td class="center"><span class="wd-goal-tag">'+(s.goal||'—')+'</span></td>':'')
-                +'<td class="center">'+scoreChip(s.fallAvg)+'</td>'
-                +'<td class="center">'+scoreChip(s.winterAvg)+'</td>'
-                +'<td class="center">'+scoreChip(s.springAvg)+'</td>'
-                +'<td class="center">'+diffBadge(0,gv,tf,true)+'</td></tr>';
+                +'<td class="center">'+diffBadge(0,s.fw,'half',true)+'</td>'
+                +'<td class="center">'+(hasSpring?diffBadge(0,s.ws,'half',true):'<span style="color:#94a3b8;font-size:.75rem">No data yet</span>')+'</td>'
+                +'<td class="center">'+(hasSpring?diffBadge(0,s.fs,'full',true):'<span style="color:#94a3b8;font-size:.75rem">No data yet</span>')+'</td></tr>';
         }).join('')
         +'</tbody></table></div></div>';
     document.getElementById('wd-view-class').innerHTML=html;
