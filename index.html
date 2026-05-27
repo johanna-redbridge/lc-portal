@@ -3036,6 +3036,8 @@ function buildCreditsAndEarned(rows, headerRow) {
         if (SKIP_COLS[title.toLowerCase()]) continue;
         var subject = subjectAtCol[col] || '';
         if (subject.toLowerCase() === 'communication') subject = '';
+        if (/^communication\s*[-–]\s*reading$/i.test(subject)) subject = 'Reading';
+        if (/^communication\s*[-–]\s*writing$/i.test(subject)) subject = 'Writing';
         var id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
         colMap[col] = id;
         if (!idSeen[id]) {
@@ -3124,7 +3126,10 @@ async function enhanceCreditsWithMetadata() {
                 if (meta.stage)   c.stage   = meta.stage;
                 if (meta.type)    c.type    = meta.type;
                 if (meta.link)    c.link    = meta.link;
-                if (meta.subject && meta.subject.toLowerCase() !== 'communication' && (!c.subject || c.subject.toLowerCase() === 'communication')) c.subject = meta.subject;
+                var _ms = meta.subject || '';
+                if (/^communication\s*[-–]\s*reading$/i.test(_ms)) _ms = 'Reading';
+                else if (/^communication\s*[-–]\s*writing$/i.test(_ms)) _ms = 'Writing';
+                if (_ms && _ms.toLowerCase() !== 'communication' && (!c.subject || c.subject.toLowerCase() === 'communication')) c.subject = _ms;
                 enhanced++;
             }
         });
@@ -13053,13 +13058,46 @@ function doRenderBenchOverview(el) {
             + '</td>';
     }
 
-    // colgroup: Student 12% | AL 3% | GLE 3% | Group 3% | MAP 8% | 5 years × (BOY 3% MOY 3% EOY 3% Goal 4%) = 65%
+    // Build MAP year→period-index lookup
+    var mapYearIdx = {};
+    if (mapData && mapData.mathPeriods) {
+        mapData.mathPeriods.forEach(function(period, idx) {
+            if (!period) return;
+            var isBoy = /\bBOY\b/i.test(period);
+            var isEoy = /\bEOY\b/i.test(period);
+            BENCH_LONG_YEARS.forEach(function(y) {
+                if (period.indexOf(y.label) !== -1) {
+                    if (!mapYearIdx[y.label]) mapYearIdx[y.label] = {};
+                    if (isBoy) mapYearIdx[y.label].boyIdx = idx;
+                    if (isEoy) mapYearIdx[y.label].eoyIdx = idx;
+                }
+            });
+        });
+    }
+
+    function mapMathYearCell(mapRec, yearLabel, season, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:1px solid rgba(255,255,255,0.15);' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (!mapRec || !mapYearIdx[yearLabel]) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        var idx = season === 'boy' ? mapYearIdx[yearLabel].boyIdx : mapYearIdx[yearLabel].eoyIdx;
+        if (idx === undefined || idx === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        var score = parseFloat(mapRec.mathScores[idx]);
+        var pct = parseFloat(mapRec.mathPcts[idx]);
+        if (isNaN(score) || score === 0) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        var scoreCol = (!isNaN(pct) && pct > 0) ? pctColor(pct) : '#5c5b5a';
+        return '<td style="text-align:center;' + PH + bl + bg + '">'
+            + '<div style="display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;">'
+            + '<span style="font-size:0.70rem;font-weight:700;color:' + scoreCol + ';">' + Math.round(score) + '</span>'
+            + (!isNaN(pct) && pct > 0 ? '<span style="font-size:0.56rem;color:#86868b;">' + Math.round(pct) + '%</span>' : '')
+            + '</div></td>';
+    }
+
+    // colgroup: Student 12% | AL 3% | GLE 3% | Group 3% | 5 years × (BOY 3% MOY 3% EOY 3% Goal 4% MAP-BOY 4% MAP-EOY 4%)
     var colgroup = '<colgroup>'
         + '<col style="width:12%">'
-        + '<col style="width:3%"><col style="width:3%"><col style="width:3%">'
-        + '<col style="width:8%">';
+        + '<col style="width:3%"><col style="width:3%"><col style="width:3%">';
     BENCH_LONG_YEARS.forEach(function() {
-        colgroup += '<col style="width:3%"><col style="width:3%"><col style="width:3%"><col style="width:4%">';
+        colgroup += '<col style="width:3%"><col style="width:3%"><col style="width:3%"><col style="width:4%"><col style="width:4%"><col style="width:4%">';
     });
     colgroup += '</colgroup>';
 
@@ -13068,15 +13106,14 @@ function doRenderBenchOverview(el) {
     // Header row 1 — fixed cols + year group labels
     var hdr1 = '<tr>'
         + '<th rowspan="2" style="text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student</th>'
-        + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group')
-        + '<th rowspan="2" style="position:sticky;top:0;z-index:12;text-align:center;background:#5c5b5a;' + TH + '">MAP Math</th>';
+        + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="4" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="6" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
-    // Header row 2 — BOY / MOY / EOY / Goal
+    // Header row 2 — BOY / MOY / EOY / Goal / MAP BOY / MAP EOY
     var hdr2 = '<tr>';
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
@@ -13085,7 +13122,9 @@ function doRenderBenchOverview(el) {
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
              + '<th style="' + sub + bg + '">EOY</th>'
-             + '<th style="' + sub + bg + '">Goal</th>';
+             + '<th style="' + sub + bg + '">Goal</th>'
+             + '<th style="' + sub + 'border-left:1px solid rgba(255,255,255,0.25);font-style:italic;' + bg + '">MAP BOY</th>'
+             + '<th style="' + sub + 'font-style:italic;' + bg + '">MAP EOY</th>';
     });
     hdr2 += '</tr>';
 
@@ -13094,47 +13133,21 @@ function doRenderBenchOverview(el) {
     sorted.forEach(function(s, si) {
         var rb = si % 2 === 0 ? '#fff' : '#fafafa';
         var mapRec = (mapData && mapData.students) ? mapData.students.find(function(m){ return xrefNorm(m.name)===xrefNorm(s.name); }) : null;
-        var mapMathCell;
-        if (!mapRec) {
-            mapMathCell = '<td style="text-align:center;font-size:0.65rem;color:#c7c7cc;' + PH + '">—</td>';
-        } else {
-            var latestMapScore = null, latestMapPct = null, latestMapPeriod = '';
-            var mpp = mapData.mathPeriods || [];
-            for (var mj = MAP_MATH_COUNT - 1; mj >= 0; mj--) {
-                var msc = parseFloat(mapRec.mathScores[mj]);
-                if (!isNaN(msc) && msc > 0) {
-                    latestMapScore = msc;
-                    latestMapPct = parseFloat(mapRec.mathPcts[mj]) || null;
-                    latestMapPeriod = mpp[mj] || '';
-                    break;
-                }
-            }
-            if (latestMapScore === null) {
-                mapMathCell = '<td style="text-align:center;font-size:0.65rem;color:#c7c7cc;' + PH + '">—</td>';
-            } else {
-                var mapScoreCol = latestMapPct !== null ? pctColor(latestMapPct) : '#5c5b5a';
-                mapMathCell = '<td style="text-align:center;padding:3px 4px;">'
-                    + '<div style="display:inline-flex;flex-direction:column;align-items:center;background:#f5f5f7;border-radius:8px;padding:3px 7px;line-height:1.3;">'
-                    + '<span style="font-size:0.72rem;font-weight:700;color:' + mapScoreCol + ';">' + Math.round(latestMapScore) + '</span>'
-                    + (latestMapPct !== null ? '<span style="font-size:0.58rem;color:#86868b;">' + Math.round(latestMapPct) + '%ile</span>' : '')
-                    + (latestMapPeriod ? '<span style="font-size:0.52rem;color:#aeaeb2;">' + latestMapPeriod + '</span>' : '')
-                    + '</div></td>';
-            }
-        }
 
         bodyRows += '<tr>'
             + '<td data-redact="name" style="padding:5px 8px;font-size:0.75rem;color:#1d1d1f;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:' + rb + ';z-index:1;" title="' + fullName(s.name).replace(/"/g,'&quot;') + '">' + fullName(s.name).replace(/</g,'&lt;') + '</td>'
             + '<td data-redact="al" style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.al||'—') + '</td>'
             + '<td style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.gle||'—') + '</td>'
-            + '<td data-redact="group" style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>'
-            + mapMathCell;
+            + '<td data-redact="group" style="text-align:center;font-size:0.72rem;color:#64748b;' + PH + '">' + (s.group||'—') + '</td>';
         BENCH_LONG_YEARS.forEach(function(y) {
             var yd = s.years[y.key];
             var cur = y.key === '2025-26';
             bodyRows += numCell(yd.boy, null,    true,  cur)
                       + numCell(yd.moy, null,    false, cur)
                       + numCell(yd.eoy, yd.goal, false, cur)
-                      + goalBarCell(yd,           false, cur);
+                      + goalBarCell(yd,           false, cur)
+                      + mapMathYearCell(mapRec, y.label, 'boy', true, cur)
+                      + mapMathYearCell(mapRec, y.label, 'eoy', false, cur);
         });
         bodyRows += '</tr>';
     });
