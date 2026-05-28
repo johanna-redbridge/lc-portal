@@ -1026,7 +1026,6 @@
         <button class="data-subtab-btn active" data-subtab="available" onclick="switchLCSubtab('available')">Catalog</button>
         <button class="data-subtab-btn" data-subtab="earned" onclick="switchLCSubtab('earned')">Attainment</button>
         <button class="data-subtab-btn" data-subtab="drafting" onclick="switchLCSubtab('drafting')">Draft</button>
-        <button class="data-subtab-btn" data-subtab="analytics" onclick="switchLCSubtab('analytics')">Average Earnings</button>
     </div>
 
     <!-- Available sub-panel -->
@@ -1112,10 +1111,6 @@
         </div>
     </div>
 
-    <!-- Average Earnings sub-panel -->
-    <div id="lc-subtab-analytics" class="lc-subtab-panel" style="display:none;">
-        <div id="lc-analytics-content" style="padding:0;"></div>
-    </div>
 
 </div>
 
@@ -1404,6 +1399,17 @@
 
         <!-- ── Learning Credits sub-tab ── -->
         <div class="data-subtab-panel" id="data-subtab-lc" style="display:none;">
+            <!-- LC analytics sub-nav -->
+            <div id="lc-analytics-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.5rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#fafafa;">
+                <button class="toggle-btn lc-analytics-sub-btn active" data-lcsub="ccss" onclick="switchLCAnalyticsSubtab('ccss')">CCSS Overview</button>
+                <button class="toggle-btn lc-analytics-sub-btn" data-lcsub="earnings" onclick="switchLCAnalyticsSubtab('earnings')">Average Earnings</button>
+            </div>
+            <!-- Average Earnings panel -->
+            <div id="lc-analytics-panel" style="display:none;">
+                <div id="lc-analytics-content" style="padding:0;"></div>
+            </div>
+            <!-- CCSS panel -->
+            <div id="lc-ccss-panel">
             <!-- filter bar -->
             <div id="xref-filter-bar" style="display:flex;gap:0.6rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;row-gap:0.45rem;justify-content:flex-start;">
                 <span style="font-size:0.82rem;font-weight:700;color:#1d1d1f;">CCSS - LC Overview</span>
@@ -1440,6 +1446,7 @@
             <div id="xref-comp-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
             <div id="xref-read-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
             <div id="xref-content" style="padding:0;"></div>
+            </div><!-- /lc-ccss-panel -->
         </div>
 
         <!-- Writing Dashboard sub-tab -->
@@ -4623,7 +4630,17 @@ function switchLCSubtab(name) {
     if (name === 'available') renderAvailable();
     if (name === 'earned') { loadEarnedFromSheet(); renderEarnedCredits(); }
     if (name === 'drafting') { loadDraftingFromSheet(); renderDrafting(); }
-    if (name === 'analytics') { loadEarnedFromSheet(); renderLCAnalytics(); }
+}
+
+function switchLCAnalyticsSubtab(sub) {
+    document.querySelectorAll('.lc-analytics-sub-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.lcsub === sub);
+    });
+    var ccssPanel = document.getElementById('lc-ccss-panel');
+    var earningsPanel = document.getElementById('lc-analytics-panel');
+    if (ccssPanel) ccssPanel.style.display = sub === 'ccss' ? '' : 'none';
+    if (earningsPanel) earningsPanel.style.display = sub === 'earnings' ? '' : 'none';
+    if (sub === 'earnings') { loadEarnedFromSheet(); renderLCAnalytics(); }
 }
 
 // ── Browser history helpers ──────────────────────────────────────────────────
