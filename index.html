@@ -1161,6 +1161,7 @@
         <button class="data-subtab-btn active" data-subtab="portfolio" onclick="switchDPSubtab('portfolio')">Artifacts</button>
         <button class="data-subtab-btn" data-subtab="student" onclick="switchDPSubtab('student')">Credit Overview</button>
         <button class="data-subtab-btn" data-subtab="goaltracker" onclick="switchDPSubtab('goaltracker')">Goal Tracker</button>
+        <button class="data-subtab-btn" data-subtab="worktracker" onclick="switchDPSubtab('worktracker')">Work Tracker</button>
     </div>
     <!-- Parent sub-panel -->
     <div id="dp-subtab-portfolio" class="dp-subtab-panel">
@@ -1179,6 +1180,12 @@
     <div id="dp-subtab-goaltracker" class="dp-subtab-panel" style="display:none;">
         <div class="view-container">
             <div id="goaltracker-content"></div>
+        </div>
+    </div>
+    <!-- Work Tracker sub-panel -->
+    <div id="dp-subtab-worktracker" class="dp-subtab-panel" style="display:none;">
+        <div class="view-container">
+            <div id="worktracker-content"></div>
         </div>
     </div>
 </div>
@@ -4208,6 +4215,12 @@ function gtSave(studentId) {
 
 var gtALFilter = 'all';
 
+function renderWorkTracker() {
+    var el = document.getElementById('worktracker-content');
+    if (!el) return;
+    el.innerHTML = '<div style="padding:2rem;color:#aeaeb2;text-align:center;">Work Tracker — coming soon.</div>';
+}
+
 function renderGoalTracker() {
     var el = document.getElementById('goaltracker-content');
     if (!el) return;
@@ -4615,6 +4628,7 @@ function switchDPSubtab(name) {
     if (name === 'portfolio') renderPortfolio();
     if (name === 'student') renderStudentTab();
     if (name === 'goaltracker') renderGoalTracker();
+    if (name === 'worktracker') renderWorkTracker();
 }
 
 function switchLCSubtab(name) {
