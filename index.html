@@ -4936,7 +4936,7 @@ function renderAvailable() {
     html += '<th>Stage</th>';
     html += '<th>Type</th>';
     html += '<th style="text-align:center;">Badge</th>';
-    html += '<th style="text-align:center;">Print Page</th>';
+    html += '<th style="text-align:center;">Sticker Page</th>';
     html += '<th style="text-align:center;">Practice Options</th>';
     html += '</tr></thead><tbody>';
 
@@ -4983,7 +4983,7 @@ function renderAvailable() {
         } else {
             var conceptPrintLink = creditDocLinks[c.id] || getBadgePath(c.id, 'print');
             if (conceptPrintLink) {
-                html += '<td style="text-align:center;"><a href="' + conceptPrintLink + '" target="_blank" style="color:#FF4400;text-decoration:none;font-size:0.82rem;font-weight:500;cursor:pointer;" title="Open print page">&#128424; Print</a></td>';
+                html += '<td style="text-align:center;"><a href="' + conceptPrintLink + '" target="_blank" style="color:#FF4400;text-decoration:none;font-size:0.82rem;font-weight:500;cursor:pointer;" title="Open sticker page">&#128424; Print</a></td>';
             } else {
                 html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
             }
