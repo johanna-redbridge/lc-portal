@@ -10174,7 +10174,11 @@ function xrefStandardsHTML(){
             return g===parseInt(xrefGradeFilt==='K'?'0':xrefGradeFilt);
         }
         return true;
-    }).sort();
+    }).sort(function(a, b){
+        var ga = xrefGradeNum(a), gb = xrefGradeNum(b);
+        if (ga !== gb) return ga - gb;
+        return a.localeCompare(b);
+    });
 
     // Compute AL coverage per standard
     var AL_GROUPS = [
