@@ -9042,146 +9042,61 @@ function _renderPromoXrefStudent() {
         if (y.r.moyAL) alPts.push({lbl:y.label+' MOY', al:y.r.moyAL, att:y.r.eoyAttempted, suc:y.r.eoySuccess});
     });
 
-    // --- Academic data time axis: BOY and EOY per year ---
-    var XREF_YEARS = ['21-22','22-23','23-24','24-25','25-26'];
-    var timePts = [];
-    XREF_YEARS.forEach(function(y){
-        timePts.push({key:y+' BOY', year:y, period:'BOY'});
-        timePts.push({key:y+' EOY', year:y, period:'EOY'});
-    });
-
-    // F&P: % of grade-level target per BOY/EOY timepoint
+    // --- F&P data (same as F&P tab individual student graph) ---
     var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    var fpPts = {};  // key → {pct, raw}
-    if (fpLong) {
-        var fpTargetScore = null;
-        var gleLvl = gleTargetLevel(fpLong.gle);
-        if (gleLvl) fpTargetScore = fpScore(gleLvl.toLowerCase());
-        FP_YEAR_BANDS.forEach(function(band){
-            if (band.label === '20-21') return;
-            var boyPt = fpLong.points[band.s], eoyPt = fpLong.points[band.e];
-            var tgt = fpTargetScore || 1;
-            if (boyPt && boyPt.score != null) fpPts[band.label+' BOY'] = {raw:boyPt.level ? boyPt.level.toUpperCase() : '?', pct: Math.round(boyPt.score/tgt*100)};
-            if (eoyPt && eoyPt.score != null) fpPts[band.label+' EOY'] = {raw:eoyPt.level ? eoyPt.level.toUpperCase() : '?', pct: Math.round(eoyPt.score/tgt*100)};
-        });
-    }
 
-    // Comp: % of goal per BOY/EOY timepoint (raw score when no goal available)
+    // --- Comp data: build pts array exactly as renderBenchStudentGrowth does ---
     var compLong = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    var compPts = {};
+    var compLinePts = [];
     if (compLong) {
-        var compRaws = [];
         BENCH_LONG_YEARS.forEach(function(y){
             var yd = compLong.years[y.key]; if (!yd) return;
-            if (yd.boy != null) compRaws.push(yd.boy);
-            if (yd.eoy != null) compRaws.push(yd.eoy);
-        });
-        var compMax = compRaws.length ? Math.max.apply(null, compRaws) : 1;
-        BENCH_LONG_YEARS.forEach(function(y){
-            var yd = compLong.years[y.key]; if (!yd) return;
-            var tgt = yd.goal || null;
-            if (yd.boy != null) compPts[y.label+' BOY'] = {raw:Math.round(yd.boy), pct: tgt ? Math.round(yd.boy/tgt*100) : Math.round(yd.boy/compMax*100), hasGoal: !!tgt};
-            if (yd.eoy != null) compPts[y.label+' EOY'] = {raw:Math.round(yd.eoy), pct: tgt ? Math.round(yd.eoy/tgt*100) : Math.round(yd.eoy/compMax*100), hasGoal: !!tgt};
+            if (yd.boy !== null) compLinePts.push({period: y.label+' BOY', score: yd.boy, pct: null});
+            if (yd.moy !== null) compLinePts.push({period: y.label+' MOY', score: yd.moy, pct: null});
+            if (yd.eoy !== null) compLinePts.push({period: y.label+' EOY', score: yd.eoy, pct: null});
         });
     }
 
-    // Writing: % of EOY GLE per BOY/EOY timepoint (raw score when no goal available)
+    // --- Writing data: build pts + goalSegs exactly as renderWbStudentGrowth does ---
     var wbLong = wbLongData ? wbLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
-    var wbPts = {};
+    var wbLinePts = [], wbGoalSegs = [];
     if (wbLong) {
-        var wbRaws = [];
-        WB_LONG_YEARS.forEach(function(y){
-            var yd = wbLong.years[y.key]; if (!yd) return;
-            if (yd.boy != null) wbRaws.push(yd.boy);
-            if (yd.eof != null) wbRaws.push(yd.eof);
-        });
-        var wbMax = wbRaws.length ? Math.max.apply(null, wbRaws) : 1;
-        WB_LONG_YEARS.forEach(function(y){
-            var yd = wbLong.years[y.key]; if (!yd) return;
-            var tgt = yd.eoyGle || null;
-            if (yd.boy != null) wbPts[y.label+' BOY'] = {raw:Math.round(yd.boy), pct: tgt ? Math.round(yd.boy/tgt*100) : Math.round(yd.boy/wbMax*100), hasGoal: !!tgt};
-            if (yd.eof != null) wbPts[y.label+' EOY'] = {raw:Math.round(yd.eof), pct: tgt ? Math.round(yd.eof/tgt*100) : Math.round(yd.eof/wbMax*100), hasGoal: !!tgt};
+        WB_LONG_YEARS.forEach(function(yr){
+            var d = wbLong.years[yr.key]; if (!d) return;
+            var fromIdx = wbLinePts.length;
+            if (d.boy !== null) wbLinePts.push({period: yr.label+' BOY', score: d.boy, pct: null});
+            if (d.moy !== null) wbLinePts.push({period: yr.label+' MOY', score: d.moy, pct: null});
+            if (d.eof !== null) wbLinePts.push({period: yr.label+' EOY', score: d.eof, pct: null});
+            var toIdx = wbLinePts.length - 1;
+            if (toIdx >= fromIdx && d.eoyGle !== null) wbGoalSegs.push({from:fromIdx, to:toIdx, value:d.eoyGle});
         });
     }
 
-    var hasAnyAcademic = Object.keys(fpPts).length || Object.keys(compPts).length || Object.keys(wbPts).length;
+    function xrefChartWrap(id, title, colorSwatch, height) {
+        return '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:8px;">'
+            +'<span style="width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0;background:'+colorSwatch+';"></span>'
+            +'<span>'+title+'</span></div>'
+            +'<canvas id="'+id+'" style="width:100%;height:'+height+'px;display:block;"></canvas>'
+            +'</div>';
+    }
 
     var html = '';
 
-    // ── Chart 1: AL progression (reusing promo student chart logic) ──
     if (alPts.length) {
         html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
-            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">'+name+' — AL Progression &amp; Promotion Outcomes</div>'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">AL Progression &amp; Promotion Outcomes</div>'
             +'<canvas id="promo-xref-al-canvas" style="width:100%;height:180px;display:block;"></canvas>'
             +'</div>';
     }
-
-    // ── Chart 2: Academic performance as % of grade target ──
-    if (hasAnyAcademic) {
-        var compHasGoal = Object.values(compPts).some(function(p){return p.hasGoal;});
-        var wbHasGoal   = Object.values(wbPts).some(function(p){return p.hasGoal;});
-        var acadLegend = [
-            {label:'F&P (% of target)',                      color:'#f97316', pts:fpPts},
-            {label:'Comp. ('+(compHasGoal?'% of goal':'normalized')+')', color:'#0891b2', pts:compPts},
-            {label:'Writing ('+(wbHasGoal?'% of goal':'normalized')+')',  color:'#db2777', pts:wbPts}
-        ].filter(function(s){ return Object.keys(s.pts).length; }).map(function(s){
-            return '<span style="display:inline-flex;align-items:center;gap:4px;">'
-                +'<span style="width:16px;height:3px;border-radius:2px;display:inline-block;background:'+s.color+';"></span>'
-                +'<span style="font-size:.7rem;font-weight:600;color:#3a3a3c;">'+s.label+'</span></span>';
-        }).join('');
-
-        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
-            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
-            +'<span>Academic Performance vs. Grade-Level Target</span>'
-            +'<div style="display:flex;flex-wrap:wrap;gap:10px;">'+acadLegend+'</div>'
-            +'</div>'
-            +'<div style="padding:0.4rem 1rem 0.2rem;font-size:.67rem;color:#94a3b8;">F&amp;P &amp; scores with goals: 100% = grade-level target · scores without goals: normalized to student\'s own max · each dot labeled with raw score (F&amp;P: level letter)</div>'
-            +'<canvas id="promo-xref-acad-canvas" style="width:100%;height:220px;display:block;"></canvas>'
-            +'</div>';
+    if (fpLong) {
+        html += xrefChartWrap('promo-xref-fp-canvas', 'F&amp;P Reading Level', '#FFC8BB', 200);
     }
-
-    // ── Summary table ──
-    if (promoYears.length) {
-        function badge(att,suc){
-            if(!att) return '<span style="color:#aeaeb2;">—</span>';
-            if(suc===true) return '<span style="color:#34c759;font-weight:700;">✓ Promoted</span>';
-            if(suc===false) return '<span style="color:#ff3b30;font-weight:700;">✗ Not promoted</span>';
-            return '<span style="color:#ff9500;">Pending</span>';
-        }
-        function alBadge(al){
-            if(!al) return '<span style="color:#aeaeb2;">—</span>';
-            return '<span style="background:'+PROMO_AL_DARK[al]+';color:#fff;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.72rem;">AL'+al+'</span>';
-        }
-        function acadCell(pts, yearLabel, period){
-            var key = yearLabel+' '+period;
-            var d = pts[key];
-            return d ? Math.round(d.pct)+'%' : '—';
-        }
-        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
-            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Year-by-Year Summary</div>'
-            +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.75rem;">'
-            +'<thead><tr style="background:#f5f5f7;">'
-            +['Year','BOY AL','Mid Result','MOY AL','EOY Result','F&P BOY','F&P EOY','Comp BOY','Comp EOY','Writing BOY','Writing EOY'].map(function(h){
-                return '<th style="padding:6px 8px;text-align:'+(h==='Year'?'left':'center')+';font-weight:700;color:#3a3a3c;white-space:nowrap;">'+h+'</th>';
-            }).join('')
-            +'</tr></thead><tbody>';
-        promoYears.forEach(function(y,i){
-            var r=y.r;
-            html+='<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
-                +'<td style="padding:5px 8px;font-weight:600;">'+y.label+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;">'+alBadge(r.boyAL)+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;">'+badge(r.midAttempted,r.midSuccess)+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;">'+alBadge(r.moyAL)+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;">'+badge(r.eoyAttempted,r.eoySuccess)+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#f97316;font-weight:600;">'+acadCell(fpPts,y.label,'BOY')+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#f97316;font-weight:600;">'+acadCell(fpPts,y.label,'EOY')+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#0891b2;font-weight:600;">'+acadCell(compPts,y.label,'BOY')+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#0891b2;font-weight:600;">'+acadCell(compPts,y.label,'EOY')+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#db2777;font-weight:600;">'+acadCell(wbPts,y.label,'BOY')+'</td>'
-                +'<td style="padding:5px 8px;text-align:center;color:#db2777;font-weight:600;">'+acadCell(wbPts,y.label,'EOY')+'</td>'
-                +'</tr>';
-        });
-        html += '</tbody></table></div></div>';
+    if (compLinePts.length >= 2) {
+        html += xrefChartWrap('promo-xref-comp-canvas', 'Computation Benchmark', '#00E3FF', 180);
+    }
+    if (wbLinePts.length >= 2) {
+        html += xrefChartWrap('promo-xref-wb-canvas', 'Writing Benchmark', '#E87BB0', 180);
     }
 
     if (!html) html = '<p style="color:#aeaeb2;">No data found for '+name+'.</p>';
@@ -9193,10 +9108,20 @@ function _renderPromoXrefStudent() {
             alC.width = alC.offsetWidth || 700; alC.height = 180;
             _drawPromoXrefALChart(alC, alPts);
         }
-        var acadC = document.getElementById('promo-xref-acad-canvas');
-        if (acadC && hasAnyAcademic) {
-            acadC.width = acadC.offsetWidth || 700; acadC.height = 220;
-            _drawPromoXrefAcadChart(acadC, timePts, fpPts, compPts, wbPts);
+        var fpC = document.getElementById('promo-xref-fp-canvas');
+        if (fpC && fpLong) {
+            fpC.width = fpC.offsetWidth || 700; fpC.height = 200;
+            drawFpGrowthGraph(fpC, fpLong.points, fpLong.gle);
+        }
+        var compC = document.getElementById('promo-xref-comp-canvas');
+        if (compC && compLinePts.length >= 2) {
+            compC.width = compC.offsetWidth || 700; compC.height = 180;
+            drawMapLineGraph(compC, compLinePts, '#00E3FF');
+        }
+        var wbC = document.getElementById('promo-xref-wb-canvas');
+        if (wbC && wbLinePts.length >= 2) {
+            wbC.width = wbC.offsetWidth || 700; wbC.height = 180;
+            drawMapLineGraph(wbC, wbLinePts, '#E87BB0', wbGoalSegs.length ? wbGoalSegs : null);
         }
     });
 }
@@ -9254,7 +9179,7 @@ function _drawPromoXrefALChart(canvas, pts) {
     ctx.beginPath(); ctx.moveTo(pL,pT); ctx.lineTo(pL,pT+plotH); ctx.lineTo(pL+plotW,pT+plotH); ctx.stroke();
 }
 
-function _drawPromoXrefAcadChart(canvas, timePts, fpPts, compPts, wbPts) {
+function _drawPromoXrefAcadChart_unused(canvas, timePts, fpPts, compPts, wbPts) {
     var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
     canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
     var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
