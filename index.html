@@ -10178,9 +10178,7 @@ function xrefStandardsHTML(){
 
     // Compute AL coverage per standard
     var AL_GROUPS = [
-        { key: 'al1',  label: 'AL1',  match: function(al){ return al==='1'; } },
-        { key: 'al2',  label: 'AL2',  match: function(al){ return al==='2'; } },
-        { key: 'al34', label: 'AL3/4',match: function(al){ return al==='3'||al==='4'; } }
+        { key: 'al1', label: 'Group Attainment', match: function(al){ return al==='1'; } }
     ];
     // Compute per-credit per-AL coverage
     stdCodes.forEach(function(code){
