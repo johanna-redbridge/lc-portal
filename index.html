@@ -8995,12 +8995,13 @@ function xrefNorm(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').rep
 
 function xrefGradeNum(code){
     if(!code) return -1;
-    var m = code.match(/^(\d+)\./);
+    var c = code.replace(/^CCSS\.(ELA-Literacy|Math\.Content)\./i, '');
+    var m = c.match(/^(\d+)\./);
     if(m) return parseInt(m[1]);
-    if(code.startsWith('K.') || code.startsWith('RF.K') || code.startsWith('L.K') || code.startsWith('W.K') || code.startsWith('SL.K')) return 0;
-    m = code.match(/\.(K)\./);
+    if(c.startsWith('K.') || c.startsWith('RF.K') || c.startsWith('L.K') || c.startsWith('W.K') || c.startsWith('SL.K')) return 0;
+    m = c.match(/\.(K)\./);
     if(m) return 0;
-    m = code.match(/^[A-Z]+\.(\d+)\./);
+    m = c.match(/^[A-Z]+\.(\d+)\./);
     if(m) return parseInt(m[1]);
     return -1;
 }
