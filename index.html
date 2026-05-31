@@ -9547,7 +9547,7 @@ function xrefReadDetailHTML(){
     });
     headerHtml += '</div></div>';
 
-    var html = '<div style="padding:0 1.25rem 1.5rem;">';
+    var html = '<div style="overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
     gradeOrder.forEach(function(g){
         var stds = gradeGroups[g];
         var gLabel = g==='K'?'Kindergarten':'Grade '+g;
@@ -9556,11 +9556,11 @@ function xrefReadDetailHTML(){
         html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
         html += '</div>';
 
-        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;overflow:hidden;margin-bottom:1rem;">';
+        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;margin-bottom:1rem;overflow:visible;">';
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
         html += '<thead><tr style="background:#5c5b5a;">';
         ['CCSC Code','Description','Learning Credit','Credit Status','Lexia %'].forEach(function(h){
-            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
         });
         html += '</tr></thead><tbody>';
 
@@ -10004,7 +10004,7 @@ function xrefCompDetailHTML(){
     headerHtml += '</div></div>';
 
     // Per-grade tables (body)
-    var html = '<div style="padding:0 1.25rem 1.5rem;">';
+    var html = '<div style="overflow-y:auto;max-height:65vh;padding:0 1.25rem 1.5rem;">';
     gradeOrder.forEach(function(g){
         var stds = gradeGroups[g];
         // Grade-level summary
@@ -10023,11 +10023,11 @@ function xrefCompDetailHTML(){
         html += '<span style="font-size:0.75rem;color:#6b7280;">'+stds.length+' standards</span>';
         html += '</div>';
 
-        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;overflow:hidden;margin-bottom:1rem;">';
+        html += '<div style="border-radius:12px;border:1px solid #f0f0f0;overflow:visible;margin-bottom:1rem;">';
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
         html += '<thead><tr style="background:#5c5b5a;">';
         ['CCSC Code','Description','Learning Credit','Credit Status','Benchmark Q#','Benchmark Status','STmath %'].forEach(function(h){
-            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
+            html += '<th style="text-align:left;padding:0.45rem 0.6rem;color:#ffffff;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
         });
         html += '</tr></thead><tbody>';
 
