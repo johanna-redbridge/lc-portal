@@ -9081,13 +9081,7 @@ function _renderPromoXrefStudent() {
             +'</div>';
     }
 
-    // Debug: show data load + match status
-    var dbg = 'Looking for: <strong>' + name.replace(/</g,'&lt;') + '</strong>'
-        + '  ·  FP: ' + (fpLongData ? (fpLong ? '✓ '+fpLong.name : '✗ ('+fpLongData.length+' students)') : 'not loaded')
-        + '  ·  Comp: ' + (benchLongData ? (compLong ? '✓ '+compLong.name : '✗ ('+benchLongData.length+')') : 'not loaded')
-        + '  ·  Writing: ' + (wbLongData ? (wbLong ? '✓ '+wbLong.name : '✗ ('+wbLongData.length+')') : 'not loaded');
-    var html = '<div style="background:#fffbf0;border:1px solid #f0d080;border-radius:8px;padding:6px 12px;margin-bottom:1rem;font-size:.68rem;color:#5c4800;">'
-        + dbg + '</div>';
+    var html = '';
 
     if (alPts.length) {
         html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
