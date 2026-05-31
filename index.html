@@ -1445,10 +1445,6 @@
                         <button class="toggle-btn xref-grade-btn" data-grade="6" onclick="xrefSetGrade('6')">6+</button>
                     </div>
                 </div>
-                <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
-                    <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
-                    <button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#fff0e0'" onmouseout="this.style.background='#fff7f0'">↑ Import New Data</button>
-                </div>
             </div>
             <div id="xref-comp-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
             <div id="xref-read-header" style="display:none;flex-shrink:0;background:#fff;border-bottom:1px solid #e8e8ed;"></div>
@@ -10162,26 +10158,35 @@ function xrefStandardsHTML(){
         return true;
     }).sort();
 
-    // Compute coverage per standard
+    // Compute AL coverage per standard
+    var AL_GROUPS = [
+        { key: 'al1',  label: 'AL1',  match: function(al){ return al==='1'; } },
+        { key: 'al2',  label: 'AL2',  match: function(al){ return al==='2'; } },
+        { key: 'al34', label: 'AL3/4',match: function(al){ return al==='3'||al==='4'; } }
+    ];
     stdCodes.forEach(function(code){
         var s = stdMap[code];
-        var earned=0, inProg=0;
+        s.alCoverage = {};
+        AL_GROUPS.forEach(function(g){ s.alCoverage[g.key] = { earned:0, attempted:0, total:0 }; });
         if(s.credits.length){
             xrefStudList.forEach(function(name){
                 var sd = xrefStudents ? xrefStudents[name] : null;
                 if(!sd) return;
+                var alStr = (sd.al||'').replace(/[^0-9]/g,'');
+                var grp = null;
+                AL_GROUPS.forEach(function(g){ if(g.match(alStr)) grp=g; });
+                if(!grp) return;
+                s.alCoverage[grp.key].total++;
                 var best='';
                 s.credits.forEach(function(r){
                     var st = xrefCreditStatus(name, r.credit);
                     if(st==='e') best='e';
                     else if(st==='a' && best!=='e') best='a';
                 });
-                if(best==='e') earned++;
-                else if(best==='a') inProg++;
+                if(best==='e') s.alCoverage[grp.key].earned++;
+                else if(best==='a') s.alCoverage[grp.key].attempted++;
             });
         }
-        s.earnedStudents = earned;
-        s.inProgStudents = inProg;
     });
 
     var mappedCount   = stdCodes.filter(function(c){ return stdMap[c].mapped; }).length;
@@ -10195,14 +10200,21 @@ function xrefStandardsHTML(){
     html += '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;margin:0 1.25rem 1.5rem;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="background:#5c5b5a;">';
-    ['Standard Code','Standard Text','Credits Addressing It','Students Earned','Class Coverage'].forEach(function(h){
-        html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#ffffff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;">'+h+'</th>';
+    html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#fff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;">Standard Code</th>';
+    html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#fff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;">Standard Text</th>';
+    html += '<th style="text-align:left;padding:0.55rem 0.75rem;color:#fff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;">Credits</th>';
+    AL_GROUPS.forEach(function(g){
+        html += '<th colspan="2" style="text-align:center;padding:0.55rem 0.75rem;color:#fff;font-weight:600;position:sticky;top:0;z-index:10;background:#5c5b5a;border-left:1px solid rgba(255,255,255,0.2);">'+g.label+'</th>';
+    });
+    html += '</tr><tr style="background:#4a4948;">';
+    html += '<th colspan="3" style="position:sticky;top:28px;z-index:9;background:#4a4948;"></th>';
+    AL_GROUPS.forEach(function(){
+        html += '<th style="text-align:center;padding:0.3rem 0.5rem;color:#ccc;font-size:0.65rem;font-weight:600;position:sticky;top:28px;z-index:9;background:#4a4948;border-left:1px solid rgba(255,255,255,0.15);">Earned</th>';
+        html += '<th style="text-align:center;padding:0.3rem 0.5rem;color:#ccc;font-size:0.65rem;font-weight:600;position:sticky;top:28px;z-index:9;background:#4a4948;">Tried</th>';
     });
     html += '</tr></thead><tbody>';
     stdCodes.forEach(function(code, idx){
         var s = stdMap[code];
-        var pct = total && s.credits.length ? Math.round(s.earnedStudents/total*100) : 0;
-        var barColor = pct>=75?'#6edc5a':pct>=40?'#ffb54c':'#ff6961';
         var rowBg = s.mapped ? (idx%2===0?'#ffffff':'#f9fafb') : '#fefce8';
         html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
         html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+code+'</td>';
@@ -10218,18 +10230,22 @@ function xrefStandardsHTML(){
             html += '<span style="color:#d97706;font-size:0.75rem;font-style:italic;">No credit linked yet</span>';
         }
         html += '</td>';
-        if(s.credits.length){
-            html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#065f46;">'+s.earnedStudents+' / '+total+'</td>';
-            html += '<td style="padding:0.55rem 0.75rem;min-width:120px;">';
-            html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
-            html += '<div style="flex:1;background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden;">';
-            html += '<div style="width:'+pct+'%;height:100%;background:'+barColor+';"></div></div>';
-            html += '<span style="font-size:0.72rem;color:#374151;min-width:32px;">'+pct+'%</span>';
-            html += '</div></td>';
-        } else {
-            html += '<td style="padding:0.55rem 0.75rem;color:#d1d5db;">—</td>';
-            html += '<td style="padding:0.55rem 0.75rem;color:#d1d5db;">—</td>';
-        }
+        AL_GROUPS.forEach(function(g){
+            var cov = s.alCoverage ? s.alCoverage[g.key] : null;
+            var bl = 'border-left:1px solid #e5e7eb;';
+            if(!s.credits.length || !cov){
+                html += '<td style="text-align:center;color:#d1d5db;padding:0.55rem 0.4rem;'+bl+'">—</td>';
+                html += '<td style="text-align:center;color:#d1d5db;padding:0.55rem 0.4rem;">—</td>';
+            } else {
+                var eColor = cov.earned>0 ? '#065f46' : '#9ca3af';
+                var aColor = cov.attempted>0 ? '#92400e' : '#9ca3af';
+                html += '<td style="text-align:center;padding:0.55rem 0.4rem;'+bl+'">'
+                    + '<span style="font-weight:700;color:'+eColor+';">'+cov.earned+'</span>'
+                    + '<span style="color:#9ca3af;font-size:0.7rem;"> /'+cov.total+'</span></td>';
+                html += '<td style="text-align:center;padding:0.55rem 0.4rem;">'
+                    + '<span style="font-weight:600;color:'+aColor+';">'+cov.attempted+'</span></td>';
+            }
+        });
         html += '</tr>';
     });
     html += '</tbody></table></div>';
