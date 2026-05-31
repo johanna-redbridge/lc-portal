@@ -9043,10 +9043,10 @@ function _renderPromoXrefStudent() {
     });
 
     // --- F&P data (same as F&P tab individual student graph) ---
-    var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var fpLong = xrefFindStudent(fpLongData, name);
 
     // --- Comp data: build pts array exactly as renderBenchStudentGrowth does ---
-    var compLong = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var compLong = xrefFindStudent(benchLongData, name);
     var compLinePts = [];
     if (compLong) {
         BENCH_LONG_YEARS.forEach(function(y){
@@ -9058,7 +9058,7 @@ function _renderPromoXrefStudent() {
     }
 
     // --- Writing data: build pts + goalSegs exactly as renderWbStudentGrowth does ---
-    var wbLong = wbLongData ? wbLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var wbLong = xrefFindStudent(wbLongData, name);
     var wbLinePts = [], wbGoalSegs = [];
     if (wbLong) {
         WB_LONG_YEARS.forEach(function(yr){
@@ -9081,18 +9081,13 @@ function _renderPromoXrefStudent() {
             +'</div>';
     }
 
-    // Debug: show what was found for this student across datasets
-    var debugParts = [];
-    debugParts.push('Looking for: <strong>' + name.replace(/</g,'&lt;') + '</strong> (norm: <code>' + norm + '</code>)');
-    debugParts.push('FP data loaded: ' + (fpLongData ? fpLongData.length + ' students' : '<em>not loaded</em>') + (fpLong ? ' ✓ matched' : ' ✗ no match'));
-    debugParts.push('Comp data loaded: ' + (benchLongData ? benchLongData.length + ' students' : '<em>not loaded</em>') + (compLinePts.length ? ' ✓ ' + compLinePts.length + ' pts' : ' ✗ no match'));
-    debugParts.push('Writing data loaded: ' + (wbLongData ? wbLongData.length + ' students' : '<em>not loaded</em>') + (wbLinePts.length ? ' ✓ ' + wbLinePts.length + ' pts' : ' ✗ no match'));
-    if (fpLongData && !fpLong && fpLongData.length) {
-        debugParts.push('First few FP names (normed): ' + fpLongData.slice(0,3).map(function(s){return '<code>'+xrefNorm(s.name)+'</code>';}).join(', '));
-    }
-
-    var html = '<div style="background:#fffbf0;border:1px solid #f0d080;border-radius:8px;padding:8px 12px;margin-bottom:1rem;font-size:.7rem;color:#5c4800;line-height:1.7;">'
-        + debugParts.join('<br>') + '</div>';
+    // Debug: show data load + match status
+    var dbg = 'Looking for: <strong>' + name.replace(/</g,'&lt;') + '</strong>'
+        + '  ·  FP: ' + (fpLongData ? (fpLong ? '✓ '+fpLong.name : '✗ ('+fpLongData.length+' students)') : 'not loaded')
+        + '  ·  Comp: ' + (benchLongData ? (compLong ? '✓ '+compLong.name : '✗ ('+benchLongData.length+')') : 'not loaded')
+        + '  ·  Writing: ' + (wbLongData ? (wbLong ? '✓ '+wbLong.name : '✗ ('+wbLongData.length+')') : 'not loaded');
+    var html = '<div style="background:#fffbf0;border:1px solid #f0d080;border-radius:8px;padding:6px 12px;margin-bottom:1rem;font-size:.68rem;color:#5c4800;">'
+        + dbg + '</div>';
 
     if (alPts.length) {
         html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
@@ -9318,6 +9313,28 @@ var xrefAreaFilt  = 'all';
 var xrefGradeFilt = 'all';
 
 function xrefNorm(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\bto\b/g,' ').replace(/\s+/g,' ').trim(); }
+
+// Find a student in a dataset by name, tolerating abbreviated last names.
+// e.g. promo "Isis W" matches academic "Isis Washington" (same first name + last initial).
+function xrefFindStudent(dataset, promoName) {
+    if (!dataset || !dataset.length) return null;
+    var norm = xrefNorm(promoName);
+    // 1. Exact normalized match
+    var exact = dataset.find(function(s){ return xrefNorm(s.name) === norm; });
+    if (exact) return exact;
+    // 2. Fallback: first-name + last-initial match
+    var parts = norm.split(' ');
+    if (parts.length >= 2) {
+        var firstName = parts[0];
+        var lastInit  = parts[parts.length - 1].charAt(0);
+        var loose = dataset.find(function(s) {
+            var sp = xrefNorm(s.name).split(' ');
+            return sp.length >= 2 && sp[0] === firstName && sp[sp.length - 1].charAt(0) === lastInit;
+        });
+        if (loose) return loose;
+    }
+    return null;
+}
 
 function xrefGradeNum(code){
     if(!code) return -1;
