@@ -13497,12 +13497,11 @@ function doRenderBenchOverview(el) {
             + '</div></td>';
     }
 
-    // colgroup: Student 12% | AL 3% | GLE 3% | Group 3% | 5 years × (BOY 3% MOY 3% EOY 3% Goal 4% MAP-BOY 4% MAP-EOY 4%)
     var colgroup = '<colgroup>'
-        + '<col style="width:12%">'
+        + '<col style="width:14%">'
         + '<col style="width:3%"><col style="width:3%"><col style="width:3%">';
     BENCH_LONG_YEARS.forEach(function() {
-        colgroup += '<col style="width:3%"><col style="width:3%"><col style="width:3%"><col style="width:4%"><col style="width:4%"><col style="width:4%">';
+        colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
     });
     colgroup += '</colgroup>';
 
@@ -13514,11 +13513,10 @@ function doRenderBenchOverview(el) {
         + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="6" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="4" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
-    // Header row 2 — BOY / MOY / EOY / Goal / MAP BOY / MAP EOY
     var hdr2 = '<tr>';
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
@@ -13527,9 +13525,7 @@ function doRenderBenchOverview(el) {
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
              + '<th style="' + sub + bg + '">EOY</th>'
-             + '<th style="' + sub + bg + '">Goal</th>'
-             + '<th style="' + sub + 'border-left:1px solid rgba(255,255,255,0.25);font-style:italic;' + bg + '">MAP BOY</th>'
-             + '<th style="' + sub + 'font-style:italic;' + bg + '">MAP EOY</th>';
+             + '<th style="' + sub + bg + '">Goal</th>';
     });
     hdr2 += '</tr>';
 
@@ -13550,9 +13546,7 @@ function doRenderBenchOverview(el) {
             bodyRows += numCell(yd.boy, null,    true,  cur)
                       + numCell(yd.moy, null,    false, cur)
                       + numCell(yd.eoy, yd.goal, false, cur)
-                      + goalBarCell(yd,           false, cur)
-                      + mapMathYearCell(mapRec, y.label, 'boy', true, cur)
-                      + mapMathYearCell(mapRec, y.label, 'eoy', false, cur);
+                      + goalBarCell(yd,           false, cur);
         });
         bodyRows += '</tr>';
     });
