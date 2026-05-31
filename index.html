@@ -10129,6 +10129,24 @@ function xrefCompDetailHTML(){
     return {header: headerHtml, body: html};
 }
 
+function fmtStdCode(code) {
+    if (!code) return code;
+    var c = code.replace(/^CCSS\.(ELA-Literacy|Math\.Content)\./i, '');
+    var parts = c.split('.');
+    var gradeRe = /^(K|[1-8])$/i;
+    var numRe   = /^[0-9]+[a-z]?$/i;
+    var grade = '', domain = '', number = '';
+    if (parts.length >= 3) {
+        if (gradeRe.test(parts[0])) {
+            grade = parts[0]; domain = parts[1];
+            for (var i = 2; i < parts.length; i++) { if (numRe.test(parts[i])) { number = parts[i]; break; } }
+        } else if (gradeRe.test(parts[1])) {
+            domain = parts[0]; grade = parts[1]; number = parts[2];
+        }
+    }
+    return (grade && domain && number) ? grade + '.' + domain + '.' + number : code;
+}
+
 /* ── VIEW 1: By Standard ── */
 function xrefStandardsHTML(){
     if(!xrefCCSCRows) return '<div style="padding:2rem;color:#86868b;">Loading…</div>';
@@ -10212,7 +10230,7 @@ function xrefStandardsHTML(){
         var s = stdMap[code];
         var rowBg = idx%2===0 ? '#ffffff' : '#f9fafb';
         html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
-        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+code+'</td>';
+        html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+fmtStdCode(code)+'</td>';
         html += '<td style="padding:0.55rem 0.75rem;color:#374151;max-width:260px;">'+s.text.replace(/</g,'&lt;')+'</td>';
         html += '<td style="padding:0.55rem 0.75rem;color:#374151;">';
         if(s.credits.length){
