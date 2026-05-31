@@ -8597,6 +8597,7 @@ var PROMO_YEARS = [
 var promoAllData    = null;
 var promoViewMode   = 'overview';
 var promoStudentSel = '';
+var promoXrefSel    = '';
 var PROMO_AL_LIGHT  = { 1:'#93c5fd', 2:'#6ee7b7', 3:'#fdba74', 4:'#c4b5fd' };
 var PROMO_AL_DARK   = { 1:'#1d4ed8', 2:'#059669', 3:'#ea580c', 4:'#7c3aed' };
 
@@ -8952,7 +8953,7 @@ function _drawPromoStuChart(canvas, sy) {
     ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
 }
 
-// ── Promotion Cross-Reference ──
+// ── Promotion Cross-Reference (per-student) ──
 
 function _renderPromoCrossRef() {
     var body = document.getElementById('promo-body');
@@ -8962,19 +8963,13 @@ function _renderPromoCrossRef() {
     var tasks = 3;
     function tick() { if (--tasks <= 0) _drawPromoCrossRef(); }
 
-    // FP: needs fpLongData + fpGrowthNumMap populated
-    (function loadFp(cb) {
-        var sub = 2;
-        function done() { if (--sub <= 0) cb(); }
-        if (fpLongData) { done(); }
-        else {
-            fetch(FP_LONG_URL).then(function(r){ return r.text(); }).then(function(t){
-                fpLongData = parseFpLongitudinalCsv(t); done();
-            }).catch(function(){ done(); });
-        }
-        if (fpGrowthNumLoaded) { done(); }
-        else { loadFpGrowthNumData(done); }
-    })(tick);
+    // FP longitudinal data
+    if (fpLongData) { tick(); }
+    else {
+        fetch(FP_LONG_URL).then(function(r){ return r.text(); }).then(function(t){
+            fpLongData = parseFpLongitudinalCsv(t); tick();
+        }).catch(function(){ tick(); });
+    }
 
     // Computation benchmark
     if (benchLongData) { tick(); }
@@ -8997,216 +8992,333 @@ function _drawPromoCrossRef() {
     var body = document.getElementById('promo-body');
     if (!body) return;
 
-    var ALL_YEAR_LABELS = ['20-21','21-22','22-23','23-24','24-25','25-26'];
-
-    // F&P avg BOY→EOY growth points per year
-    var fpByYear = {};
-    FP_YEAR_BANDS.forEach(function(band) {
-        if (band.s === band.e) return;
-        var growths = [];
-        (fpLongData||[]).forEach(function(s) {
-            var boyPt = s.points[band.s], eoyPt = s.points[band.e];
-            if (!boyPt||!boyPt.level||!eoyPt||!eoyPt.level) return;
-            var bg = fpGrowthNumMap[boyPt.level.trim().toLowerCase()];
-            var eg = fpGrowthNumMap[eoyPt.level.trim().toLowerCase()];
-            if (bg==null||eg==null) return;
-            growths.push(eg - bg);
+    // Build student list from all promotion years
+    var stuMap = {};
+    PROMO_YEARS.forEach(function(y){
+        (promoAllData[y.label]||[]).forEach(function(r){
+            if (!stuMap[r.name]) stuMap[r.name] = {name:r.name, years:{}};
+            stuMap[r.name].years[y.label] = r;
         });
-        if (growths.length) fpByYear[band.label] = growths.reduce(function(a,b){return a+b;},0)/growths.length;
+    });
+    var students = Object.keys(stuMap).map(function(n){ return stuMap[n]; })
+        .sort(function(a,b){ return a.name.localeCompare(b.name); });
+    if (!students.length) { body.innerHTML='<p style="padding:2rem;color:#aeaeb2;">No promotion data.</p>'; return; }
+
+    if (!promoXrefSel || !stuMap[promoXrefSel]) promoXrefSel = students[0].name;
+
+    var selHtml = '<div style="padding:0.6rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #e8e8ed;background:#f5f5f7;margin:-1.25rem -1.25rem 1.25rem;">'
+        +'<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
+        +'<select id="promo-xref-sel" onchange="promoXrefSel=this.value;_renderPromoXrefStudent();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
+        +students.map(function(s){
+            return '<option value="'+s.name.replace(/"/g,'&quot;')+'"'+(s.name===promoXrefSel?' selected':'')+'>'+s.name+'</option>';
+        }).join('')
+        +'</select>'
+        +'<span style="font-size:.72rem;color:#94a3b8;">Shows AL progression + F&amp;P, Computation, and Writing performance together</span>'
+        +'</div>'
+        +'<div id="promo-xref-student-body"></div>';
+
+    body.innerHTML = selHtml;
+    _renderPromoXrefStudent();
+}
+
+function _renderPromoXrefStudent() {
+    var el = document.getElementById('promo-xref-student-body');
+    if (!el) return;
+
+    var name = promoXrefSel;
+    var norm = xrefNorm(name);
+
+    // --- Promo data for this student ---
+    var promoYears = [];
+    PROMO_YEARS.forEach(function(y){
+        var d = promoAllData[y.label]||[];
+        var r = d.find(function(s){ return xrefNorm(s.name)===norm; });
+        if (r) promoYears.push({label:y.label, r:r});
     });
 
-    // Computation avg BOY→EOY score growth
-    var compByYear = {};
-    BENCH_LONG_YEARS.forEach(function(y) {
-        var growths = [];
-        (benchLongData||[]).forEach(function(s) {
-            var yd = s.years[y.key];
-            if (yd && yd.boy!==null && yd.eoy!==null) growths.push(yd.eoy - yd.boy);
+    // AL progression points: BOY and MOY per year
+    var alPts = [];
+    promoYears.forEach(function(y){
+        if (y.r.boyAL) alPts.push({lbl:y.label+' BOY', al:y.r.boyAL, att:y.r.midAttempted, suc:y.r.midSuccess});
+        if (y.r.moyAL) alPts.push({lbl:y.label+' MOY', al:y.r.moyAL, att:y.r.eoyAttempted, suc:y.r.eoySuccess});
+    });
+
+    // --- Academic data time axis: BOY and EOY per year ---
+    var XREF_YEARS = ['21-22','22-23','23-24','24-25','25-26'];
+    var timePts = [];
+    XREF_YEARS.forEach(function(y){
+        timePts.push({key:y+' BOY', year:y, period:'BOY'});
+        timePts.push({key:y+' EOY', year:y, period:'EOY'});
+    });
+
+    // F&P: % of grade-level target per BOY/EOY timepoint
+    var fpLong = fpLongData ? fpLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var fpPts = {};  // key → {pct, raw}
+    if (fpLong) {
+        var fpTargetScore = null;
+        var gleLvl = gleTargetLevel(fpLong.gle);
+        if (gleLvl) fpTargetScore = fpScore(gleLvl.toLowerCase());
+        FP_YEAR_BANDS.forEach(function(band){
+            if (band.label === '20-21') return;
+            var boyPt = fpLong.points[band.s], eoyPt = fpLong.points[band.e];
+            var tgt = fpTargetScore || 1;
+            if (boyPt && boyPt.score != null) fpPts[band.label+' BOY'] = {raw:boyPt.level ? boyPt.level.toUpperCase() : '?', pct: Math.round(boyPt.score/tgt*100)};
+            if (eoyPt && eoyPt.score != null) fpPts[band.label+' EOY'] = {raw:eoyPt.level ? eoyPt.level.toUpperCase() : '?', pct: Math.round(eoyPt.score/tgt*100)};
         });
-        if (growths.length) compByYear[y.label] = growths.reduce(function(a,b){return a+b;},0)/growths.length;
-    });
-
-    // Writing avg BOY→EOF score growth
-    var wbByYear = {};
-    WB_LONG_YEARS.forEach(function(y) {
-        var growths = [];
-        (wbLongData||[]).forEach(function(s) {
-            var yd = s.years[y.key];
-            if (yd && yd.boy!==null && yd.eof!==null) growths.push(yd.eof - yd.boy);
-        });
-        if (growths.length) wbByYear[y.label] = growths.reduce(function(a,b){return a+b;},0)/growths.length;
-    });
-
-    // Promotion avg BOY AL per year
-    var promoByYear = {};
-    PROMO_YEARS.forEach(function(y) {
-        var d = (promoAllData && promoAllData[y.label]) || [];
-        var als = d.map(function(r){ return r.boyAL; }).filter(function(a){ return a>=1&&a<=4; });
-        if (als.length) promoByYear[y.label] = als.reduce(function(a,b){return a+b;},0)/als.length;
-    });
-
-    // Collect all years that appear in any dataset
-    var yearSet = {};
-    [fpByYear, compByYear, wbByYear, promoByYear].forEach(function(d){
-        Object.keys(d).forEach(function(k){ yearSet[k]=true; });
-    });
-    var years = ALL_YEAR_LABELS.filter(function(y){ return yearSet[y]; });
-
-    // Normalize each series 0-100 relative to its own min/max
-    function normalize(byYear) {
-        var keys = Object.keys(byYear); if (!keys.length) return {};
-        var vals = keys.map(function(k){ return byYear[k]; });
-        var mn = Math.min.apply(null,vals), mx = Math.max.apply(null,vals);
-        var rng = mx - mn;
-        var out = {};
-        keys.forEach(function(k){ out[k] = rng>0.0001 ? (byYear[k]-mn)/rng*100 : 50; });
-        return out;
     }
 
-    var series = [
-        { label:'F&P Growth',     unit:'growth pts', color:'#f97316', raw:fpByYear,    norm:normalize(fpByYear)    },
-        { label:'Comp. Growth',   unit:'score pts',  color:'#0891b2', raw:compByYear,  norm:normalize(compByYear)  },
-        { label:'Writing Growth', unit:'score pts',  color:'#db2777', raw:wbByYear,    norm:normalize(wbByYear)    },
-        { label:'Avg BOY AL',     unit:'AL',         color:'#7c3aed', raw:promoByYear, norm:normalize(promoByYear) }
-    ];
-
-    var legendHtml = series.map(function(s){
-        return '<span style="display:inline-flex;align-items:center;gap:4px;">'
-            +'<span style="width:18px;height:3px;border-radius:2px;display:inline-block;background:'+s.color+';"></span>'
-            +'<span style="font-size:.7rem;font-weight:600;">'+s.label+'</span></span>';
-    }).join('');
-
-    var descHtml = '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:0.5rem 1rem 0.75rem;">'
-        +'<span style="font-size:.67rem;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:2px 7px;">F&amp;P: avg BOY→EOY reading level growth</span>'
-        +'<span style="font-size:.67rem;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:2px 7px;">Comp &amp; Writing: avg BOY→EOY benchmark score growth</span>'
-        +'<span style="font-size:.67rem;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:2px 7px;">Avg BOY AL: school-wide average Achievement Level at BOY</span>'
-        +'<span style="font-size:.67rem;color:#94a3b8;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:2px 7px;font-style:italic;">Each series normalized 0–100% to its own range</span>'
-        +'</div>';
-
-    var html = '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
-        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
-        +'<span>Growth Trends Cross-Reference</span>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">'+legendHtml+'</div>'
-        +'</div>'
-        +descHtml
-        +'<canvas id="promo-xref-canvas" style="width:100%;height:300px;display:block;"></canvas>'
-        +'</div>';
-
-    // Actual-values table
-    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
-        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Actual Values by Year</div>'
-        +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.78rem;">'
-        +'<thead><tr style="background:#f5f5f7;">'
-        +'<th style="padding:7px 10px;text-align:left;font-weight:700;color:#3a3a3c;">Year</th>';
-    series.forEach(function(s){
-        html += '<th style="padding:7px 10px;text-align:center;font-weight:700;color:'+s.color+';">'+s.label+'</th>';
-    });
-    html += '</tr></thead><tbody>';
-    years.forEach(function(yr,i){
-        html += '<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
-            +'<td style="padding:6px 10px;font-weight:600;">'+yr+'</td>';
-        series.forEach(function(s){
-            var v = s.raw[yr];
-            html += '<td style="padding:6px 10px;text-align:center;">'
-                +(v!=null
-                    ? '<span style="font-weight:700;color:'+s.color+';">'+Math.round(v*100)/100+'</span>'
-                      +'<span style="color:#8e8e93;font-size:.68rem;"> '+s.unit+'</span>'
-                    : '<span style="color:#d1d1d6;">—</span>')
-                +'</td>';
+    // Comp: % of goal per BOY/EOY timepoint
+    var compLong = benchLongData ? benchLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var compPts = {};
+    if (compLong) {
+        BENCH_LONG_YEARS.forEach(function(y){
+            var yd = compLong.years[y.key]; if (!yd) return;
+            var tgt = yd.goal || 1;
+            if (yd.boy != null && yd.goal) compPts[y.label+' BOY'] = {raw:Math.round(yd.boy), pct:Math.round(yd.boy/tgt*100)};
+            if (yd.eoy != null && yd.goal) compPts[y.label+' EOY'] = {raw:Math.round(yd.eoy), pct:Math.round(yd.eoy/tgt*100)};
         });
-        html += '</tr>';
-    });
-    html += '</tbody></table></div></div>';
+    }
 
-    body.innerHTML = html;
+    // Writing: % of EOY GLE per BOY/EOY timepoint
+    var wbLong = wbLongData ? wbLongData.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var wbPts = {};
+    if (wbLong) {
+        WB_LONG_YEARS.forEach(function(y){
+            var yd = wbLong.years[y.key]; if (!yd) return;
+            var tgt = yd.eoyGle || 1;
+            if (yd.boy != null && yd.eoyGle) wbPts[y.label+' BOY'] = {raw:Math.round(yd.boy), pct:Math.round(yd.boy/tgt*100)};
+            if (yd.eof != null && yd.eoyGle) wbPts[y.label+' EOY'] = {raw:Math.round(yd.eof), pct:Math.round(yd.eof/tgt*100)};
+        });
+    }
+
+    var hasAnyAcademic = Object.keys(fpPts).length || Object.keys(compPts).length || Object.keys(wbPts).length;
+
+    var html = '';
+
+    // ── Chart 1: AL progression (reusing promo student chart logic) ──
+    if (alPts.length) {
+        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">'+name+' — AL Progression &amp; Promotion Outcomes</div>'
+            +'<canvas id="promo-xref-al-canvas" style="width:100%;height:180px;display:block;"></canvas>'
+            +'</div>';
+    }
+
+    // ── Chart 2: Academic performance as % of grade target ──
+    if (hasAnyAcademic) {
+        var acadLegend = [
+            {label:'F&P (% of target)',  color:'#f97316', pts:fpPts},
+            {label:'Comp. (% of goal)',  color:'#0891b2', pts:compPts},
+            {label:'Writing (% of goal)',color:'#db2777', pts:wbPts}
+        ].filter(function(s){ return Object.keys(s.pts).length; }).map(function(s){
+            return '<span style="display:inline-flex;align-items:center;gap:4px;">'
+                +'<span style="width:16px;height:3px;border-radius:2px;display:inline-block;background:'+s.color+';"></span>'
+                +'<span style="font-size:.7rem;font-weight:600;color:#3a3a3c;">'+s.label+'</span></span>';
+        }).join('');
+
+        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
+            +'<span>Academic Performance vs. Grade-Level Target</span>'
+            +'<div style="display:flex;flex-wrap:wrap;gap:10px;">'+acadLegend+'</div>'
+            +'</div>'
+            +'<div style="padding:0.4rem 1rem 0.2rem;font-size:.67rem;color:#94a3b8;">100% = grade-level target · each dot labeled with raw score (F&amp;P: level letter)</div>'
+            +'<canvas id="promo-xref-acad-canvas" style="width:100%;height:220px;display:block;"></canvas>'
+            +'</div>';
+    }
+
+    // ── Summary table ──
+    if (promoYears.length) {
+        function badge(att,suc){
+            if(!att) return '<span style="color:#aeaeb2;">—</span>';
+            if(suc===true) return '<span style="color:#34c759;font-weight:700;">✓ Promoted</span>';
+            if(suc===false) return '<span style="color:#ff3b30;font-weight:700;">✗ Not promoted</span>';
+            return '<span style="color:#ff9500;">Pending</span>';
+        }
+        function alBadge(al){
+            if(!al) return '<span style="color:#aeaeb2;">—</span>';
+            return '<span style="background:'+PROMO_AL_DARK[al]+';color:#fff;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.72rem;">AL'+al+'</span>';
+        }
+        function acadCell(pts, yearLabel, period){
+            var key = yearLabel+' '+period;
+            var d = pts[key];
+            return d ? Math.round(d.pct)+'%' : '—';
+        }
+        html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Year-by-Year Summary</div>'
+            +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.75rem;">'
+            +'<thead><tr style="background:#f5f5f7;">'
+            +['Year','BOY AL','Mid Result','MOY AL','EOY Result','F&P BOY','F&P EOY','Comp BOY','Comp EOY','Writing BOY','Writing EOY'].map(function(h){
+                return '<th style="padding:6px 8px;text-align:'+(h==='Year'?'left':'center')+';font-weight:700;color:#3a3a3c;white-space:nowrap;">'+h+'</th>';
+            }).join('')
+            +'</tr></thead><tbody>';
+        promoYears.forEach(function(y,i){
+            var r=y.r;
+            html+='<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
+                +'<td style="padding:5px 8px;font-weight:600;">'+y.label+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;">'+alBadge(r.boyAL)+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;">'+badge(r.midAttempted,r.midSuccess)+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;">'+alBadge(r.moyAL)+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;">'+badge(r.eoyAttempted,r.eoySuccess)+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#f97316;font-weight:600;">'+acadCell(fpPts,y.label,'BOY')+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#f97316;font-weight:600;">'+acadCell(fpPts,y.label,'EOY')+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#0891b2;font-weight:600;">'+acadCell(compPts,y.label,'BOY')+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#0891b2;font-weight:600;">'+acadCell(compPts,y.label,'EOY')+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#db2777;font-weight:600;">'+acadCell(wbPts,y.label,'BOY')+'</td>'
+                +'<td style="padding:5px 8px;text-align:center;color:#db2777;font-weight:600;">'+acadCell(wbPts,y.label,'EOY')+'</td>'
+                +'</tr>';
+        });
+        html += '</tbody></table></div></div>';
+    }
+
+    if (!html) html = '<p style="color:#aeaeb2;">No data found for '+name+'.</p>';
+    el.innerHTML = html;
 
     requestAnimationFrame(function(){
-        var c = document.getElementById('promo-xref-canvas');
-        if (!c) return;
-        c.width = c.offsetWidth || 700;
-        c.height = 300;
-        _drawPromoXrefChart(c, years, series);
+        var alC = document.getElementById('promo-xref-al-canvas');
+        if (alC && alPts.length) {
+            alC.width = alC.offsetWidth || 700; alC.height = 180;
+            _drawPromoXrefALChart(alC, alPts);
+        }
+        var acadC = document.getElementById('promo-xref-acad-canvas');
+        if (acadC && hasAnyAcademic) {
+            acadC.width = acadC.offsetWidth || 700; acadC.height = 220;
+            _drawPromoXrefAcadChart(acadC, timePts, fpPts, compPts, wbPts);
+        }
     });
 }
 
-function _drawPromoXrefChart(canvas, years, series) {
-    var dpr = window.devicePixelRatio||1;
-    var W = canvas.width, H = canvas.height;
-    canvas.width = W*dpr; canvas.height = H*dpr;
-    canvas.style.width = W+'px'; canvas.style.height = H+'px';
-    var ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
+function _drawPromoXrefALChart(canvas, pts) {
+    // Identical logic to _drawPromoStuChart but called from cross-reference
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=40,pR=16,pT=36,pB=38, plotW=W-pL-pR, plotH=H-pT-pB;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+    var n=pts.length;
+    function xOf(i){return pL+(n<=1?plotW/2:i/(n-1)*plotW);}
+    function yOf(al){return pT+plotH*(1-(al-1)/3);}
+    [1,2,3,4].forEach(function(al){
+        var gy=yOf(al); ctx.strokeStyle='#ebebf0'; ctx.lineWidth=1; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(pL,gy); ctx.lineTo(pL+plotW,gy); ctx.stroke();
+        ctx.fillStyle='#8e8e93'; ctx.font='9px -apple-system,sans-serif'; ctx.textAlign='right';
+        ctx.fillText('AL'+al,pL-4,gy+3);
+    });
+    // Area fill
+    ctx.beginPath(); pts.forEach(function(p,i){i===0?ctx.moveTo(xOf(i),yOf(p.al)):ctx.lineTo(xOf(i),yOf(p.al));});
+    ctx.lineTo(xOf(n-1),pT+plotH); ctx.lineTo(xOf(0),pT+plotH); ctx.closePath();
+    ctx.fillStyle='rgba(92,91,90,0.07)'; ctx.fill();
+    // Line
+    ctx.beginPath(); ctx.strokeStyle='#5c5b5a'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    pts.forEach(function(p,i){i===0?ctx.moveTo(xOf(i),yOf(p.al)):ctx.lineTo(xOf(i),yOf(p.al));});
+    ctx.stroke();
+    // Dots + promotion markers
+    pts.forEach(function(p,i){
+        var x=xOf(i),y=yOf(p.al);
+        ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2);
+        ctx.fillStyle=PROMO_AL_DARK[p.al]||'#5c5b5a'; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#1d1d1f'; ctx.font='bold 9px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText('AL'+p.al,x,y-11);
+        if(p.att===true){
+            var mc=p.suc===true?'#34c759':p.suc===false?'#ff3b30':'#ff9500';
+            ctx.fillStyle=mc; ctx.font='bold 13px -apple-system,sans-serif'; ctx.textAlign='center';
+            ctx.fillText('▲',x,y-23);
+        }
+    });
+    pts.forEach(function(p,i){
+        ctx.fillStyle='#8e8e93'; ctx.font='8px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(p.lbl,xOf(i),pT+plotH+20);
+    });
+    var lx=pL;
+    [['#34c759','▲ Promoted'],['#ff3b30','▲ Not promoted'],['#ff9500','▲ Pending']].forEach(function(pair){
+        ctx.fillStyle=pair[0]; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='left';
+        ctx.fillText(pair[1].slice(0,1),lx,pT-20);
+        ctx.fillStyle='#3a3a3c'; ctx.font='9px -apple-system,sans-serif';
+        ctx.fillText(pair[1].slice(1),lx+10,pT-18); lx+=100;
+    });
+    ctx.strokeStyle='#d1d1d6'; ctx.lineWidth=1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(pL,pT); ctx.lineTo(pL,pT+plotH); ctx.lineTo(pL+plotW,pT+plotH); ctx.stroke();
+}
 
-    var pL=44, pR=20, pT=28, pB=40, plotW=W-pL-pR, plotH=H-pT-pB;
-    var n = years.length;
-
+function _drawPromoXrefAcadChart(canvas, timePts, fpPts, compPts, wbPts) {
+    var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
+    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    var pL=44, pR=16, pT=24, pB=44, plotW=W-pL-pR, plotH=H-pT-pB;
     ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
 
-    if (!n) {
-        ctx.fillStyle='#94a3b8'; ctx.font='13px -apple-system,sans-serif'; ctx.textAlign='center';
-        ctx.fillText('No data available', W/2, H/2); return;
+    // Filter to only timepoints that have at least one data series
+    var activePts = timePts.filter(function(tp){
+        return fpPts[tp.key]!=null || compPts[tp.key]!=null || wbPts[tp.key]!=null;
+    });
+    var n = activePts.length;
+    if (!n) { ctx.fillStyle='#94a3b8'; ctx.font='12px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.fillText('No academic data',W/2,H/2); return; }
+
+    // Y-axis: 0-120% in 25% steps, with 100% line highlighted
+    [0,25,50,75,100,125].forEach(function(v){
+        var gy = pT + plotH*(1-v/125);
+        ctx.strokeStyle = v===100 ? '#94a3b8' : '#ebebf0';
+        ctx.lineWidth = v===100 ? 1.5 : 1; ctx.setLineDash(v===100?[4,3]:[]);
+        ctx.beginPath(); ctx.moveTo(pL,gy); ctx.lineTo(pL+plotW,gy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = v===100 ? '#5c5b5a' : '#8e8e93';
+        ctx.font = v===100 ? 'bold 9px -apple-system,sans-serif' : '9px -apple-system,sans-serif';
+        ctx.textAlign='right'; ctx.fillText(v+'%', pL-5, gy+3);
+    });
+    if (n > 0) {
+        ctx.fillStyle='#94a3b8'; ctx.font='8px -apple-system,sans-serif'; ctx.textAlign='left';
+        ctx.fillText('Grade target', pL+2, pT+plotH*(1-100/125)-5);
     }
 
-    // Grid lines at 0, 25, 50, 75, 100%
-    [0,25,50,75,100].forEach(function(v){
-        var gy = pT + plotH*(1-v/100);
-        ctx.strokeStyle='#ebebf0'; ctx.lineWidth=1; ctx.setLineDash([]);
-        ctx.beginPath(); ctx.moveTo(pL,gy); ctx.lineTo(pL+plotW,gy); ctx.stroke();
-        ctx.fillStyle='#8e8e93'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='right';
-        ctx.fillText(v+'%', pL-5, gy+3);
+    function xOf(i){ return pL + (n<=1?plotW/2:i/(n-1)*plotW); }
+    function yOf(pct){ return pT + plotH*(1-Math.min(pct,125)/125); }
+
+    // Year section shading
+    var yearGroups = {};
+    activePts.forEach(function(tp,i){ if(!yearGroups[tp.year]) yearGroups[tp.year]=[]; yearGroups[tp.year].push(i); });
+    var shade = false;
+    Object.keys(yearGroups).sort().forEach(function(yr){
+        var idxs = yearGroups[yr];
+        var x0 = xOf(idxs[0]) - (idxs[0]>0 ? (xOf(idxs[0])-xOf(idxs[0]-1))/2 : 10);
+        var x1 = xOf(idxs[idxs.length-1]) + (idxs[idxs.length-1]<n-1 ? (xOf(idxs[idxs.length-1]+1)-xOf(idxs[idxs.length-1]))/2 : 10);
+        if (shade) { ctx.fillStyle='rgba(0,0,0,0.025)'; ctx.fillRect(x0,pT,x1-x0,plotH); }
+        ctx.fillStyle='#b0b0b8'; ctx.font='9px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(yr, (x0+x1)/2, pT+plotH+32);
+        shade = !shade;
     });
 
-    function xOf(i){ return pL + (n<=1 ? plotW/2 : i/(n-1)*plotW); }
-    function yOf(pct){ return pT + plotH*(1-pct/100); }
+    var series = [
+        {color:'#f97316', pts:fpPts,   label:'F&P',     isLevel:true},
+        {color:'#0891b2', pts:compPts, label:'Comp.',   isLevel:false},
+        {color:'#db2777', pts:wbPts,   label:'Writing', isLevel:false}
+    ];
 
-    // Draw each series
-    series.forEach(function(s, si){
-        // Area fill under line
-        var ptsWithData = years.map(function(yr,i){ return {i:i, pct:s.norm[yr]}; }).filter(function(p){ return p.pct!=null; });
-        if (ptsWithData.length > 1) {
-            ctx.beginPath();
-            ptsWithData.forEach(function(p,j){ j===0 ? ctx.moveTo(xOf(p.i),yOf(p.pct)) : ctx.lineTo(xOf(p.i),yOf(p.pct)); });
-            ctx.lineTo(xOf(ptsWithData[ptsWithData.length-1].i), pT+plotH);
-            ctx.lineTo(xOf(ptsWithData[0].i), pT+plotH);
-            ctx.closePath();
-            ctx.fillStyle = s.color + '18';
-            ctx.fill();
-        }
-
-        // Line
-        ctx.strokeStyle = s.color; ctx.lineWidth = 2.5; ctx.setLineDash([]);
-        var started = false;
+    series.forEach(function(s){
+        ctx.strokeStyle=s.color; ctx.lineWidth=2.5; ctx.setLineDash([]);
+        var started=false;
         ctx.beginPath();
-        years.forEach(function(yr,i){
-            var pct = s.norm[yr];
-            if (pct==null){ started=false; return; }
-            if (!started){ ctx.moveTo(xOf(i),yOf(pct)); started=true; }
-            else { ctx.lineTo(xOf(i),yOf(pct)); }
+        activePts.forEach(function(tp,i){
+            var d=s.pts[tp.key]; if(!d){started=false;return;}
+            if(!started){ctx.moveTo(xOf(i),yOf(d.pct));started=true;}
+            else{ctx.lineTo(xOf(i),yOf(d.pct));}
         });
         ctx.stroke();
-
-        // Dots with raw-value labels
-        years.forEach(function(yr,i){
-            var pct = s.norm[yr], raw = s.raw[yr];
-            if (pct==null) return;
-            var x=xOf(i), y=yOf(pct);
-            ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+        activePts.forEach(function(tp,i){
+            var d=s.pts[tp.key]; if(!d) return;
+            var x=xOf(i), y=yOf(d.pct);
+            ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
             ctx.fillStyle=s.color; ctx.fill();
-            ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
-            // Label: alternate above/below by series index to reduce overlap
-            var offset = (si%2===0) ? -13 : 15;
-            ctx.fillStyle=s.color; ctx.font='bold 9px -apple-system,sans-serif'; ctx.textAlign='center';
-            ctx.fillText(Math.round(raw*10)/10, x, y+offset);
+            ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+            ctx.fillStyle=s.color; ctx.font='bold 8px -apple-system,sans-serif'; ctx.textAlign='center';
+            ctx.fillText(s.isLevel ? d.raw : d.raw, x, y-9);
         });
     });
 
-    // X-axis labels
-    years.forEach(function(yr,i){
-        ctx.fillStyle='#64748b'; ctx.font='10px -apple-system,sans-serif';
-        ctx.textAlign='center'; ctx.fillText(yr, xOf(i), pT+plotH+18);
+    // X-axis tick labels (BOY/EOY below year label)
+    activePts.forEach(function(tp,i){
+        ctx.fillStyle='#8e8e93'; ctx.font='8px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(tp.period, xOf(i), pT+plotH+14);
     });
 
-    // Axes
     ctx.strokeStyle='#d1d1d6'; ctx.lineWidth=1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(pL,pT); ctx.lineTo(pL,pT+plotH); ctx.lineTo(pL+plotW,pT+plotH); ctx.stroke();
 }
