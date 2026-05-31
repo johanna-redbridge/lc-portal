@@ -10210,7 +10210,7 @@ function xrefStandardsHTML(){
     html += '</tr></thead><tbody>';
     stdCodes.forEach(function(code, idx){
         var s = stdMap[code];
-        var rowBg = s.mapped ? (idx%2===0?'#ffffff':'#f9fafb') : '#fefce8';
+        var rowBg = idx%2===0 ? '#ffffff' : '#f9fafb';
         html += '<tr style="background:'+rowBg+';border-bottom:1px solid #f3f4f6;">';
         html += '<td style="padding:0.55rem 0.75rem;font-weight:600;color:#1d1d1f;white-space:nowrap;">'+code+'</td>';
         html += '<td style="padding:0.55rem 0.75rem;color:#374151;max-width:260px;">'+s.text.replace(/</g,'&lt;')+'</td>';
