@@ -10236,7 +10236,7 @@ function xrefStandardsHTML(){
         if(s.credits.length){
             s.credits.forEach(function(r, ci){
                 if(ci>0) html += '<br>';
-                html += r.credit.replace(/</g,'&lt;');
+                html += '<strong>'+r.credit.replace(/</g,'&lt;')+'</strong>';
             });
         } else {
             html += '<span style="color:#d97706;font-size:0.75rem;font-style:italic;">No credit linked yet</span>';
