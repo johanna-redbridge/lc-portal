@@ -1328,14 +1328,19 @@
 
         <!-- ── Computation Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
-            <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
-                <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
-                <button class="toggle-btn math-view-btn" data-view="xref-comp" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
-                <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
-                <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
-                <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
-                <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
-                <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
+            <div class="panel-subnav" style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
+                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;flex-wrap:wrap;">
+                    <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
+                    <button class="toggle-btn math-view-btn" data-view="xref-comp" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
+                    <button class="toggle-btn math-assessments-btn active" onclick="switchMathSubtab('benchmark')">Assessments</button>
+                </div>
+                <div id="math-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
+                    <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
+                    <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
+                    <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
+                    <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
+                    <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
+                </div>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -8170,9 +8175,15 @@ function initWbRubrics() {
 
 function switchMathSubtab(sub) {
     mathSubtab = sub;
+    var assessmentViews = ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'beast-academy'];
+    var isAssessment = assessmentViews.indexOf(sub) !== -1;
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
+    var assessBtn = document.querySelector('.math-assessments-btn');
+    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    var subnav = document.getElementById('math-assessments-subnav');
+    if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview', 'beast-academy', 'xref-comp'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
