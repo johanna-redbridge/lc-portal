@@ -1465,11 +1465,14 @@
         <!-- Writing Dashboard sub-tab -->
         <div class="data-subtab-panel" id="data-subtab-writing" style="display:none;">
             <!-- Writing sub-tab bar -->
-            <div style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
-                <div class="toggle-group">
+            <div style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
+                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;flex-wrap:wrap;">
                     <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
-                    <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
                     <button class="toggle-btn writing-sub-btn" data-wsub="survey" onclick="switchWritingSubtab('survey')">Writing Survey</button>
+                    <button class="toggle-btn writing-assessments-btn" onclick="switchWritingSubtab('wb')">Assessments</button>
+                </div>
+                <div id="writing-assessments-subnav" style="display:none;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
+                    <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
                 </div>
             </div>
 
@@ -8137,9 +8140,14 @@ function drawMapLineGraph(canvas, pts, lineColor, goalSegs) {
 var writingSubtab = 'writing-benchmark';
 function switchWritingSubtab(sub) {
     writingSubtab = sub;
+    var isAssessment = sub === 'wb';
     document.querySelectorAll('.writing-sub-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.wsub === sub);
     });
+    var assessBtn = document.querySelector('.writing-assessments-btn');
+    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    var subnav = document.getElementById('writing-assessments-subnav');
+    if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['writing-benchmark', 'wb', 'survey'].forEach(function(n) {
         var p = document.getElementById('writing-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
