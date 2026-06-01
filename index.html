@@ -1206,13 +1206,18 @@
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
-            <div class="panel-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
-                <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
-                <button class="toggle-btn reading-view-btn" data-view="xref-read" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
-                <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
-                <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
-                <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
-                <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
+            <div class="panel-subnav" style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
+                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;flex-wrap:wrap;">
+                    <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
+                    <button class="toggle-btn reading-view-btn" data-view="xref-read" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
+                    <button class="toggle-btn reading-assessments-btn active" onclick="switchReadingSubtab('core')">Assessments</button>
+                </div>
+                <div id="reading-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
+                    <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
+                    <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
+                    <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
+                    <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
+                </div>
             </div>
             <!-- CORE -->
             <div id="reading-panel-core">
@@ -7661,9 +7666,15 @@ var mathSubtab = 'benchmark';
 
 function switchReadingSubtab(sub) {
     readingSubtab = sub;
+    var assessmentViews = ['core', 'fp', 'lexia', 'map-ela'];
+    var isAssessment = assessmentViews.indexOf(sub) !== -1;
     document.querySelectorAll('.reading-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
+    var assessBtn = document.querySelector('.reading-assessments-btn');
+    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    var subnav = document.getElementById('reading-assessments-subnav');
+    if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['core', 'fp', 'lexia', 'map-ela', 'student-overview', 'xref-read'].forEach(function(n) {
         var p = document.getElementById('reading-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
