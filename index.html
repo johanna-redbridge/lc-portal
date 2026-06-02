@@ -10667,6 +10667,30 @@ var CORE_CATS = [
 var coreData = { al1: null, al2: null, al34: null };
 var coreAL = 'al1';
 var corePeriod = 'fall';
+var coreSortCol = 'name';
+var coreSortDir = 1;
+function setCoreSort(col) {
+    if (coreSortCol === col) { coreSortDir = -coreSortDir; } else { coreSortCol = col; coreSortDir = 1; }
+    renderCore();
+}
+function getCoreGleGoal(s) {
+    var v = '';
+    ['fall','winter','spring'].forEach(function(period) { if (s[period] && s[period].gleGoal && !v) v = s[period].gleGoal; });
+    return parseInt(v, 10) || 0;
+}
+function coreCatScore(s, catIdx, period) {
+    var periods = period && period !== 'all' ? [period] : ['spring','winter','fall'];
+    for (var pi = 0; pi < periods.length; pi++) {
+        var pd = s[periods[pi]];
+        if (!pd) continue;
+        var raw = pd.scores[catIdx];
+        if (raw === null || raw === undefined) continue;
+        if (coreRawIsMastered(raw)) return CORE_CATS[catIdx].max;
+        var n = parseInt(raw, 10);
+        if (!isNaN(n)) return n;
+    }
+    return -1;
+}
 
 function normCorePeriod(s) {
     var v = (s || '').toLowerCase().trim();
@@ -10908,17 +10932,50 @@ function renderCore() {
         + CORE_CATS.map(function() { return '<col style="width:' + catPct + '%">'; }).join('')
         + '<col style="width:4%">'
         + '</colgroup>';
+    students = students.slice();
+    students.sort(function(a, b) {
+        var d = coreSortDir;
+        if (coreSortCol === 'known') {
+            var aT = coreStudentTotal(a,'spring')!==null?coreStudentTotal(a,'spring'):(coreStudentTotal(a,'winter')!==null?coreStudentTotal(a,'winter'):(coreStudentTotal(a,'fall')||0));
+            var bT = coreStudentTotal(b,'spring')!==null?coreStudentTotal(b,'spring'):(coreStudentTotal(b,'winter')!==null?coreStudentTotal(b,'winter'):(coreStudentTotal(b,'fall')||0));
+            return d * ((aT||0) - (bT||0));
+        }
+        if (coreSortCol === 'boymoy') {
+            var af=coreStudentTotal(a,'fall'),aw=coreStudentTotal(a,'winter');
+            var bf=coreStudentTotal(b,'fall'),bw=coreStudentTotal(b,'winter');
+            var ag=(af!==null&&aw!==null)?aw-af:-999, bg=(bf!==null&&bw!==null)?bw-bf:-999;
+            return d*(ag-bg);
+        }
+        if (coreSortCol === 'goal') return d * (getCoreGleGoal(a) - getCoreGleGoal(b));
+        if (coreSortCol.indexOf('cat_')===0) {
+            var ci=parseInt(coreSortCol.slice(4),10);
+            return d*(coreCatScore(a,ci,isAll?null:p)-coreCatScore(b,ci,isAll?null:p));
+        }
+        return d * a.name.localeCompare(b.name);
+    });
+
+    function cTh(col, label, style, cls) {
+        var active = coreSortCol === col;
+        var arr = active ? (coreSortDir===1?' ↑':' ↓') : ' <span style="opacity:.35">↕</span>';
+        var clsAttr = cls ? ' class="'+cls+'"' : '';
+        return '<th'+clsAttr+' onclick="setCoreSort(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (style||'') + '">' + label + arr + '</th>';
+    }
+
     var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table">'
         + colgroup + '<thead><tr>';
-    html += '<th class="core-name-col">Student</th>';
-    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">words</span></th>';
-    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
+    html += cTh('name','Student','text-align:left;','core-name-col');
+    html += cTh('goal','EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">words</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
+    html += cTh('boymoy','BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
     html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
     if (isAll) html += '<th style="font-size:0.55rem;color:rgba(255,255,255,0.7);font-weight:500;overflow:hidden;"></th>';
-    CORE_CATS.forEach(function(cat) {
-        html += '<th title="' + cat.full + '" style="overflow:hidden;">' + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">/' + cat.max + '</span></th>';
+    CORE_CATS.forEach(function(cat, ci) {
+        html += '<th title="' + cat.full + '" onclick="setCoreSort(\'cat_'+ci+'\')" style="cursor:pointer;user-select:none;overflow:hidden;">'
+            + (coreSortCol==='cat_'+ci ? (coreSortDir===1?'↑':'↓')+' ' : '')
+            + cat.abbr + '<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">/' + cat.max + '</span>'
+            + (coreSortCol!=='cat_'+ci ? '<span style="opacity:.35;font-size:0.55rem;"> ↕</span>' : '')
+            + '</th>';
     });
-    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">%</span></th>';
+    html += cTh('known','Known<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">%</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
     html += '</tr></thead><tbody>';
     students.forEach(function(s) {
         var pData = isAll ? null : s[p];
@@ -11136,6 +11193,26 @@ var fpStudents = null;
 var fpScoringLoaded = false;
 var fpALFilter = 'all';
 var fpExpanded = {};
+var fpSortCol = 'name';
+var fpSortDir = 1;
+function setFpSort(col) {
+    if (fpSortCol === col) { fpSortDir = -fpSortDir; } else { fpSortCol = col; fpSortDir = 1; }
+    renderFPTable();
+}
+function fpGLEPct(s) {
+    var gleLv = gleTargetLevel(s.gle);
+    if (!gleLv) return -1;
+    var curLv = s.eoy || s.moy || s.boy;
+    var curS = fpScore(curLv), gleS = fpScore(gleLv);
+    if (curS === null || gleS === null || gleS === 0) return -1;
+    return Math.round(curS / gleS * 100);
+}
+function fpGrowthPct(s) {
+    var boyS = fpScore(s.boy);
+    var curS = fpScore(s.eoy || s.moy || s.boy);
+    if (boyS === null || curS === null) return -1;
+    return Math.round((curS - boyS) / 1.0 * 100);
+}
 
 function loadFpData(cb) {
     var done = 0;
@@ -11273,16 +11350,33 @@ function renderFPTable() {
     if (fpALFilter !== 'all') all = all.filter(function(s){ return s.al === fpALFilter; });
     if (!all.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    var html = '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;">'
-        + '<table class="core-table" style="width:100%;">'
+    all.sort(function(a, b) {
+        var d = fpSortDir;
+        if (fpSortCol === 'al')     return d * (a.al||'').localeCompare(b.al||'');
+        if (fpSortCol === 'boy')    return d * ((fpScore(a.boy)||0) - (fpScore(b.boy)||0));
+        if (fpSortCol === 'moy')    return d * ((fpScore(a.moy)||0) - (fpScore(b.moy)||0));
+        if (fpSortCol === 'eoy')    return d * ((fpScore(a.eoy)||0) - (fpScore(b.eoy)||0));
+        if (fpSortCol === 'gle')    return d * (fpGLEPct(a) - fpGLEPct(b));
+        if (fpSortCol === 'growth') return d * (fpGrowthPct(a) - fpGrowthPct(b));
+        return d * (a.name||'').localeCompare(b.name||'');
+    });
+
+    function fTh(col, label, extraSt) {
+        var active = fpSortCol === col;
+        var arr = active ? (fpSortDir===1?' ↑':' ↓') : ' <span style="opacity:.35">↕</span>';
+        return '<th onclick="setFpSort(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (extraSt||'') + '">' + label + arr + '</th>';
+    }
+
+    var html = '<div class="progress-table-wrapper" style="margin:1.25rem;">'
+        + '<table style="width:100%;border-collapse:collapse;">'
         + '<thead><tr>'
-        + '<th class="core-name-col">Student</th>'
-        + '<th>AL</th>'
-        + '<th>BOY</th>'
-        + '<th>MOY</th>'
-        + '<th>EOY</th>'
-        + '<th style="min-width:200px;">GLE Progress</th>'
-        + '<th style="text-align:center;">+1.0 Growth</th>'
+        + fTh('name', 'Student', 'position:sticky;top:0;left:0;z-index:11;min-width:130px;')
+        + fTh('al',     'AL',           'text-align:center;width:60px;')
+        + fTh('boy',    'BOY',          'text-align:center;')
+        + fTh('moy',    'MOY',          'text-align:center;')
+        + fTh('eoy',    'EOY',          'text-align:center;')
+        + fTh('gle',    'GLE Progress', 'min-width:180px;')
+        + fTh('growth', '+1.0 Growth',  'text-align:center;')
         + '<th></th>'
         + '</tr></thead><tbody>';
 
@@ -11292,18 +11386,19 @@ function renderFPTable() {
         function lvCell(lv) {
             var sc = fpScore(lv);
             var scStr = sc !== null ? '<br><span style="font-size:0.65rem;color:#aeaeb2;">' + sc.toFixed(1) + '</span>' : '';
-            return lv ? '<td style="text-align:center;">' + fpDisplayLevel(lv) + scStr + '</td>'
-                      : '<td style="text-align:center;color:#c7c7cc;">&ndash;</td>';
+            return lv ? '<td style="text-align:center;padding:0.55rem 0.75rem;">' + fpDisplayLevel(lv) + scStr + '</td>'
+                      : '<td style="text-align:center;color:#c7c7cc;padding:0.55rem 0.75rem;">&ndash;</td>';
         }
         html += '<tr>'
-            + '<td class="core-name-col"><span onclick="showFpStudentGrowth(\'' + s.name.replace(/'/g,"\\'").replace(/</g,'&lt;') + '\')" style="cursor:pointer;color:#FF8200;font-weight:600;" title="View growth graph">' + fullName(s.name).replace(/</g,'&lt;') + '</span></td>'
-            + '<td style="text-align:center;">' + (s.al||'') + '</td>'
+            + '<td style="position:sticky;left:0;background:#fff;text-align:left;font-weight:500;z-index:1;padding:0.55rem 1rem;font-size:0.85rem;white-space:nowrap;border-bottom:1px solid #f5f5f5;">'
+            + '<span onclick="showFpStudentGrowth(\'' + s.name.replace(/'/g,"\\'").replace(/</g,'&lt;') + '\')" style="cursor:pointer;color:#FF8200;font-weight:600;" title="View growth graph">' + fullName(s.name).replace(/</g,'&lt;') + '</span></td>'
+            + '<td style="text-align:center;padding:0.55rem 0.75rem;">' + (s.al||'') + '</td>'
             + lvCell(s.boy)
             + lvCell(s.moy)
             + lvCell(s.eoy)
-            + '<td>' + fpGLEBar(s) + '</td>'
-            + '<td style="text-align:center;">' + fpProgressBar(s) + '</td>'
-            + '<td style="text-align:center;">'
+            + '<td style="padding:0.4rem 1rem;">' + fpGLEBar(s) + '</td>'
+            + '<td style="text-align:center;padding:0.4rem 0.75rem;">' + fpProgressBar(s) + '</td>'
+            + '<td style="text-align:center;padding:0.4rem 0.75rem;">'
             + (hasNotes ? '<button onclick="toggleFpRow(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#86868b;">'
                 + (expanded ? '&#9650;' : '&#9660;') + '&nbsp;notes</button>' : '')
             + '</td>'
@@ -14133,8 +14228,8 @@ function renderLexiaCombined() {
     function lxTh(col, label, extraStyle) {
         var active = lexiaSortCol === col;
         var arrow = active ? (lexiaSortDir === 1 ? ' ↑' : ' ↓') : '';
-        var base = 'cursor:pointer;user-select:none;white-space:nowrap;' + (extraStyle || '');
-        return '<th style="' + base + '" onclick="setLexiaSort(\'' + col + '\')">' + label + '<span style="color:' + (active ? '#fff' : 'rgba(255,255,255,0.4)') + ';font-size:.7em;">' + (active ? arrow : ' ↕') + '</span></th>';
+        var base = 'cursor:pointer;user-select:none;white-space:nowrap;padding:0.75rem 1rem;font-size:0.82rem;font-weight:500;' + (extraStyle || '');
+        return '<th style="' + base + '" onclick="setLexiaSort(\'' + col + '\')">' + label + '<span style="color:' + (active ? '#fff' : 'rgba(255,255,255,0.4)') + ';font-size:.75em;">' + (active ? arrow : ' ↕') + '</span></th>';
     }
 
     var html = '';
@@ -14146,12 +14241,12 @@ function renderLexiaCombined() {
         + lxTh('risk',      'Risk',      'width:90px;')
         + lxTh('predictor', 'Predictor', 'width:110px;')
         + lxTh('usage',     'Usage',     'width:100px;')
-        + '<th style="white-space:nowrap;vertical-align:bottom;padding-bottom:4px;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
-        + '<div style="font-size:0.65rem;font-weight:600;color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.85)') + ';margin-bottom:5px;">Unit Progress<span style="color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.4)') + ';font-size:.8em;">' + (lexiaSortCol==='units'?(lexiaSortDir===1?' ↑':' ↓'):' ↕') + '</span></div>'
-        + '<div style="display:flex;gap:2px;align-items:center;">'
+        + '<th style="white-space:nowrap;vertical-align:bottom;padding:0.75rem 1rem 0.4rem;font-size:0.82rem;font-weight:500;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
+        + 'Unit Progress<span style="color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.4)') + ';font-size:.75em;">' + (lexiaSortCol==='units'?(lexiaSortDir===1?' ↑':' ↓'):' ↕') + '</span>'
+        + '<div style="display:flex;gap:2px;align-items:center;margin-top:4px;">'
         + (function(){var out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*(BOX+1)+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.6);line-height:1;">'+g.label+'</div>';});return out;})()
         + '</div></th>'
-        + '<th style="white-space:nowrap;">Gained / Target</th>'
+        + '<th style="white-space:nowrap;padding:0.75rem 1rem;font-size:0.82rem;font-weight:500;">Gained / Target</th>'
         + '</tr></thead><tbody>';
 
     allNames.forEach(function(name) {
