@@ -13527,11 +13527,26 @@ function doRenderBenchOverview(el) {
             + '</div></td>';
     }
 
+    function growthBarCell(yd, borderLeft, curYear) {
+        var bl = borderLeft ? 'border-left:1px solid #e0e0e0;' : '';
+        var bg = curYear ? 'background:#fffbf5;' : '';
+        if (yd.boy === null || yd.eoy === null) return '<td style="text-align:center;color:#c7c7cc;font-size:0.65rem;' + PH + bl + bg + '">–</td>';
+        var target = yd.boy + 1.0;
+        var pct = Math.min(100, Math.round(yd.eoy / target * 100));
+        var barCol = pctColor(pct);
+        return '<td style="padding:3px 5px;' + bl + bg + '">'
+            + '<div style="height:5px;background:#e8e8ed;border-radius:3px;overflow:hidden;margin-bottom:2px;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + barCol + ';border-radius:3px;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.62rem;font-weight:600;color:#3a3a3c;text-align:center;line-height:1;">' + pct + '%</div>'
+            + '</td>';
+    }
+
     var colgroup = '<colgroup>'
-        + '<col style="width:14%">'
+        + '<col style="width:13%">'
         + '<col style="width:3%"><col style="width:3%"><col style="width:3%">';
     BENCH_LONG_YEARS.forEach(function() {
-        colgroup += '<col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:5%">';
+        colgroup += '<col style="width:3%"><col style="width:3%"><col style="width:3%"><col style="width:4%"><col style="width:4%">';
     });
     colgroup += '</colgroup>';
 
@@ -13543,7 +13558,7 @@ function doRenderBenchOverview(el) {
         + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
-        hdr1 += '<th colspan="4" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
+        hdr1 += '<th colspan="5" style="position:sticky;top:0;z-index:12;text-align:center;border-left:2px solid rgba(255,255,255,0.18);' + TH + (cur ? 'background:#7a6a5a;' : 'background:#5c5b5a;') + '">' + y.label + '</th>';
     });
     hdr1 += '</tr>';
 
@@ -13555,6 +13570,7 @@ function doRenderBenchOverview(el) {
         hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
              + '<th style="' + sub + bg + '">MOY</th>'
              + '<th style="' + sub + bg + '">EOY</th>'
+             + '<th style="' + sub + bg + '">+1.0 Growth</th>'
              + '<th style="' + sub + bg + '">Goal</th>';
     });
     hdr2 += '</tr>';
@@ -13576,6 +13592,7 @@ function doRenderBenchOverview(el) {
             bodyRows += numCell(yd.boy, null,    true,  cur)
                       + numCell(yd.moy, null,    false, cur)
                       + numCell(yd.eoy, yd.goal, false, cur)
+                      + growthBarCell(yd,         false, cur)
                       + goalBarCell(yd,           false, cur);
         });
         bodyRows += '</tr>';
