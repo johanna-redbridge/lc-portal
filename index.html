@@ -6928,7 +6928,7 @@ function renderDraftInput() {
 }
 
 function renderDraftIdeas() {
-    var html = '<h2 style="margin:0 0 0.4rem;font-size:1.2rem;font-weight:700;">Activity Ideas</h2>';
+    var html = '<h2 style="margin:0 0 0.4rem;font-size:1.2rem;font-weight:700;">Assessment Options</h2>';
     html += '<p style="color:#86868b;font-size:0.8rem;margin:0 0 1rem;">' + draftBot.subject + ' \u00b7 ' + draftBot.ageLevel + ' \u00b7 ' + draftBot.grouping + '</p>';
     html += '<div style="background:#f9f9f9;border-radius:10px;padding:1rem 1.25rem;font-size:0.84rem;line-height:1.65;white-space:pre-wrap;margin-bottom:1.25rem;">' + draftBot.ideas + '</div>';
     html += '<p style="font-size:0.84rem;font-weight:600;margin:0 0 0.4rem;">Select an idea or give feedback for 5 new ones:</p>';
@@ -7013,7 +7013,7 @@ async function generateCreditIdeas() {
     try {
         draftBot.ideas = await callClaude(DC_SYSTEM,
             'Subject: ' + draftBot.subject + '\nStage: ' + draftBot.ageLevel + '\nGrouping: ' + draftBot.grouping + '\nSkill: ' + draftBot.skill +
-            '\n\nGenerate exactly 5 activity ideas for a Fluency Learning Credit Step. Each idea: 2-4 sentences — what the student does and why it demonstrates the skill. Must take \u226415 min (most <10 min). Number them 1\u20135.');
+            '\n\nGenerate exactly 5 assessment options for a Fluency Learning Credit Step. Each option: 2-4 sentences — what the student does and why it demonstrates the skill. Must take \u226415 min (most <10 min). Number them 1\u20135.');
         draftBot.step = 'ideas';
     } catch(e) { alert('Error: ' + e.message); draftBot.step = 'input'; }
     renderDraftModal();
@@ -7027,7 +7027,7 @@ async function regenerateCreditIdeas() {
             'Subject: ' + draftBot.subject + ', Stage: ' + draftBot.ageLevel + ', Grouping: ' + draftBot.grouping + ', Skill: ' + draftBot.skill +
             '\n\nPrevious ideas:\n' + draftBot.ideas +
             '\n\nUser feedback: ' + (feedback || 'Generate 5 different ideas') +
-            '\n\nGenerate 5 new activity ideas based on this feedback. Number them 1\u20135.');
+            '\n\nGenerate 5 new assessment options based on this feedback. Number them 1\u20135.');
         draftBot.step = 'ideas';
     } catch(e) { alert('Error: ' + e.message); draftBot.step = 'ideas'; }
     renderDraftModal();
