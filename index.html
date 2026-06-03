@@ -5385,7 +5385,7 @@ function renderEarnedStudent(period, container) {
         var gridHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.4rem;padding:0.5rem 0;">';
         sorted.forEach(function(s) {
             var count = earned.filter(function(e) { return e.studentId === s.id; }).length;
-            gridHtml += '<div onclick="selectEarnedStudent(\'' + s.id + '\',\'' + s.name.replace(/'/g, "\\'") + '\')" style="cursor:pointer;padding:0.9rem 0.5rem;border-radius:8px;background:#f5f5f7;border:1px solid #FF8200;font-size:0.82rem;font-weight:500;color:#1d1d1f;transition:all 0.15s;text-align:center;" onmouseover="this.style.background=\'#fff3ec\'" onmouseout="this.style.background=\'#f5f5f7\'">' + baseName(s.name) + ' <span style="color:#86868b;font-weight:400;">' + count + '</span></div>';
+            gridHtml += '<div onclick="selectEarnedStudent(\'' + s.id + '\',\'' + s.name.replace(/'/g, "\\'") + '\')" style="cursor:pointer;padding:0.9rem 0.5rem;border-radius:8px;background:#f5f5f7;border:1px solid #FF8200;font-size:0.82rem;font-weight:500;color:#1d1d1f;transition:all 0.15s;text-align:center;" onmouseover="this.style.background=\'#fff3ec\'" onmouseout="this.style.background=\'#f5f5f7\'">' + baseName(s.name) + '</div>';
         });
         gridHtml += '</div>';
         container.innerHTML = gridHtml;
@@ -5483,7 +5483,7 @@ function renderEarnedStudent(period, container) {
         var stageEarnedCount = stageCredits.filter(function(c) { return earnedIds.has(c.id); }).length;
 
         html += '<div style="margin-bottom:2rem;">';
-        html += '<h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">' + stageName + ' <span style="font-size:0.82rem;font-weight:400;color:#86868b;">' + stageEarnedCount + ' / ' + stageCredits.length + ' earned</span></h3>';
+        html += '<h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">' + stageName + '</h3>';
         html += '<div class="progress-table-wrapper"><table><thead><tr>';
         html += '<th>Credit</th><th>Subject</th><th style="text-align:center;">Status</th><th style="text-align:center;">Date</th><th style="text-align:center;">Artifact</th>';
         html += '</tr></thead><tbody>';
