@@ -905,7 +905,7 @@
         .map-student-name { font-size: 0.88rem; font-weight: 700; color: #1d1d1f; }
         .map-student-meta { font-size: 0.68rem; color: #86868b; margin-top: 2px; }
         /* ── CORE Assessment ── */
-        .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 16px; border: 1px solid #f0f0f0; }
+        .core-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 16px; border: 1px solid #f0f0f0; background: #fff; }
         .core-table { border-collapse: collapse; font-size: 0.75rem; table-layout: fixed; width: 100%; }
         .core-table th { background: #5c5b5a; color: #fff; padding: 0.9rem 1rem; text-align: center; font-weight: 500; font-size: 0.82rem; border: 1px solid #4a4948; position: sticky; top: 0; z-index: 1; vertical-align: bottom; line-height: 1.3; }
         .core-table th.core-name-col { position: sticky; top: 0; left: 0; z-index: 3; text-align: left; min-width: 140px; background: #5c5b5a; }
@@ -10961,7 +10961,7 @@ function renderCore() {
         return '<th'+clsAttr+' onclick="setCoreSort(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (style||'') + '">' + label + arr + '</th>';
     }
 
-    var html = '<div class="core-table-wrap" style="padding-top:1.25rem;"><table class="core-table">'
+    var html = '<div class="core-table-wrap" style="margin:1.25rem;"><table class="core-table">'
         + colgroup + '<thead><tr>';
     html += cTh('name','Student','text-align:left;','core-name-col');
     html += cTh('goal','EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">words</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
@@ -14228,25 +14228,25 @@ function renderLexiaCombined() {
     function lxTh(col, label, extraStyle) {
         var active = lexiaSortCol === col;
         var arrow = active ? (lexiaSortDir === 1 ? ' ↑' : ' ↓') : '';
-        var base = 'cursor:pointer;user-select:none;white-space:nowrap;padding:0.75rem 1rem;font-size:0.82rem;font-weight:500;' + (extraStyle || '');
+        var base = 'cursor:pointer;user-select:none;white-space:nowrap;padding:0.9rem 1rem;font-size:0.82rem;font-weight:500;' + (extraStyle || '');
         return '<th style="' + base + '" onclick="setLexiaSort(\'' + col + '\')">' + label + '<span style="color:' + (active ? '#fff' : 'rgba(255,255,255,0.4)') + ';font-size:.75em;">' + (active ? arrow : ' ↕') + '</span></th>';
     }
 
     var html = '';
     // Combined table
-    html += '<div class="core-table-wrap" style="padding:1.25rem 1.25rem 1.5rem;overflow-x:auto;">'
+    html += '<div class="core-table-wrap" style="margin:1.25rem;">'
         + '<table class="core-table" style="width:100%;"><thead><tr>'
         + lxTh('name',      'Student',   'min-width:110px;')
         + lxTh('grade',     'Grade',     'width:40px;text-align:center;')
         + lxTh('risk',      'Risk',      'width:90px;')
         + lxTh('predictor', 'Predictor', 'width:110px;')
         + lxTh('usage',     'Usage',     'width:100px;')
-        + '<th style="white-space:nowrap;vertical-align:bottom;padding:0.75rem 1rem 0.4rem;font-size:0.82rem;font-weight:500;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
+        + '<th style="white-space:nowrap;vertical-align:bottom;padding:0.9rem 1rem 0.4rem;font-size:0.82rem;font-weight:500;cursor:pointer;user-select:none;" onclick="setLexiaSort(\'units\')">'
         + 'Unit Progress<span style="color:' + (lexiaSortCol==='units'?'#fff':'rgba(255,255,255,0.4)') + ';font-size:.75em;">' + (lexiaSortCol==='units'?(lexiaSortDir===1?' ↑':' ↓'):' ↕') + '</span>'
         + '<div style="display:flex;gap:2px;align-items:center;margin-top:4px;">'
         + (function(){var out='';LEXIA_GROUPS.forEach(function(g){var w=g.count*(BOX+1)+3;out+='<div style="width:'+w+'px;text-align:center;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.6);line-height:1;">'+g.label+'</div>';});return out;})()
         + '</div></th>'
-        + '<th style="white-space:nowrap;padding:0.75rem 1rem;font-size:0.82rem;font-weight:500;">Gained / Target</th>'
+        + '<th style="white-space:nowrap;padding:0.9rem 1rem;font-size:0.82rem;font-weight:500;">Gained / Target</th>'
         + '</tr></thead><tbody>';
 
     allNames.forEach(function(name) {
@@ -14395,7 +14395,7 @@ function renderLexiaPerf() {
     summary += '</div></div>';
 
     var html = summary
-        + '<div class="core-table-wrap" style="padding:0 1.25rem 1.5rem;">'
+        + '<div class="core-table-wrap" style="margin:1.25rem;">'
         + '<table class="core-table" style="width:100%;table-layout:fixed;"><thead><tr>'
         + '<th class="core-name-col">Student</th>'
         + '<th style="width:44px;text-align:center;">Grade</th>'
