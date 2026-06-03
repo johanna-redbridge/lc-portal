@@ -1260,6 +1260,24 @@
             <button id="reading-sub-xref-btn" class="data-subtab-btn" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
             <button id="reading-sub-assess-btn" class="data-subtab-btn active" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
         </div>
+        <!-- Nav bar for Computation dashboard -->
+        <div class="data-subtab-nav" id="comp-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Computation</span>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="comp-sub-overview-btn" class="data-subtab-btn" onclick="switchMathSubtab('student-overview')">Student Overview</button>
+            <button id="comp-sub-xref-btn" class="data-subtab-btn" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
+            <button id="comp-sub-assess-btn" class="data-subtab-btn active" onclick="switchMathSubtab(lastMathAssessmentView||'benchmark')">Assessments</button>
+        </div>
+        <!-- Nav bar for Writing dashboard -->
+        <div class="data-subtab-nav" id="writing-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Writing</span>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="writing-sub-rubric-btn" class="data-subtab-btn" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
+            <button id="writing-sub-survey-btn" class="data-subtab-btn" onclick="switchWritingSubtab('survey')">Writing Survey</button>
+            <button id="writing-sub-assess-btn" class="data-subtab-btn active" onclick="switchWritingSubtab(lastWritingAssessmentView||'wb')">Assessments</button>
+        </div>
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
@@ -1378,19 +1396,12 @@
 
         <!-- ── Computation Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-comp" style="display:none;">
-            <div class="panel-subnav" style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
-                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;flex-wrap:wrap;">
-                    <button class="toggle-btn math-view-btn" data-view="student-overview" onclick="switchMathSubtab('student-overview')">Student Overview</button>
-                    <button class="toggle-btn math-view-btn" data-view="xref-comp" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
-                    <button class="toggle-btn math-assessments-btn active" onclick="switchMathSubtab('benchmark')">Assessments</button>
-                </div>
-                <div id="math-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
-                    <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
-                    <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
-                    <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
-                    <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
-                    <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
-                </div>
+            <div id="math-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.4rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')">Computation Benchmark</button>
+                <button class="toggle-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')">MAP Math</button>
+                <button class="toggle-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')">Fact Fluency</button>
+                <button class="toggle-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')">STmath</button>
+                <button class="toggle-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')">Beast Academy</button>
             </div>
             <!-- Benchmark -->
             <div id="math-panel-benchmark">
@@ -1514,16 +1525,8 @@
 
         <!-- Writing Dashboard sub-tab -->
         <div class="data-subtab-panel" id="data-subtab-writing" style="display:none;">
-            <!-- Writing sub-tab bar -->
-            <div style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
-                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.6rem 1.25rem;flex-wrap:wrap;">
-                    <button class="toggle-btn writing-sub-btn active" data-wsub="writing-benchmark" onclick="switchWritingSubtab('writing-benchmark')">Writing Benchmark Rubric</button>
-                    <button class="toggle-btn writing-sub-btn" data-wsub="survey" onclick="switchWritingSubtab('survey')">Writing Survey</button>
-                    <button class="toggle-btn writing-assessments-btn" onclick="switchWritingSubtab('wb')">Assessments</button>
-                </div>
-                <div id="writing-assessments-subnav" style="display:none;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
-                    <button class="toggle-btn writing-sub-btn" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
-                </div>
+            <div id="writing-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.4rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn writing-sub-btn active" data-wsub="wb" onclick="switchWritingSubtab('wb')">Writing Benchmark</button>
             </div>
 
             <!-- Writing Survey panel -->
@@ -7731,6 +7734,8 @@ var currentDataSubtab = 'reading';
 var readingSubtab = 'core';
 var lastAssessmentView = 'core';
 var mathSubtab = 'benchmark';
+var lastMathAssessmentView = 'benchmark';
+var lastWritingAssessmentView = 'wb';
 
 function updateReadingSubBtns(sub) {
     var assessmentViews = ['core', 'fp', 'lexia', 'map-ela'];
@@ -7740,6 +7745,29 @@ function updateReadingSubBtns(sub) {
     var asBtn = document.getElementById('reading-sub-assess-btn');
     if (ovBtn) ovBtn.classList.toggle('active', sub === 'student-overview');
     if (xrBtn) xrBtn.classList.toggle('active', sub === 'xref-read');
+    if (asBtn) asBtn.classList.toggle('active', isAssessment);
+}
+
+function updateCompSubBtns(sub) {
+    var assessmentViews = ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'beast-academy'];
+    var isAssessment = assessmentViews.indexOf(sub) !== -1;
+    if (isAssessment) lastMathAssessmentView = sub;
+    var ovBtn = document.getElementById('comp-sub-overview-btn');
+    var xrBtn = document.getElementById('comp-sub-xref-btn');
+    var asBtn = document.getElementById('comp-sub-assess-btn');
+    if (ovBtn) ovBtn.classList.toggle('active', sub === 'student-overview');
+    if (xrBtn) xrBtn.classList.toggle('active', sub === 'xref-comp');
+    if (asBtn) asBtn.classList.toggle('active', isAssessment);
+}
+
+function updateWritingSubBtns(sub) {
+    var isAssessment = sub === 'wb';
+    if (isAssessment) lastWritingAssessmentView = sub;
+    var rbBtn = document.getElementById('writing-sub-rubric-btn');
+    var svBtn = document.getElementById('writing-sub-survey-btn');
+    var asBtn = document.getElementById('writing-sub-assess-btn');
+    if (rbBtn) rbBtn.classList.toggle('active', sub === 'writing-benchmark');
+    if (svBtn) svBtn.classList.toggle('active', sub === 'survey');
     if (asBtn) asBtn.classList.toggle('active', isAssessment);
 }
 
@@ -8215,8 +8243,7 @@ function switchWritingSubtab(sub) {
     document.querySelectorAll('.writing-sub-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.wsub === sub);
     });
-    var assessBtn = document.querySelector('.writing-assessments-btn');
-    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    updateWritingSubBtns(sub);
     var subnav = document.getElementById('writing-assessments-subnav');
     if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['writing-benchmark', 'wb', 'survey'].forEach(function(n) {
@@ -8259,8 +8286,7 @@ function switchMathSubtab(sub) {
     document.querySelectorAll('.math-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    var assessBtn = document.querySelector('.math-assessments-btn');
-    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    updateCompSubBtns(sub);
     var subnav = document.getElementById('math-assessments-subnav');
     if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview', 'beast-academy', 'xref-comp'].forEach(function(n) {
@@ -8657,8 +8683,9 @@ function renderCompStudentOverview() {
 
 function showAnalyticsLanding() {
     document.getElementById('analytics-landing').style.display = '';
-    document.getElementById('data-subtab-nav').style.display = 'none';
-    document.getElementById('reading-nav').style.display = 'none';
+    ['data-subtab-nav','reading-nav','comp-nav','writing-nav'].forEach(function(id) {
+        document.getElementById(id).style.display = 'none';
+    });
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) { p.style.display = 'none'; });
 }
 
@@ -8674,17 +8701,21 @@ function switchDataSubtab(name) {
     }
     if (name === 'map-math') { switchDataSubtab('comp'); switchMathSubtab('map-math'); return; }
     currentDataSubtab = name;
-    var inReading = name === 'reading';
-    // Show the correct nav bar
-    document.getElementById('reading-nav').style.display = inReading ? '' : 'none';
-    document.getElementById('data-subtab-nav').style.display = inReading ? 'none' : '';
+    // Show the correct nav bar, hide all others
+    document.getElementById('reading-nav').style.display  = name === 'reading' ? '' : 'none';
+    document.getElementById('comp-nav').style.display     = name === 'comp'    ? '' : 'none';
+    document.getElementById('writing-nav').style.display  = name === 'writing' ? '' : 'none';
+    var usesSharedNav = name !== 'reading' && name !== 'comp' && name !== 'writing';
+    document.getElementById('data-subtab-nav').style.display = usesSharedNav ? '' : 'none';
     document.querySelectorAll('#data-subtab-nav .data-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === name);
     });
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
-    if (inReading) updateReadingSubBtns(readingSubtab);
+    if (name === 'reading') updateReadingSubBtns(readingSubtab);
+    if (name === 'comp')    updateCompSubBtns(mathSubtab);
+    if (name === 'writing') updateWritingSubBtns(writingSubtab);
     requestAnimationFrame(updateStickyOffsets);
     if (name === 'reading') renderReadingSubtab();
     if (name === 'comp')    renderMathSubtab();
