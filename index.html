@@ -1309,6 +1309,10 @@
                         <button class="toggle-btn core-period-btn" data-period="spring" onclick="setCorePeriod('spring')">EOY</button>
                         <button class="toggle-btn core-period-btn" data-period="all" onclick="setCorePeriod('all')">All</button>
                     </div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn core-view-btn active" data-view="table" onclick="setCoreView('table')">Table</button>
+                        <button class="toggle-btn core-view-btn" data-view="chart" onclick="setCoreView('chart')">Student Growth</button>
+                    </div>
                     <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
                         <button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">+ Enter New Data</button>
                     </div>
@@ -10761,8 +10765,9 @@ var CORE_CATS = [
 ];
 
 var coreData = { al1: null, al2: null, al34: null };
-var coreAL = 'al1';
+var coreAL = 'all';
 var corePeriod = 'fall';
+var coreViewMode = 'table';
 var coreSortCol = 'name';
 var coreSortDir = 1;
 function setCoreSort(col) {
@@ -10893,6 +10898,14 @@ function setCorePeriod(p) {
     renderCore();
 }
 
+function setCoreView(mode) {
+    coreViewMode = mode;
+    document.querySelectorAll('.core-view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === mode);
+    });
+    renderCore();
+}
+
 function coreCellAllHtml(student, catIdx) {
     var cat = CORE_CATS[catIdx];
     var periods = [
@@ -10992,6 +11005,208 @@ function coreGleBar(knownTotal, gleGoal) {
         + '</div>';
 }
 
+function renderCoreGrowthChart(students) {
+    var el = document.getElementById('core-content');
+    if (!el) return;
+
+    var PERIODS = [
+        { key: 'fall',   label: 'BOY' },
+        { key: 'winter', label: 'MOY' },
+        { key: 'spring', label: 'EOY' }
+    ];
+    var total = students.length;
+
+    // For each category × period count mastered / partial / not-yet
+    var catData = CORE_CATS.map(function(cat, ci) {
+        var bars = PERIODS.map(function(pd) {
+            var mastered = 0, partial = 0, notYet = 0;
+            students.forEach(function(s) {
+                var pData = s[pd.key];
+                if (!pData) { notYet++; return; }
+                var raw = pData.scores[ci];
+                if (raw === null || raw === undefined || raw === '') { notYet++; return; }
+                if (coreRawIsMastered(raw)) { mastered++; return; }
+                var n = parseInt(raw, 10);
+                if (!isNaN(n) && n >= cat.max) { mastered++; return; }
+                if (!isNaN(n) && n > 0) { partial++; return; }
+                notYet++;
+            });
+            return { mastered: mastered, partial: partial, notYet: notYet };
+        });
+        return { cat: cat, bars: bars };
+    });
+
+    // Canvas dimensions
+    var BW = 28, GAP_INNER = 3, GAP_GROUP = 20;
+    var padL = 44, padR = 16, padT = 48, padB = 68;
+    var plotH = 280;
+    var groupW = 3 * BW + 2 * GAP_INNER + GAP_GROUP;
+    var chartW = padL + CORE_CATS.length * groupW + padR;
+    var chartH = padT + plotH + padB;
+
+    el.innerHTML =
+        '<div style="overflow-x:auto;background:#fff;">'
+        + '<div style="min-width:' + chartW + 'px;padding:1rem 0 0;">'
+        + '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:0 ' + padL + 'px 0.6rem;">'
+        + '<div style="font-size:0.78rem;font-weight:600;color:#1d1d1f;">% of Students · n=' + total + '</div>'
+        + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#5a9e5a;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">Mastered</span></div>'
+        + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#F8D66D;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">In Progress</span></div>'
+        + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#f87171;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">Not Yet</span></div>'
+        + '</div>'
+        + '<canvas id="core-growth-canvas" width="' + chartW + '" height="' + chartH + '" style="display:block;"></canvas>'
+        + '</div></div>';
+
+    requestAnimationFrame(function() {
+        var canvas = document.getElementById('core-growth-canvas');
+        if (!canvas) return;
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width  = chartW * dpr;
+        canvas.height = chartH * dpr;
+        canvas.style.width  = chartW + 'px';
+        canvas.style.height = chartH + 'px';
+        var ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, chartW, chartH);
+
+        // Grid lines + Y labels
+        [0, 25, 50, 75, 100].forEach(function(pct) {
+            var y = padT + plotH - (pct / 100) * plotH;
+            ctx.strokeStyle = '#e8e8ed';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(padL, y);
+            ctx.lineTo(padL + chartW - padL - padR, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '9px -apple-system,sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(pct + '%', padL - 5, y + 3.5);
+        });
+
+        // Bars
+        catData.forEach(function(g, gi) {
+            var gStartX = padL + gi * groupW + GAP_GROUP / 2;
+            var gCenterX = gStartX + (3 * BW + 2 * GAP_INNER) / 2;
+
+            // Track mastered-top Y for growth arrows
+            var masteredTopY = [null, null, null];
+
+            g.bars.forEach(function(bar, pi) {
+                var x = gStartX + pi * (BW + GAP_INNER);
+                var yBottom = padT + plotH;
+
+                // Draw from bottom: mastered (green), partial (yellow), notYet (red)
+                var segs = [
+                    { count: bar.mastered, color: '#5a9e5a', text: '#ffffff' },
+                    { count: bar.partial,  color: '#F8D66D', text: '#1d1d1f' },
+                    { count: bar.notYet,   color: '#f87171', text: '#ffffff' }
+                ];
+
+                segs.forEach(function(seg, si) {
+                    if (!seg.count) return;
+                    var h = (seg.count / total) * plotH;
+                    var yTop = yBottom - h;
+                    if (si === 0) masteredTopY[pi] = yTop + h / 2; // midpoint of mastered segment for arrow
+
+                    ctx.fillStyle = seg.color;
+                    ctx.fillRect(x, yTop, BW, h);
+
+                    // Count label inside bar
+                    if (h >= 13) {
+                        ctx.fillStyle = seg.text;
+                        ctx.font = 'bold 9px -apple-system,sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(seg.count, x + BW / 2, yTop + h / 2 + 3.5);
+                    }
+                    yBottom = yTop;
+                });
+
+                // Period label under bar
+                ctx.fillStyle = '#64748b';
+                ctx.font = '8px -apple-system,sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(PERIODS[pi].label, x + BW / 2, padT + plotH + 13);
+            });
+
+            // Growth arrows between BOY→MOY and MOY→EOY
+            for (var ai = 0; ai < 2; ai++) {
+                var fromY = masteredTopY[ai], toY = masteredTopY[ai + 1];
+                if (fromY === null || toY === null) continue;
+                var fromX = padL + gi * groupW + GAP_GROUP / 2 + ai * (BW + GAP_INNER) + BW;
+                var toX   = fromX + GAP_INNER;
+                var midX  = (fromX + toX) / 2;
+                var growing = toY < fromY; // smaller Y = higher on canvas = more mastered
+                var arrowColor = growing ? '#c0392b' : '#94a3b8';
+                // Draw curved arrow
+                ctx.strokeStyle = arrowColor;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.bezierCurveTo(midX, fromY, midX, toY, toX, toY);
+                ctx.stroke();
+                // Arrowhead
+                var angle = Math.atan2(toY - fromY, toX - fromX);
+                ctx.fillStyle = arrowColor;
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(toX - 5 * Math.cos(angle - 0.45), toY - 5 * Math.sin(angle - 0.45));
+                ctx.lineTo(toX - 5 * Math.cos(angle + 0.45), toY - 5 * Math.sin(angle + 0.45));
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Category label (abbr + full name)
+            var labelY = padT + plotH + 26;
+            ctx.fillStyle = '#1d1d1f';
+            ctx.font = 'bold 9px -apple-system,sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(g.cat.abbr, gCenterX, labelY);
+            // Full name in smaller text, wrap if needed
+            var words = g.cat.full.split(' ');
+            var line = '', lines = [];
+            var maxW = groupW - 4;
+            words.forEach(function(w) {
+                var test = line ? line + ' ' + w : w;
+                ctx.font = '7.5px -apple-system,sans-serif';
+                if (ctx.measureText(test).width > maxW && line) {
+                    lines.push(line); line = w;
+                } else { line = test; }
+            });
+            if (line) lines.push(line);
+            ctx.fillStyle = '#94a3b8';
+            lines.forEach(function(ln, li) {
+                ctx.fillText(ln, gCenterX, labelY + 10 + li * 9);
+            });
+        });
+
+        // Axes
+        ctx.strokeStyle = '#d1d1d6';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, padT + plotH);
+        ctx.lineTo(padL + chartW - padL - padR, padT + plotH);
+        ctx.stroke();
+
+        // Y-axis title
+        ctx.save();
+        ctx.translate(12, padT + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = '#86868b';
+        ctx.font = '10px -apple-system,sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('% of Students', 0, 0);
+        ctx.restore();
+    });
+}
+
 function renderCore() {
     var el = document.getElementById('core-content');
     if (!el) return;
@@ -11014,6 +11229,7 @@ function renderCore() {
         el.innerHTML = '<div style="padding:3rem;text-align:center;color:#86868b;font-size:0.85rem;">No data found.</div>';
         return;
     }
+    if (coreViewMode === 'chart') { renderCoreGrowthChart(students); return; }
     var p = corePeriod;
     var isAll = (p === 'all');
     // colgroup: student 14%, goal 7%, 2 growth 4% each, period 2.5%(All), 13 cats share rest, known 4%
