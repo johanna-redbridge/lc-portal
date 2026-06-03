@@ -923,9 +923,9 @@
         .data-subtab-btn { padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 500; border: none; background: none; cursor: pointer; color: #86868b; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color 0.15s; white-space: nowrap; }
         .data-subtab-btn:hover { color: #1d1d1f; }
         .data-subtab-btn.active { color: #FF8200; border-bottom-color: #FF8200; }
-        .logo-tab-btn { border:none;background:transparent;cursor:pointer;padding:5px 8px;border-radius:8px;opacity:0.45;transition:opacity 0.15s,box-shadow 0.15s;display:flex;align-items:center; }
-        .logo-tab-btn:hover { opacity:0.75; }
-        .logo-tab-btn.active { opacity:1;box-shadow:0 0 0 2px #FF8200; }
+        .logo-tab-btn { border:none;background:transparent;cursor:pointer;padding:5px 8px;border-radius:8px;opacity:0.4;transition:opacity 0.15s;display:flex;align-items:center; }
+        .logo-tab-btn:hover { opacity:0.7; }
+        .logo-tab-btn.active { opacity:1; }
         .panel-subnav { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
         .subpanel-toolbar { position: sticky; top: var(--nav-h-3, 144px); z-index: 90; background: #fff; }
         #xref-filter-bar { position: sticky; top: var(--nav-h-2, 100px); z-index: 120; }
@@ -1261,12 +1261,11 @@
             <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
             <button id="reading-sub-overview-btn" class="data-subtab-btn" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
             <button id="reading-sub-xref-btn" class="data-subtab-btn" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
-            <button id="reading-sub-assess-btn" class="data-subtab-btn active" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
-            <span id="reading-logo-sep" style="display:none;width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
-            <button id="reading-logo-core" class="logo-tab-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')" style="display:none;"><img src="CORE%20logo.png" alt="CORE" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="reading-logo-fp" class="logo-tab-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')" style="display:none;"><img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="reading-logo-lexia" class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')" style="display:none;"><img src="Lexia%20Logo.png" alt="Lexia" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="reading-logo-map" class="logo-tab-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')" style="display:none;"><img src="nwea%20map%20logo.png" alt="MAP ELA" style="height:24px;object-fit:contain;display:block;"></button>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="reading-logo-core" class="logo-tab-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')"><img src="CORE%20logo.png" alt="CORE" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-fp" class="logo-tab-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')"><img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-lexia" class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')"><img src="Lexia%20Logo.png" alt="Lexia" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-map" class="logo-tab-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')"><img src="nwea%20map%20logo.png" alt="MAP ELA" style="height:24px;object-fit:contain;display:block;"></button>
         </div>
         <!-- Nav bar for Computation dashboard -->
         <div class="data-subtab-nav" id="comp-nav" style="display:none;">
@@ -1275,13 +1274,12 @@
             <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
             <button id="comp-sub-overview-btn" class="data-subtab-btn" onclick="switchMathSubtab('student-overview')">Student Overview</button>
             <button id="comp-sub-xref-btn" class="data-subtab-btn" onclick="switchMathSubtab('xref-comp')">Cross Reference</button>
-            <button id="comp-sub-assess-btn" class="data-subtab-btn active" onclick="switchMathSubtab(lastMathAssessmentView||'benchmark')">Assessments</button>
-            <span id="comp-logo-sep" style="display:none;width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
-            <button id="comp-logo-benchmark" class="logo-tab-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')" style="display:none;"><img src="Computation%20Benchmark.png" alt="Benchmark" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="comp-logo-map" class="logo-tab-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')" style="display:none;"><img src="nwea%20map%20logo.png" alt="MAP Math" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="comp-logo-ff" class="data-subtab-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')" style="display:none;font-size:0.75rem;">Fact Fluency</button>
-            <button id="comp-logo-stmath" class="logo-tab-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')" style="display:none;"><img src="STmath%20logo.png" alt="STmath" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="comp-logo-ba" class="logo-tab-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')" style="display:none;"><img src="beast%20academy%20logo.png" alt="Beast Academy" style="height:24px;object-fit:contain;display:block;"></button>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="comp-logo-benchmark" class="logo-tab-btn math-view-btn active" data-view="benchmark" onclick="switchMathSubtab('benchmark')"><img src="Computation%20Benchmark.png" alt="Benchmark" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="comp-logo-map" class="logo-tab-btn math-view-btn" data-view="map-math" onclick="switchMathSubtab('map-math')"><img src="nwea%20map%20logo.png" alt="MAP Math" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="comp-logo-ff" class="data-subtab-btn math-view-btn" data-view="fact-fluency" onclick="switchMathSubtab('fact-fluency')" style="font-size:0.75rem;">Fact Fluency</button>
+            <button id="comp-logo-stmath" class="logo-tab-btn math-view-btn" data-view="stmath" onclick="switchMathSubtab('stmath')"><img src="STmath%20logo.png" alt="STmath" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="comp-logo-ba" class="logo-tab-btn math-view-btn" data-view="beast-academy" onclick="switchMathSubtab('beast-academy')"><img src="beast%20academy%20logo.png" alt="Beast Academy" style="height:24px;object-fit:contain;display:block;"></button>
         </div>
         <!-- Nav bar for Writing dashboard -->
         <div class="data-subtab-nav" id="writing-nav" style="display:none;">
@@ -7739,26 +7737,17 @@ var lastMathAssessmentView = 'benchmark';
 var lastWritingAssessmentView = 'wb';
 
 function updateReadingSubBtns(sub) {
-    var assessmentViews = ['core', 'fp', 'lexia', 'map-ela'];
-    var isAssessment = assessmentViews.indexOf(sub) !== -1;
     var ovBtn = document.getElementById('reading-sub-overview-btn');
     var xrBtn = document.getElementById('reading-sub-xref-btn');
-    var asBtn = document.getElementById('reading-sub-assess-btn');
     if (ovBtn) ovBtn.classList.toggle('active', sub === 'student-overview');
     if (xrBtn) xrBtn.classList.toggle('active', sub === 'xref-read');
-    if (asBtn) asBtn.classList.toggle('active', isAssessment);
 }
 
 function updateCompSubBtns(sub) {
-    var assessmentViews = ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'beast-academy'];
-    var isAssessment = assessmentViews.indexOf(sub) !== -1;
-    if (isAssessment) lastMathAssessmentView = sub;
     var ovBtn = document.getElementById('comp-sub-overview-btn');
     var xrBtn = document.getElementById('comp-sub-xref-btn');
-    var asBtn = document.getElementById('comp-sub-assess-btn');
     if (ovBtn) ovBtn.classList.toggle('active', sub === 'student-overview');
     if (xrBtn) xrBtn.classList.toggle('active', sub === 'xref-comp');
-    if (asBtn) asBtn.classList.toggle('active', isAssessment);
 }
 
 function updateWritingSubBtns(sub) {
@@ -7781,9 +7770,6 @@ function switchReadingSubtab(sub) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
     updateReadingSubBtns(sub);
-    ['reading-logo-sep','reading-logo-core','reading-logo-fp','reading-logo-lexia','reading-logo-map'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.style.display = isAssessment ? '' : 'none';
-    });
     ['core', 'fp', 'lexia', 'map-ela', 'student-overview', 'xref-read'].forEach(function(n) {
         var p = document.getElementById('reading-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
@@ -8289,9 +8275,6 @@ function switchMathSubtab(sub) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
     updateCompSubBtns(sub);
-    ['comp-logo-sep','comp-logo-benchmark','comp-logo-map','comp-logo-ff','comp-logo-stmath','comp-logo-ba'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.style.display = isAssessment ? '' : 'none';
-    });
     ['benchmark', 'map-math', 'fact-fluency', 'stmath', 'student-overview', 'beast-academy', 'xref-comp'].forEach(function(n) {
         var p = document.getElementById('math-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
@@ -8716,8 +8699,8 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
-    if (name === 'reading') { updateReadingSubBtns(readingSubtab); var assessViews=['core','fp','lexia','map-ela']; var show=assessViews.indexOf(readingSubtab)!==-1; ['reading-logo-sep','reading-logo-core','reading-logo-fp','reading-logo-lexia','reading-logo-map'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=show?'':'none';}); }
-    if (name === 'comp') { updateCompSubBtns(mathSubtab); var compAssessViews=['benchmark','map-math','fact-fluency','stmath','beast-academy']; var showC=compAssessViews.indexOf(mathSubtab)!==-1; ['comp-logo-sep','comp-logo-benchmark','comp-logo-map','comp-logo-ff','comp-logo-stmath','comp-logo-ba'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=showC?'':'none';}); }
+    if (name === 'reading') updateReadingSubBtns(readingSubtab);
+    if (name === 'comp')    updateCompSubBtns(mathSubtab);
     if (name === 'writing') updateWritingSubBtns(writingSubtab);
     requestAnimationFrame(updateStickyOffsets);
     if (name === 'reading') renderReadingSubtab();
