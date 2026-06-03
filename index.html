@@ -1291,6 +1291,24 @@
             <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
             <button id="writing-logo-wb" class="logo-tab-btn writing-sub-btn active" data-wsub="wb" onclick="switchWritingSubtab('wb')"><img src="Writing%20Benchmark.png" alt="Writing Benchmark" style="height:24px;object-fit:contain;display:block;"></button>
         </div>
+        <!-- Nav bar for Credit dashboard -->
+        <div class="data-subtab-nav" id="lc-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Credit</span>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button class="data-subtab-btn lc-analytics-sub-btn active" data-lcsub="ccss" onclick="switchLCAnalyticsSubtab('ccss')">CCSS Overview</button>
+            <button class="data-subtab-btn lc-analytics-sub-btn" data-lcsub="earnings" onclick="switchLCAnalyticsSubtab('earnings')">Average Earnings</button>
+        </div>
+        <!-- Nav bar for Promotion dashboard -->
+        <div class="data-subtab-nav" id="promotion-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Promotion</span>
+        </div>
+        <!-- Nav bar for Redbridge dashboard -->
+        <div class="data-subtab-nav" id="redbridge-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Redbridge</span>
+        </div>
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
@@ -1481,11 +1499,6 @@
 
         <!-- ── Learning Credits sub-tab ── -->
         <div class="data-subtab-panel" id="data-subtab-lc" style="display:none;">
-            <!-- LC analytics sub-nav -->
-            <div id="lc-analytics-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.5rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#fafafa;">
-                <button class="toggle-btn lc-analytics-sub-btn active" data-lcsub="ccss" onclick="switchLCAnalyticsSubtab('ccss')">CCSS Overview</button>
-                <button class="toggle-btn lc-analytics-sub-btn" data-lcsub="earnings" onclick="switchLCAnalyticsSubtab('earnings')">Average Earnings</button>
-            </div>
             <!-- Average Earnings panel -->
             <div id="lc-analytics-panel" style="display:none;">
                 <div id="lc-analytics-content" style="padding:0;"></div>
@@ -8664,8 +8677,8 @@ function renderCompStudentOverview() {
 
 function showAnalyticsLanding() {
     document.getElementById('analytics-landing').style.display = '';
-    ['data-subtab-nav','reading-nav','comp-nav','writing-nav'].forEach(function(id) {
-        document.getElementById(id).style.display = 'none';
+    ['data-subtab-nav','reading-nav','comp-nav','writing-nav','lc-nav','promotion-nav','redbridge-nav'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) { p.style.display = 'none'; });
 }
@@ -8683,14 +8696,13 @@ function switchDataSubtab(name) {
     if (name === 'map-math') { switchDataSubtab('comp'); switchMathSubtab('map-math'); return; }
     currentDataSubtab = name;
     // Show the correct nav bar, hide all others
-    document.getElementById('reading-nav').style.display  = name === 'reading' ? '' : 'none';
-    document.getElementById('comp-nav').style.display     = name === 'comp'    ? '' : 'none';
-    document.getElementById('writing-nav').style.display  = name === 'writing' ? '' : 'none';
-    var usesSharedNav = name !== 'reading' && name !== 'comp' && name !== 'writing';
-    document.getElementById('data-subtab-nav').style.display = usesSharedNav ? '' : 'none';
-    document.querySelectorAll('#data-subtab-nav .data-subtab-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.subtab === name);
+    var allNavs = { 'reading': 'reading-nav', 'comp': 'comp-nav', 'writing': 'writing-nav',
+                    'lc': 'lc-nav', 'promotion': 'promotion-nav', 'redbridge': 'redbridge-nav' };
+    Object.keys(allNavs).forEach(function(k) {
+        var el = document.getElementById(allNavs[k]);
+        if (el) el.style.display = (k === name) ? '' : 'none';
     });
+    document.getElementById('data-subtab-nav').style.display = 'none';
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
