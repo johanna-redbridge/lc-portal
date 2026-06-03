@@ -1124,6 +1124,7 @@
             <div class="toggle-group" id="manage-mode-toggle">
                 <button class="toggle-btn active" data-value="groups" onclick="setToggle('manage-mode-toggle', 'groups'); renderManageCombined()">Groups</button>
                 <button class="toggle-btn" data-value="students" onclick="setToggle('manage-mode-toggle', 'students'); renderManageCombined()">Students</button>
+                <button class="toggle-btn" data-value="creditoverview" onclick="setToggle('manage-mode-toggle', 'creditoverview'); renderManageCombined()">Credit Overview</button>
             </div>
             <div id="manage-subject-btns" class="toggle-group"></div>
             <div id="manage-student-search" style="display:none;align-items:center;gap:0.6rem;flex-wrap:wrap;">
@@ -1149,6 +1150,10 @@
                 <div id="students-right-panel"></div>
             </div>
         </div>
+        <div id="manage-creditoverview-section" style="display:none;">
+            <div id="student-tab-sticky" style="display:none;position:sticky;top:var(--nav-h-2,100px);z-index:110;background:#fff;border-bottom:1px solid #e8e8ed;padding:0.75rem 1.5rem 0.5rem;"></div>
+            <div id="student-tab-content"></div>
+        </div>
     </div>
 </div>
 
@@ -1159,7 +1164,6 @@
 <div class="tab-content" id="tab-portfolio">
     <div class="data-subtab-nav" id="dp-subtab-nav">
         <button class="data-subtab-btn active" data-subtab="portfolio" onclick="switchDPSubtab('portfolio')">Artifacts</button>
-        <button class="data-subtab-btn" data-subtab="student" onclick="switchDPSubtab('student')">Credit Overview</button>
         <button class="data-subtab-btn" data-subtab="goaltracker" onclick="switchDPSubtab('goaltracker')">Goal Tracker</button>
         <button class="data-subtab-btn" data-subtab="worktracker" onclick="switchDPSubtab('worktracker')">Work Tracker</button>
     </div>
@@ -1167,13 +1171,6 @@
     <div id="dp-subtab-portfolio" class="dp-subtab-panel">
         <div class="view-container">
             <div id="portfolio-content"></div>
-        </div>
-    </div>
-    <!-- Student sub-panel -->
-    <div id="dp-subtab-student" class="dp-subtab-panel" style="display:none;">
-        <div id="student-tab-sticky" style="display:none;position:sticky;top:var(--nav-h-2,100px);z-index:110;background:#fff;border-bottom:1px solid #e8e8ed;padding:0.75rem 1.5in 0.5rem;"></div>
-        <div class="view-container">
-            <div id="student-tab-content"></div>
         </div>
     </div>
     <!-- Goal Tracker sub-panel -->
@@ -4635,7 +4632,6 @@ function switchDPSubtab(name) {
     var panel = document.getElementById('dp-subtab-' + name);
     if (panel) panel.style.display = '';
     if (name === 'portfolio') renderPortfolio();
-    if (name === 'student') renderStudentTab();
     if (name === 'goaltracker') renderGoalTracker();
     if (name === 'worktracker') renderWorkTracker();
 }
@@ -4693,10 +4689,11 @@ function applyTabRender(tab) {
         switchLCSubtab(tab);
         return;
     }
-    // Student is a sub-tab of Digital Portfolio
+    // Credit Overview is now under Manage
     if (tab === 'student') {
-        applyTabRender('portfolio');
-        switchDPSubtab('student');
+        applyTabRender('manage');
+        setToggle('manage-mode-toggle', 'creditoverview');
+        renderManageCombined();
         return;
     }
     var tabLabels = { available: 'Learning Credits', manage: 'Manage', portfolio: 'Digital Portfolio', data: 'Analytics' };
@@ -5585,12 +5582,15 @@ function renderManageCombined() {
 
     document.getElementById('manage-groups-section').style.display = mode === 'groups' ? '' : 'none';
     document.getElementById('manage-students-section').style.display = mode === 'students' ? '' : 'none';
+    document.getElementById('manage-creditoverview-section').style.display = mode === 'creditoverview' ? '' : 'none';
     if (mode === 'groups') {
         renderManageLeft();
         renderManageRight();
-    } else {
+    } else if (mode === 'students') {
         renderStudentsLeft();
         renderStudentsRight();
+    } else if (mode === 'creditoverview') {
+        renderStudentTab();
     }
 }
 
