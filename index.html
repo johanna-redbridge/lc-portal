@@ -11926,6 +11926,12 @@ function setMapMathSort(col) {
     if (mapMathSortCol === col) { mapMathSortDir = -mapMathSortDir; } else { mapMathSortCol = col; mapMathSortDir = 1; }
     renderMapMathTable();
 }
+var mapElaSortCol = 'name';
+var mapElaSortDir = 1;
+function setMapElaSort(col) {
+    if (mapElaSortCol === col) { mapElaSortDir = -mapElaSortDir; } else { mapElaSortCol = col; mapElaSortDir = 1; }
+    renderMapElaTable();
+}
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -12465,9 +12471,34 @@ function renderMapElaTable() {
     if (!el || !mapData) return;
     var all = mapData.students.slice();
     if (mapElaALFilter !== 'all') all = all.filter(function(s) { return s.al === mapElaALFilter; });
-    doRenderMapTable(el, all, mapData.elaPeriods,
+    var periods = mapData.elaPeriods;
+    var CURRENT_YEAR = '2025-26';
+    var boyIdx = -1, eoyIdx = -1;
+    periods.forEach(function(p, i) {
+        var m = p.match(/\d{4}(?:-\d{2,4})?/);
+        if (m && m[0] === CURRENT_YEAR) {
+            var u = p.toUpperCase();
+            if (u.indexOf('BOY') >= 0) boyIdx = i;
+            if (u.indexOf('EOY') >= 0) eoyIdx = i;
+        }
+    });
+    all.sort(function(a, b) {
+        var d = mapElaSortDir;
+        if (mapElaSortCol === 'gle')  return d * ((parseFloat(a.gle) || 0) - (parseFloat(b.gle) || 0));
+        if (mapElaSortCol === 'al')   return d * (a.al || '').localeCompare(b.al || '');
+        if (mapElaSortCol === 'boy')  return d * ((parseFloat(boyIdx >= 0 ? a.elaScores[boyIdx] : '') || 0) - (parseFloat(boyIdx >= 0 ? b.elaScores[boyIdx] : '') || 0));
+        if (mapElaSortCol === 'eoy')  return d * ((parseFloat(eoyIdx >= 0 ? a.elaScores[eoyIdx] : '') || 0) - (parseFloat(eoyIdx >= 0 ? b.elaScores[eoyIdx] : '') || 0));
+        if (mapElaSortCol === 'growth') {
+            var ag = (boyIdx >= 0 && eoyIdx >= 0) ? (parseFloat(a.elaScores[eoyIdx]) || 0) - (parseFloat(a.elaScores[boyIdx]) || 0) : 0;
+            var bg = (boyIdx >= 0 && eoyIdx >= 0) ? (parseFloat(b.elaScores[eoyIdx]) || 0) - (parseFloat(b.elaScores[boyIdx]) || 0) : 0;
+            return d * (ag - bg);
+        }
+        return d * fullName(a.name).localeCompare(fullName(b.name));
+    });
+    doRenderMapTable(el, all, periods,
         function(s) { return s.elaScores; },
-        function(s) { return s.elaPcts; });
+        function(s) { return s.elaPcts; },
+        { sortCol: mapElaSortCol, sortDir: mapElaSortDir, onSort: 'setMapElaSort' });
 }
 
 /* ── MAP ELA Student Growth Graphs ──────────────────────────────────────────── */
