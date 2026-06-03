@@ -12709,6 +12709,12 @@ var FACT_FLUENCY_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6y
 var factFluencyData = null;
 var ffGroupFilter   = 'all';
 var ffAlFilter      = 'all';
+var ffSortCol       = 'name';
+var ffSortDir       = 1;
+function setFfSort(col) {
+    if (ffSortCol === col) { ffSortDir = -ffSortDir; } else { ffSortCol = col; ffSortDir = 1; }
+    renderFactFluencyTable();
+}
 
 function ffShortLabel(label) {
     return (label||'')
@@ -12840,21 +12846,44 @@ function renderFactFluencyTable() {
         return filtered.some(function(s) { return s.facts[oi] && s.facts[oi].count !== ''; });
     });
 
+    // Sort
+    filtered = filtered.slice().sort(function(a, b) {
+        var d = ffSortDir;
+        if (ffSortCol === 'al')    return d * (a.al || '').localeCompare(b.al || '');
+        if (ffSortCol === 'gle')   return d * ((parseFloat(a.gle) || 0) - (parseFloat(b.gle) || 0));
+        if (ffSortCol === 'group') return d * (a.group || '').localeCompare(b.group || '');
+        if (ffSortCol.indexOf('op_') === 0) {
+            var oi = parseInt(ffSortCol.slice(3), 10);
+            var af = a.facts[oi], bf = b.facts[oi];
+            var ap = af ? ffPctNum(af.pct) : -1, bp = bf ? ffPctNum(bf.pct) : -1;
+            return d * (ap - bp);
+        }
+        return d * fullName(a.name).localeCompare(fullName(b.name));
+    });
+
+    function ffTh(col, label, extraStyle, colspan) {
+        var active = ffSortCol === col;
+        var arr = active ? (ffSortDir === 1 ? ' ↑' : ' ↓') : ' <span style="opacity:.35">↕</span>';
+        var cs = colspan ? ' colspan="' + colspan + '"' : '';
+        return '<th' + cs + ' onclick="setFfSort(\'' + col + '\')" style="cursor:pointer;user-select:none;position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;font-weight:600;font-size:0.72rem;color:#fff;white-space:nowrap;' + (extraStyle || '') + '">' + label + arr + '</th>';
+    }
+
     var html = '<div style="overflow-x:auto;overflow-y:auto;max-height:65vh;border-radius:16px;border:1px solid #f0f0f0;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
 
     // Header
     html += '<thead><tr style="background:#5c5b5a;">';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.75rem;text-align:left;font-weight:600;font-size:0.72rem;color:#fff;white-space:nowrap;">Student</th>';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">AL</th>';
-    html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">GLE</th>';
+    html += ffTh('name',  'Student', 'text-align:left;padding:0.5rem 0.75rem;');
+    html += ffTh('al',    'AL',    'text-align:center;');
+    html += ffTh('gle',   'GLE',   'text-align:center;');
     if (ffGroupFilter === 'all') {
-        html += '<th style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.72rem;color:#fff;">Group</th>';
+        html += ffTh('group', 'Group', 'text-align:center;');
     }
     activeOps.forEach(function(op) {
+        var globalIdx = ops.indexOf(op);
         var short = ffShortLabel(op.label);
         var tip   = op.label + (op.max ? ' (up to ' + op.max + ')' : '');
-        html += '<th colspan="2" style="position:sticky;top:0;z-index:12;background:#5c5b5a;padding:0.5rem 0.6rem;text-align:center;font-weight:600;font-size:0.68rem;color:#fff;border-left:1px solid rgba(255,255,255,0.15);white-space:nowrap;" title="' + tip.replace(/"/g,'&quot;') + '">' + short.replace(/</g,'&lt;') + '</th>';
+        html += ffTh('op_' + globalIdx, short.replace(/</g,'&lt;'), 'text-align:center;border-left:1px solid rgba(255,255,255,0.15);', 2);
     });
     html += '</tr>';
 
@@ -13098,6 +13127,12 @@ var BENCH_NAME_ALIASES = {
 var compData        = null;
 var compGroupFilter = 'all';
 var compALFilter    = 'all';
+var compDrillSortCol = 'name';
+var compDrillSortDir = 1;
+function setCompDrillSort(col) {
+    if (compDrillSortCol === col) { compDrillSortDir = -compDrillSortDir; } else { compDrillSortCol = col; compDrillSortDir = 1; }
+    renderCompTable();
+}
 
 var BENCH_LONG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqsOp6yOxKX7IvF95JfgP62LCSSkyep2QQ6OWqAC7HN4KNfzPzp2xDso2CLauXS-MxO5mpvIIL5QKx/pub?gid=1047888246&single=true&output=csv';
 var benchLongData  = null;
@@ -13480,7 +13515,6 @@ function renderCompFilters() {
     html += '</div>';
     html += '<div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">'
         + '<button onclick="showEnterDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #e8e8ed;background:#f5f5f7;color:#1d1d1f;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#e8e8ed\'" onmouseout="this.style.background=\'#f5f5f7\'">+ Enter New Data</button>'
-        + '<button onclick="showImportDataModal()" style="padding:0.35rem 0.85rem;border-radius:8px;border:1px solid #FF8200;background:#fff7f0;color:#FF8200;font-family:inherit;font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background=\'#fff0e0\'" onmouseout="this.style.background=\'#fff7f0\'">↑ Import New Data</button>'
         + '</div>';
     el.innerHTML = html;
 }
@@ -13559,20 +13593,44 @@ function renderCompTable() {
             + '</div>';
     }
 
+    // Sort students
+    function gleGrpPct(s, grp) {
+        var m = grp.items.filter(function(it) { return it.q.mastery[s.name]; }).length;
+        return grp.items.length > 0 ? m / grp.items.length : -1;
+    }
+    students = students.slice().sort(function(a, b) {
+        var d = compDrillSortDir;
+        if (compDrillSortCol.indexOf('gle_') === 0) {
+            var gi = parseInt(compDrillSortCol.slice(4), 10);
+            var grp = gleGroups[gi];
+            return grp ? d * (gleGrpPct(a, grp) - gleGrpPct(b, grp)) : 0;
+        }
+        return d * compDisplayName(a.name).localeCompare(compDisplayName(b.name));
+    });
+
+    function cdTh(col, label, extra) {
+        var active = compDrillSortCol === col;
+        var arr = active ? (compDrillSortDir === 1 ? ' ↑' : ' ↓') : ' <span style="opacity:.35">↕</span>';
+        return '<th onclick="setCompDrillSort(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (extra || '') + '">' + label + arr + '</th>';
+    }
+
     // ── Table: GLE pie columns + Q# check columns ───────
     var html = '<div class="core-table-wrap" style="overflow-x:auto;">'
         + '<table class="core-table" style="width:auto;border-collapse:collapse;">'
         + '<thead>'
         + '<tr>'
-        + '<th class="core-name-col" rowspan="2" style="vertical-align:bottom;">Student</th>';
+        + cdTh('name', 'Student', 'text-align:left;vertical-align:bottom;position:sticky;left:0;z-index:3;');
     // GLE pie headers (rowspan=2, all 8 groups)
-    gleGroups.forEach(function(grp) {
+    gleGroups.forEach(function(grp, gi) {
         var gLabel = grp.gle === 'K' ? 'K' : grp.gle;
-        html += '<th rowspan="2" style="text-align:center;font-size:0.62rem;font-weight:600;padding:0.25rem 0.3rem;white-space:nowrap;min-width:50px;vertical-align:bottom;border-right:1px solid #e8e8ed;">GLE&nbsp;' + gLabel + '</th>';
+        html += cdTh('gle_' + gi, 'GLE&nbsp;' + gLabel, 'text-align:center;font-size:0.62rem;font-weight:600;padding:0.25rem 0.3rem;white-space:nowrap;min-width:50px;vertical-align:bottom;border-right:1px solid #e8e8ed;');
     });
     // Separator
-    html += '<th rowspan="2" style="width:8px;border-right:2px solid #d1d5db;"></th>';
+    html += '<th style="width:8px;border-right:2px solid #d1d5db;"></th>';
     html += '</tr><tr>';
+    html += '<th class="core-name-col" style="position:sticky;left:0;z-index:3;"></th>';
+    gleGroups.forEach(function() { html += '<th style="border-right:1px solid #e8e8ed;"></th>'; });
+    html += '<th style="border-right:2px solid #d1d5db;"></th>';
     // Q# + CCSS standard sub-headers
     gleGroups.forEach(function(grp) {
         grp.items.forEach(function(item) {
@@ -13687,12 +13745,17 @@ function doRenderBenchOverview(el) {
     if (!students.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
     var col = benchOverviewSortCol, dir = benchOverviewSortDir === 'asc' ? 1 : -1;
+    var CY = '2025-26';
     var sorted = students.slice().sort(function(a, b) {
         var av, bv;
-        if (col === 'al')    { av = parseInt(a.al)||99;    bv = parseInt(b.al)||99; }
-        else if (col === 'gle')   { av = parseInt(a.gle)||99;   bv = parseInt(b.gle)||99; }
-        else if (col === 'group') { return dir * (a.group||'').localeCompare(b.group||''); }
-        else                      { return dir * a.name.localeCompare(b.name); }
+        if (col === 'al')     { av = parseInt(a.al)||99;  bv = parseInt(b.al)||99; }
+        else if (col === 'gle')    { av = parseInt(a.gle)||99; bv = parseInt(b.gle)||99; }
+        else if (col === 'group')  { return dir * (a.group||'').localeCompare(b.group||''); }
+        else if (col === 'boy')    { av = (a.years[CY]&&a.years[CY].boy!==null)?a.years[CY].boy:-Infinity; bv = (b.years[CY]&&b.years[CY].boy!==null)?b.years[CY].boy:-Infinity; }
+        else if (col === 'moy')    { av = (a.years[CY]&&a.years[CY].moy!==null)?a.years[CY].moy:-Infinity; bv = (b.years[CY]&&b.years[CY].moy!==null)?b.years[CY].moy:-Infinity; }
+        else if (col === 'eoy')    { av = (a.years[CY]&&a.years[CY].eoy!==null)?a.years[CY].eoy:-Infinity; bv = (b.years[CY]&&b.years[CY].eoy!==null)?b.years[CY].eoy:-Infinity; }
+        else if (col === 'growth') { var ag=a.years[CY],bg2=b.years[CY]; av=(ag&&ag.boy!==null&&ag.eoy!==null)?ag.eoy-ag.boy:-Infinity; bv=(bg2&&bg2.boy!==null&&bg2.eoy!==null)?bg2.eoy-bg2.boy:-Infinity; }
+        else                       { return dir * a.name.localeCompare(b.name); }
         return av !== bv ? dir * (av - bv) : a.name.localeCompare(b.name);
     });
 
@@ -13800,7 +13863,7 @@ function doRenderBenchOverview(el) {
 
     // Header row 1 — fixed cols + year group labels
     var hdr1 = '<tr>'
-        + '<th rowspan="2" style="text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student</th>'
+        + '<th rowspan="2" onclick="setBenchOverviewSort(\'name\')" style="cursor:pointer;user-select:none;text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student' + arrow('name') + '</th>'
         + sortTh('AL', 'al') + sortTh('GLE', 'gle') + sortTh('Group', 'group');
     BENCH_LONG_YEARS.forEach(function(y) {
         var cur = y.key === '2025-26';
@@ -13813,11 +13876,19 @@ function doRenderBenchOverview(el) {
         var cur = y.key === '2025-26';
         var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
         var sub = 'position:sticky;top:20px;z-index:11;text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
-        hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
-             + '<th style="' + sub + bg + '">MOY</th>'
-             + '<th style="' + sub + bg + '">EOY</th>'
-             + '<th style="' + sub + bg + '">+1.0</th>'
-             + '<th style="' + sub + bg + '">Goal</th>';
+        if (cur) {
+            hdr2 += '<th onclick="setBenchOverviewSort(\'boy\')" style="cursor:pointer;user-select:none;' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY' + arrow('boy') + '</th>'
+                 + '<th onclick="setBenchOverviewSort(\'moy\')" style="cursor:pointer;user-select:none;' + sub + bg + '">MOY' + arrow('moy') + '</th>'
+                 + '<th onclick="setBenchOverviewSort(\'eoy\')" style="cursor:pointer;user-select:none;' + sub + bg + '">EOY' + arrow('eoy') + '</th>'
+                 + '<th onclick="setBenchOverviewSort(\'growth\')" style="cursor:pointer;user-select:none;' + sub + bg + '">+1.0' + arrow('growth') + '</th>'
+                 + '<th style="' + sub + bg + '">Goal</th>';
+        } else {
+            hdr2 += '<th style="' + sub + 'border-left:2px solid rgba(255,255,255,0.18);' + bg + '">BOY</th>'
+                 + '<th style="' + sub + bg + '">MOY</th>'
+                 + '<th style="' + sub + bg + '">EOY</th>'
+                 + '<th style="' + sub + bg + '">+1.0</th>'
+                 + '<th style="' + sub + bg + '">Goal</th>';
+        }
     });
     hdr2 += '</tr>';
 
