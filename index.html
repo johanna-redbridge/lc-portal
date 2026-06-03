@@ -1241,6 +1241,7 @@
             </div>
         </div>
 
+        <!-- Nav bar for non-reading dashboards -->
         <div class="data-subtab-nav" id="data-subtab-nav" style="display:none;">
             <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
             <button class="data-subtab-btn active" data-subtab="reading" onclick="switchDataSubtab('reading')">Reading</button>
@@ -1249,10 +1250,15 @@
             <button class="data-subtab-btn" data-subtab="lc" onclick="switchDataSubtab('lc')">Credit</button>
             <button class="data-subtab-btn" data-subtab="promotion" onclick="switchDataSubtab('promotion')">Promotion</button>
             <button class="data-subtab-btn" data-subtab="redbridge" onclick="switchDataSubtab('redbridge')">Redbridge</button>
-            <span id="reading-sub-sep" style="display:none;width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
-            <button id="reading-sub-overview-btn" class="data-subtab-btn" style="display:none;" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
-            <button id="reading-sub-xref-btn" class="data-subtab-btn" style="display:none;" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
-            <button id="reading-sub-assess-btn" class="data-subtab-btn" style="display:none;" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
+        </div>
+        <!-- Nav bar for Reading dashboard only -->
+        <div class="data-subtab-nav" id="reading-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Reading</span>
+            <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="reading-sub-overview-btn" class="data-subtab-btn" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
+            <button id="reading-sub-xref-btn" class="data-subtab-btn" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
+            <button id="reading-sub-assess-btn" class="data-subtab-btn active" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -8652,17 +8658,12 @@ function renderCompStudentOverview() {
 function showAnalyticsLanding() {
     document.getElementById('analytics-landing').style.display = '';
     document.getElementById('data-subtab-nav').style.display = 'none';
+    document.getElementById('reading-nav').style.display = 'none';
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) { p.style.display = 'none'; });
-    // Restore all dashboard buttons and hide reading sub-buttons
-    document.querySelectorAll('#data-subtab-nav .data-subtab-btn[data-subtab]').forEach(function(b) { b.style.display = ''; });
-    ['reading-sub-sep','reading-sub-overview-btn','reading-sub-xref-btn','reading-sub-assess-btn'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.style.display = 'none';
-    });
 }
 
 function openAnalyticsDashboard(name) {
     document.getElementById('analytics-landing').style.display = 'none';
-    document.getElementById('data-subtab-nav').style.display = '';
     switchDataSubtab(name);
 }
 
@@ -8672,16 +8673,13 @@ function switchDataSubtab(name) {
         switchDataSubtab('reading'); switchReadingSubtab(name); return;
     }
     if (name === 'map-math') { switchDataSubtab('comp'); switchMathSubtab('map-math'); return; }
-    if (name === 'redbridge') { currentDataSubtab = name; document.querySelectorAll('#data-subtab-nav .data-subtab-btn[data-subtab]').forEach(function(b){ b.style.display = ''; b.classList.toggle('active', b.dataset.subtab === name); }); ['reading-sub-sep','reading-sub-overview-btn','reading-sub-xref-btn','reading-sub-assess-btn'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; }); document.querySelectorAll('.data-subtab-panel').forEach(function(p){ p.style.display = p.id === 'data-subtab-redbridge' ? '' : 'none'; }); return; }
     currentDataSubtab = name;
     var inReading = name === 'reading';
-    // Dashboard buttons: hide non-reading ones when in reading; hide reading sub-buttons when not in reading
-    document.querySelectorAll('#data-subtab-nav .data-subtab-btn[data-subtab]').forEach(function(b) {
-        b.style.display = (inReading && b.dataset.subtab !== 'reading') ? 'none' : '';
+    // Show the correct nav bar
+    document.getElementById('reading-nav').style.display = inReading ? '' : 'none';
+    document.getElementById('data-subtab-nav').style.display = inReading ? 'none' : '';
+    document.querySelectorAll('#data-subtab-nav .data-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === name);
-    });
-    ['reading-sub-sep','reading-sub-overview-btn','reading-sub-xref-btn','reading-sub-assess-btn'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.style.display = inReading ? '' : 'none';
     });
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
