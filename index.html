@@ -11048,29 +11048,34 @@ function renderCoreGrowthChart(students) {
         return { cat: cat, bars: bars };
     });
 
-    // Canvas dimensions
-    var BW = 28, GAP_INNER = 3, GAP_GROUP = 20;
-    var padL = 44, padR = 16, padT = 48, padB = 68;
+    // Canvas dimensions — computed responsively inside rAF from actual container width
+    var padL = 40, padR = 12, padT = 48, padB = 68;
     var plotH = 280;
-    var groupW = 3 * BW + 2 * GAP_INNER + GAP_GROUP;
-    var chartW = padL + CORE_CATS.length * groupW + padR;
     var chartH = padT + plotH + padB;
 
     el.innerHTML =
-        '<div style="overflow-x:auto;background:#fff;">'
-        + '<div style="min-width:' + chartW + 'px;padding:1rem 0 0;">'
+        '<div style="background:#fff;">'
+        + '<div style="padding:1rem 0 0;">'
         + '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:0 ' + padL + 'px 0.6rem;">'
         + '<div style="font-size:0.78rem;font-weight:600;color:#1d1d1f;">% of Students · n=' + total + '</div>'
         + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#5a9e5a;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">Mastered</span></div>'
         + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#F8D66D;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">In Progress</span></div>'
         + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;background:#f87171;border-radius:2px;display:inline-block;"></div><span style="font-size:0.74rem;color:#1d1d1f;">Not Yet</span></div>'
         + '</div>'
-        + '<canvas id="core-growth-canvas" width="' + chartW + '" height="' + chartH + '" style="display:block;"></canvas>'
+        + '<canvas id="core-growth-canvas" style="display:block;width:100%;"></canvas>'
         + '</div></div>';
 
     requestAnimationFrame(function() {
         var canvas = document.getElementById('core-growth-canvas');
         if (!canvas) return;
+        // Derive bar sizing from actual container width
+        var chartW = el.clientWidth || 900;
+        var plotW = chartW - padL - padR;
+        var groupW = plotW / CORE_CATS.length;
+        var GAP_GROUP = Math.min(groupW * 0.22, 14);
+        var barsW = groupW - GAP_GROUP;
+        var GAP_INNER = Math.max(1, Math.round(barsW * 0.07));
+        var BW = Math.max(8, Math.floor((barsW - 2 * GAP_INNER) / 3));
         var dpr = window.devicePixelRatio || 1;
         canvas.width  = chartW * dpr;
         canvas.height = chartH * dpr;
@@ -11091,7 +11096,7 @@ function renderCoreGrowthChart(students) {
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
             ctx.moveTo(padL, y);
-            ctx.lineTo(padL + chartW - padL - padR, y);
+            ctx.lineTo(padL + plotW, y);
             ctx.stroke();
             ctx.setLineDash([]);
             ctx.fillStyle = '#94a3b8';
@@ -11204,7 +11209,7 @@ function renderCoreGrowthChart(students) {
         ctx.beginPath();
         ctx.moveTo(padL, padT);
         ctx.lineTo(padL, padT + plotH);
-        ctx.lineTo(padL + chartW - padL - padR, padT + plotH);
+        ctx.lineTo(padL + plotW, padT + plotH);
         ctx.stroke();
 
         // Y-axis title
