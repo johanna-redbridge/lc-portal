@@ -1249,22 +1249,19 @@
             <button class="data-subtab-btn" data-subtab="lc" onclick="switchDataSubtab('lc')">Credit</button>
             <button class="data-subtab-btn" data-subtab="promotion" onclick="switchDataSubtab('promotion')">Promotion</button>
             <button class="data-subtab-btn" data-subtab="redbridge" onclick="switchDataSubtab('redbridge')">Redbridge</button>
+            <span id="reading-sub-sep" style="display:none;width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="reading-sub-overview" class="data-subtab-btn" data-reading="student-overview" style="display:none;" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
+            <button id="reading-sub-xref" class="data-subtab-btn" data-reading="xref-read" style="display:none;" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
+            <button id="reading-sub-assess" class="data-subtab-btn" data-reading="assessments" style="display:none;" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
         </div>
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
-            <div class="panel-subnav" style="border-bottom:1px solid #e8e8ed;background:#f5f5f7;">
-                <div style="display:flex;gap:0.5rem;align-items:center;padding:0.55rem 1.25rem;flex-wrap:wrap;">
-                    <button class="toggle-btn reading-view-btn" data-view="student-overview" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
-                    <button class="toggle-btn reading-view-btn" data-view="xref-read" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
-                    <button class="toggle-btn reading-assessments-btn active" onclick="switchReadingSubtab('core')">Assessments</button>
-                </div>
-                <div id="reading-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.3rem 1.25rem 0.45rem;flex-wrap:wrap;">
-                    <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
-                    <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
-                    <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
-                    <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
-                </div>
+            <div id="reading-assessments-subnav" style="display:flex;gap:0.4rem;align-items:center;padding:0.4rem 1.25rem;border-bottom:1px solid #e8e8ed;background:#f5f5f7;flex-wrap:wrap;">
+                <button class="toggle-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">CORE</button>
+                <button class="toggle-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">F&amp;P</button>
+                <button class="toggle-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">Lexia</button>
+                <button class="toggle-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">MAP ELA</button>
             </div>
             <!-- CORE -->
             <div id="reading-panel-core">
@@ -7726,17 +7723,29 @@ function renderHtmlToBlob(html) {
 
 var currentDataSubtab = 'reading';
 var readingSubtab = 'core';
+var lastAssessmentView = 'core';
 var mathSubtab = 'benchmark';
+
+function updateReadingSubBtns(sub) {
+    var assessmentViews = ['core', 'fp', 'lexia', 'map-ela'];
+    var isAssessment = assessmentViews.indexOf(sub) !== -1;
+    var ovBtn = document.getElementById('reading-sub-overview');
+    var xrBtn = document.getElementById('reading-sub-xref');
+    var asBtn = document.getElementById('reading-sub-assess');
+    if (ovBtn) ovBtn.classList.toggle('active', sub === 'student-overview');
+    if (xrBtn) xrBtn.classList.toggle('active', sub === 'xref-read');
+    if (asBtn) asBtn.classList.toggle('active', isAssessment);
+}
 
 function switchReadingSubtab(sub) {
     readingSubtab = sub;
     var assessmentViews = ['core', 'fp', 'lexia', 'map-ela'];
     var isAssessment = assessmentViews.indexOf(sub) !== -1;
+    if (isAssessment) lastAssessmentView = sub;
     document.querySelectorAll('.reading-view-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
-    var assessBtn = document.querySelector('.reading-assessments-btn');
-    if (assessBtn) assessBtn.classList.toggle('active', isAssessment);
+    updateReadingSubBtns(sub);
     var subnav = document.getElementById('reading-assessments-subnav');
     if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
     ['core', 'fp', 'lexia', 'map-ela', 'student-overview', 'xref-read'].forEach(function(n) {
@@ -8666,6 +8675,13 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
+    var showReadingSub = name === 'reading';
+    var readingSubIds = ['reading-sub-sep', 'reading-sub-overview', 'reading-sub-xref', 'reading-sub-assess'];
+    readingSubIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = showReadingSub ? '' : 'none';
+    });
+    if (showReadingSub) updateReadingSubBtns(readingSubtab);
     requestAnimationFrame(updateStickyOffsets);
     if (name === 'reading') renderReadingSubtab();
     if (name === 'comp')    renderMathSubtab();
