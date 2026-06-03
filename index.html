@@ -16131,13 +16131,15 @@ function renderWbAnalytics() {
 function updateStickyOffsets() {
     var hdr = document.querySelector('header');
     var h1 = hdr ? hdr.offsetHeight : 57;
-    var nav2 = document.querySelector('.data-subtab-nav');
-    var h2 = h1 + (nav2 && nav2.offsetHeight ? nav2.offsetHeight : 44);
+    var nav2 = Array.from(document.querySelectorAll('.data-subtab-nav')).find(function(el) {
+        return el.offsetHeight > 0;
+    });
+    var h2 = h1 + (nav2 ? nav2.offsetHeight : 0);
     var panelSubnavH = 0;
     document.querySelectorAll('.panel-subnav').forEach(function(el) {
         if (el.offsetHeight > panelSubnavH) panelSubnavH = el.offsetHeight;
     });
-    var h3 = h2 + (panelSubnavH || 44);
+    var h3 = h2 + panelSubnavH;
     document.documentElement.style.setProperty('--nav-h-1', h1 + 'px');
     document.documentElement.style.setProperty('--nav-h-2', h2 + 'px');
     document.documentElement.style.setProperty('--nav-h-3', h3 + 'px');
