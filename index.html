@@ -1262,6 +1262,11 @@
             <button id="reading-sub-overview-btn" class="data-subtab-btn" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
             <button id="reading-sub-xref-btn" class="data-subtab-btn" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
             <button id="reading-sub-assess-btn" class="data-subtab-btn active" onclick="switchReadingSubtab(lastAssessmentView||'core')">Assessments</button>
+            <span id="reading-logo-sep" style="display:none;width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
+            <button id="reading-logo-core" class="logo-tab-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')" style="display:none;"><img src="CORE%20logo.png" alt="CORE" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-fp" class="logo-tab-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')" style="display:none;"><img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-lexia" class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')" style="display:none;"><img src="Lexia%20Logo.png" alt="Lexia" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-map" class="logo-tab-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')" style="display:none;"><img src="nwea%20map%20logo.png" alt="MAP ELA" style="height:24px;object-fit:contain;display:block;"></button>
         </div>
         <!-- Nav bar for Computation dashboard -->
         <div class="data-subtab-nav" id="comp-nav" style="display:none;">
@@ -1284,20 +1289,6 @@
 
         <!-- ── Reading Dashboard ── -->
         <div class="data-subtab-panel" id="data-subtab-reading">
-            <div id="reading-assessments-subnav" style="display:flex;gap:0.5rem;align-items:center;padding:0.4rem 1rem;border-bottom:1px solid #e8e8ed;background:#fff;flex-wrap:wrap;">
-                <button class="logo-tab-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')">
-                    <img src="CORE%20logo.png" alt="CORE" style="height:30px;object-fit:contain;display:block;">
-                </button>
-                <button class="logo-tab-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')">
-                    <img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:30px;object-fit:contain;display:block;">
-                </button>
-                <button class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')">
-                    <img src="Lexia%20Logo.png" alt="Lexia" style="height:30px;object-fit:contain;display:block;">
-                </button>
-                <button class="logo-tab-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')">
-                    <img src="nwea%20map%20logo.png" alt="MAP ELA" style="height:30px;object-fit:contain;display:block;">
-                </button>
-            </div>
             <!-- CORE -->
             <div id="reading-panel-core">
                 <div class="subpanel-toolbar" style="display:flex;gap:0.75rem;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid #e8e8ed;flex-wrap:wrap;">
@@ -7791,8 +7782,9 @@ function switchReadingSubtab(sub) {
         b.classList.toggle('active', b.dataset.view === sub);
     });
     updateReadingSubBtns(sub);
-    var subnav = document.getElementById('reading-assessments-subnav');
-    if (subnav) subnav.style.display = isAssessment ? 'flex' : 'none';
+    ['reading-logo-sep','reading-logo-core','reading-logo-fp','reading-logo-lexia','reading-logo-map'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.style.display = isAssessment ? '' : 'none';
+    });
     ['core', 'fp', 'lexia', 'map-ela', 'student-overview', 'xref-read'].forEach(function(n) {
         var p = document.getElementById('reading-panel-' + n);
         if (p) p.style.display = n === sub ? '' : 'none';
@@ -8724,7 +8716,7 @@ function switchDataSubtab(name) {
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) {
         p.style.display = (p.id === 'data-subtab-' + name) ? '' : 'none';
     });
-    if (name === 'reading') updateReadingSubBtns(readingSubtab);
+    if (name === 'reading') { updateReadingSubBtns(readingSubtab); var assessViews=['core','fp','lexia','map-ela']; var show=assessViews.indexOf(readingSubtab)!==-1; ['reading-logo-sep','reading-logo-core','reading-logo-fp','reading-logo-lexia','reading-logo-map'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=show?'':'none';}); }
     if (name === 'comp')    updateCompSubBtns(mathSubtab);
     if (name === 'writing') updateWritingSubBtns(writingSubtab);
     requestAnimationFrame(updateStickyOffsets);
