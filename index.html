@@ -8942,12 +8942,14 @@ function drawRedbridgeOverview() {
         + '<div style="font-size:1rem;font-weight:700;color:#1d1d1f;">School Overview</div>'
         + '<div style="font-size:0.8rem;color:#86868b;margin-top:2px;">Average growth &amp; percentile across all assessment areas</div>'
         + '</div>'
-        + '<div style="display:flex;flex-wrap:wrap;gap:1rem;padding:1rem 1.25rem 2rem;">'
-        + card('rb-fp-canvas',    'F&amp;P Reading',          '#FFC8BB', 'Level growth (BOY→EOY avg)')
-        + card('rb-bench-canvas', 'Computation Benchmark',    '#00E3FF', 'Score growth (BOY→EOY avg)')
-        + card('rb-wb-canvas',    'Writing Benchmark',        '#E87BB0', 'Score growth (BOY→EOY avg)')
+        + '<div style="display:flex;gap:1rem;padding:1rem 1.25rem 0.75rem;">'
         + card('rb-mapela-canvas','MAP ELA',                  '#FFC8BB', 'Avg percentile by period')
         + card('rb-mapmath-canvas','MAP Math',                '#00E3FF', 'Avg percentile by period')
+        + '</div>'
+        + '<div style="display:flex;gap:1rem;padding:0 1.25rem 2rem;">'
+        + card('rb-fp-canvas',    'F&amp;P Reading',          '#FFC8BB', 'Level growth (BOY→EOY avg)')
+        + card('rb-wb-canvas',    'Writing Benchmark',        '#E87BB0', 'Score growth (BOY→EOY avg)')
+        + card('rb-bench-canvas', 'Computation Benchmark',    '#00E3FF', 'Score growth (BOY→EOY avg)')
         + '</div>';
 
     el.innerHTML = html;
