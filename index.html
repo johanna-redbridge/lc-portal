@@ -11851,6 +11851,12 @@ var mapElaSelectedStudent    = '';
 var mapElaStudentSearch      = '';
 var mapMathAvgMode           = false;
 var mapElaAvgMode            = false;
+var mapMathSortCol = 'name';
+var mapMathSortDir = 1;
+function setMapMathSort(col) {
+    if (mapMathSortCol === col) { mapMathSortDir = -mapMathSortDir; } else { mapMathSortCol = col; mapMathSortDir = 1; }
+    renderMapMathTable();
+}
 
 // Math scores: K–V (10–21), Math %iles: Z–AK (25–36)
 // ELA scores: AM–AX (38–49), ELA %iles: BB–BM (53–64)
@@ -11976,10 +11982,18 @@ function mapGrowthCell(boyScore, eoyScore, eoyPct) {
         + '</td>';
 }
 
-function doRenderMapTable(el, students, periods, scoresFn, pctsFn) {
+function doRenderMapTable(el, students, periods, scoresFn, pctsFn, sortCfg) {
     var CURRENT_YEAR = '2025-26';
     var TH = 'padding:4px 3px;font-size:0.65rem;white-space:nowrap;';
     var PH = 'padding:3px 4px;';
+    function sArr(col) {
+        if (!sortCfg) return '';
+        if (sortCfg.sortCol === col) return sortCfg.sortDir === 1 ? ' ↑' : ' ↓';
+        return ' <span style="opacity:.35">↕</span>';
+    }
+    function sClick(col) {
+        return sortCfg ? ' onclick="' + sortCfg.onSort + '(\'' + col + '\')" style="cursor:pointer;user-select:none;' : ' style="';
+    }
 
     // Find active indices
     var activeIdxs = [];
@@ -12034,9 +12048,9 @@ function doRenderMapTable(el, students, periods, scoresFn, pctsFn) {
 
     // Header row 1 — year groups
     var hdr1 = '<tr>'
-        + '<th rowspan="2" style="text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student</th>'
-        + '<th rowspan="2" style="position:sticky;top:0;z-index:12;text-align:center;background:#5c5b5a;' + TH + '">GLE</th>'
-        + '<th rowspan="2" style="position:sticky;top:0;z-index:12;text-align:center;background:#5c5b5a;' + TH + '">AL</th>';
+        + '<th rowspan="2"' + sClick('name') + 'text-align:left;position:sticky;top:0;left:0;z-index:14;background:#5c5b5a;' + TH + '">Student' + sArr('name') + '</th>'
+        + '<th rowspan="2"' + sClick('gle') + 'position:sticky;top:0;z-index:12;text-align:center;background:#5c5b5a;' + TH + '">GLE' + sArr('gle') + '</th>'
+        + '<th rowspan="2"' + sClick('al') + 'position:sticky;top:0;z-index:12;text-align:center;background:#5c5b5a;' + TH + '">AL' + sArr('al') + '</th>';
     yearOrder.forEach(function(yr) {
         var yd = yearMap[yr];
         var colspan = yd.cols.length + (yd.showGrowth ? 1 : 0);
@@ -12053,9 +12067,21 @@ function doRenderMapTable(el, students, periods, scoresFn, pctsFn) {
         var bg = cur ? 'background:#6e6050;' : 'background:#4a4948;';
         var sub = 'position:sticky;top:20px;z-index:11;text-align:center;font-size:0.6rem;font-weight:600;padding:3px 2px;';
         yd.cols.forEach(function(c, ci) {
-            hdr2 += '<th style="' + sub + (ci === 0 ? 'border-left:2px solid rgba(255,255,255,0.18);' : '') + bg + '">' + c.season + '</th>';
+            var bl = ci === 0 ? 'border-left:2px solid rgba(255,255,255,0.18);' : '';
+            var sortKey = c.season === 'BOY' ? 'boy' : c.season === 'EOY' ? 'eoy' : null;
+            if (cur && sortCfg && sortKey) {
+                hdr2 += '<th onclick="' + sortCfg.onSort + '(\'' + sortKey + '\')" style="cursor:pointer;user-select:none;' + sub + bl + bg + '">' + c.season + sArr(sortKey) + '</th>';
+            } else {
+                hdr2 += '<th style="' + sub + bl + bg + '">' + c.season + '</th>';
+            }
         });
-        if (yd.showGrowth) hdr2 += '<th style="' + sub + bg + '">Growth</th>';
+        if (yd.showGrowth) {
+            if (cur && sortCfg) {
+                hdr2 += '<th onclick="' + sortCfg.onSort + '(\'growth\')" style="cursor:pointer;user-select:none;' + sub + bg + '">Growth' + sArr('growth') + '</th>';
+            } else {
+                hdr2 += '<th style="' + sub + bg + '">Growth</th>';
+            }
+        }
     });
     hdr2 += '</tr>';
 
@@ -12094,9 +12120,34 @@ function renderMapMathTable() {
     if (!el || !mapData) return;
     var all = mapData.students.slice();
     if (mapMathALFilter !== 'all') all = all.filter(function(s) { return s.al === mapMathALFilter; });
-    doRenderMapTable(el, all, mapData.mathPeriods,
+    var periods = mapData.mathPeriods;
+    var CURRENT_YEAR = '2025-26';
+    var boyIdx = -1, eoyIdx = -1;
+    periods.forEach(function(p, i) {
+        var m = p.match(/\d{4}(?:-\d{2,4})?/);
+        if (m && m[0] === CURRENT_YEAR) {
+            var u = p.toUpperCase();
+            if (u.indexOf('BOY') >= 0) boyIdx = i;
+            if (u.indexOf('EOY') >= 0) eoyIdx = i;
+        }
+    });
+    all.sort(function(a, b) {
+        var d = mapMathSortDir;
+        if (mapMathSortCol === 'gle')  return d * ((parseFloat(a.gle) || 0) - (parseFloat(b.gle) || 0));
+        if (mapMathSortCol === 'al')   return d * (a.al || '').localeCompare(b.al || '');
+        if (mapMathSortCol === 'boy')  return d * ((parseFloat(boyIdx >= 0 ? a.mathScores[boyIdx] : '') || 0) - (parseFloat(boyIdx >= 0 ? b.mathScores[boyIdx] : '') || 0));
+        if (mapMathSortCol === 'eoy')  return d * ((parseFloat(eoyIdx >= 0 ? a.mathScores[eoyIdx] : '') || 0) - (parseFloat(eoyIdx >= 0 ? b.mathScores[eoyIdx] : '') || 0));
+        if (mapMathSortCol === 'growth') {
+            var ag = (boyIdx >= 0 && eoyIdx >= 0) ? (parseFloat(a.mathScores[eoyIdx]) || 0) - (parseFloat(a.mathScores[boyIdx]) || 0) : 0;
+            var bg = (boyIdx >= 0 && eoyIdx >= 0) ? (parseFloat(b.mathScores[eoyIdx]) || 0) - (parseFloat(b.mathScores[boyIdx]) || 0) : 0;
+            return d * (ag - bg);
+        }
+        return d * fullName(a.name).localeCompare(fullName(b.name));
+    });
+    doRenderMapTable(el, all, periods,
         function(s) { return s.mathScores; },
-        function(s) { return s.mathPcts; });
+        function(s) { return s.mathPcts; },
+        { sortCol: mapMathSortCol, sortDir: mapMathSortDir, onSort: 'setMapMathSort' });
 }
 
 function drawMapAvgPctGraph(canvas, bars, color) {
