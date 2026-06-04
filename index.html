@@ -9981,6 +9981,12 @@ function xrefLoadCompDetail(cb){
 
     if(!stmathData){ pending++; loadSTMathData(done); }
     if(!mapData){    pending++; loadMapData(done); }
+    if(!benchLongData){
+        pending++;
+        fetch(BENCH_LONG_URL).then(function(r){return r.text();}).then(function(t){
+            benchLongData = parseBenchLongCsv(t); done();
+        }).catch(function(){ benchLongData=[]; done(); });
+    }
 
     if(pending===0) onAllLoaded();
 }
@@ -10102,6 +10108,12 @@ function xrefLoadReadDetail(cb){
         fetch(XREF_ELA_STDS_URL).then(function(r){return r.text();}).then(function(t){
             xrefElaStds = xrefParseElaStds(t); done();
         }).catch(function(){ xrefElaStds = []; done(); });
+    }
+    if(!fpStudents){
+        pending++;
+        fetch(FP_CSV_URLS.students).then(function(r){return r.text();}).then(function(t){
+            fpStudents = parseFpStudentCsv(t); done();
+        }).catch(function(){ fpStudents=[]; done(); });
     }
     if(pending===0) onAllLoaded();
 }
@@ -10245,6 +10257,10 @@ function xrefReadDetailHTML(){
         }
     }
     if(!lexiaStudent) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;background:#fef3c7;color:#92400e;">No Lexia data matched</span>';
+    // F&P BOY / MOY levels
+    var fpRec = fpStudents ? fpStudents.find(function(s){ return xrefNorm(s.name)===xrefNorm(xrefStudent) || s.name===xrefStudent; }) : null;
+    if (fpRec && fpRec.boy) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#fff0ed;color:#9a3412;">F&amp;P BOY: '+fpDisplayLevel(fpRec.boy)+'</span>';
+    if (fpRec && fpRec.moy) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#ffc8bb;color:#7c2d12;">F&amp;P MOY: '+fpDisplayLevel(fpRec.moy)+'</span>';
     headerHtml += '</div>';
     var summCards = [
         {l:'Credits Earned',v:totEarned,tot:totAtGle,bg:'#FFF4F1',tc:'#1d1d1f'},
@@ -10699,6 +10715,25 @@ function xrefCompDetailHTML(){
     headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#f3f4f6;color:#374151;">GLE: '+(sdata.gle||'?')+'</span>';
     var mapRit = getMapMathRit(xrefStudent);
     if(mapRit) headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0faff;color:#0369a1;" title="MAP Math RIT ('+mapRit.period+')">MAP Math: '+mapRit.score+(mapRit.pct ? ' <span style="font-weight:400;opacity:0.75;">('+mapRit.pct+'%ile)</span>' : '')+'</span>';
+    // Computation Benchmark BOY/MOY
+    var BENCH_MAX = 212;
+    function benchTierLabel(score) {
+        var r = score / BENCH_MAX;
+        if (r >= 1.0) return 'T100'; if (r >= 0.9) return 'T90'; if (r >= 0.8) return 'T80'; if (r >= 0.6) return 'T60'; return 'Below';
+    }
+    var blRec = null;
+    if (benchLongData) {
+        var normXS = xrefNorm(xrefStudent);
+        blRec = benchLongData.find(function(s){ return xrefNorm(s.name)===normXS; }) ||
+                benchLongData.find(function(s){ return s.name===benchName; }) || null;
+    }
+    var blCY = blRec ? blRec.years['2025-26'] : null;
+    if (blCY && blCY.boy !== null) {
+        headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#e0faff;color:#0c4a6e;">Bench BOY: '+blCY.boy+'/'+BENCH_MAX+' <span style="font-weight:400;opacity:0.75;">('+benchTierLabel(blCY.boy)+')</span></span>';
+    }
+    if (blCY && blCY.moy !== null) {
+        headerHtml += '<span style="padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;background:#ccf9ff;color:#0c4a6e;">Bench MOY: '+blCY.moy+'/'+BENCH_MAX+' <span style="font-weight:400;opacity:0.75;">('+benchTierLabel(blCY.moy)+')</span></span>';
+    }
     headerHtml += '</div>';
 
     // Summary cards
