@@ -12599,7 +12599,7 @@ function mapGrowthCell(boyScore, eoyScore, eoyPct) {
 }
 
 function doRenderMapTable(el, students, periods, scoresFn, pctsFn, sortCfg) {
-    var CURRENT_YEAR = '2025-26';
+    var CURRENT_YEAR = '25/26';
     var TH = 'padding:4px 3px;font-size:0.65rem;white-space:nowrap;';
     var PH = 'padding:3px 4px;';
     function sArr(col) {
@@ -12618,14 +12618,29 @@ function doRenderMapTable(el, students, periods, scoresFn, pctsFn, sortCfg) {
     }
     if (!activeIdxs.length) { el.innerHTML = '<p style="padding:1rem;color:#aeaeb2;">No data.</p>'; return; }
 
-    // Group by year
+    // Group by school year (Fall YYYY = BOY of YY/YY+1; Spring YYYY = EOY of YY-1/YY)
+    function pad2(n) { return ('0' + (n % 100)).slice(-2); }
     var yearOrder = [], yearMap = {};
     activeIdxs.forEach(function(j) {
         var lbl = periods[j] || '';
-        var m = lbl.match(/\d{4}(?:-\d{2,4})?/);
-        var yr = m ? m[0] : '_';
         var upper = lbl.toUpperCase();
-        var season = upper.indexOf('BOY') >= 0 ? 'BOY' : upper.indexOf('MOY') >= 0 ? 'MOY' : upper.indexOf('EOY') >= 0 ? 'EOY' : lbl;
+        var calM = lbl.match(/(\d{4})/);
+        var calYear = calM ? parseInt(calM[1]) : 0;
+        var season, yr;
+        if (upper.indexOf('FALL') >= 0) {
+            season = 'BOY';
+            yr = calYear ? pad2(calYear) + '/' + pad2(calYear + 1) : '_';
+        } else if (upper.indexOf('SPRING') >= 0) {
+            season = 'EOY';
+            yr = calYear ? pad2(calYear - 1) + '/' + pad2(calYear) : '_';
+        } else if (upper.indexOf('WINTER') >= 0) {
+            season = 'MOY';
+            yr = calYear ? pad2(calYear - 1) + '/' + pad2(calYear) : '_';
+        } else {
+            season = upper.indexOf('BOY') >= 0 ? 'BOY' : upper.indexOf('MOY') >= 0 ? 'MOY' : upper.indexOf('EOY') >= 0 ? 'EOY' : lbl;
+            var m = lbl.match(/\d{4}(?:-\d{2,4})?/);
+            yr = m ? m[0] : '_';
+        }
         if (!yearMap[yr]) { yearMap[yr] = { yr: yr, cols: [], showGrowth: false }; yearOrder.push(yr); }
         yearMap[yr].cols.push({ idx: j, season: season });
     });
