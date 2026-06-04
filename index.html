@@ -12627,17 +12627,18 @@ function doRenderMapTable(el, students, periods, scoresFn, pctsFn, sortCfg) {
         var calM = lbl.match(/(\d{4})/);
         var calYear = calM ? parseInt(calM[1]) : 0;
         var season, yr;
-        if (upper.indexOf('FALL') >= 0) {
+        // mapPeriodLabel converts Fall→BOY, Spring→EOY before labels reach here
+        if (upper.indexOf('BOY') >= 0) {
             season = 'BOY';
             yr = calYear ? pad2(calYear) + '/' + pad2(calYear + 1) : '_';
-        } else if (upper.indexOf('SPRING') >= 0) {
+        } else if (upper.indexOf('EOY') >= 0) {
             season = 'EOY';
             yr = calYear ? pad2(calYear - 1) + '/' + pad2(calYear) : '_';
-        } else if (upper.indexOf('WINTER') >= 0) {
+        } else if (upper.indexOf('MOY') >= 0) {
             season = 'MOY';
             yr = calYear ? pad2(calYear - 1) + '/' + pad2(calYear) : '_';
         } else {
-            season = upper.indexOf('BOY') >= 0 ? 'BOY' : upper.indexOf('MOY') >= 0 ? 'MOY' : upper.indexOf('EOY') >= 0 ? 'EOY' : lbl;
+            season = lbl;
             var m = lbl.match(/\d{4}(?:-\d{2,4})?/);
             yr = m ? m[0] : '_';
         }
