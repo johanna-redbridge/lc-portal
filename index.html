@@ -11270,19 +11270,19 @@ function renderCoreGrowthChart(students) {
     // For each category × period count mastered / partial / not-yet
     var catData = CORE_CATS.map(function(cat, ci) {
         var bars = PERIODS.map(function(pd) {
-            var mastered = 0, partial = 0, notYet = 0;
+            var mastered = 0, partial = 0, notYet = 0, noData = 0;
             students.forEach(function(s) {
                 var pData = s[pd.key];
-                if (!pData) { notYet++; return; }
+                if (!pData) { noData++; return; }
                 var raw = pData.scores[ci];
-                if (raw === null || raw === undefined || raw === '') { notYet++; return; }
+                if (raw === null || raw === undefined || raw === '') { noData++; return; }
                 if (coreRawIsMastered(raw)) { mastered++; return; }
                 var n = parseInt(raw, 10);
                 if (!isNaN(n) && n >= cat.max) { mastered++; return; }
                 if (!isNaN(n) && n > 0) { partial++; return; }
                 notYet++;
             });
-            return { mastered: mastered, partial: partial, notYet: notYet };
+            return { mastered: mastered, partial: partial, notYet: notYet, noData: noData };
         });
         return { cat: cat, bars: bars };
     });
@@ -11356,11 +11356,17 @@ function renderCoreGrowthChart(students) {
                 var x = gStartX + pi * (BW + GAP_INNER);
                 var yBottom = padT + plotH;
 
+                // EOY bar with no data at all → solid light grey placeholder
+                if (pi === 2 && bar.noData === total) {
+                    ctx.fillStyle = '#e2e2e7';
+                    ctx.fillRect(x, padT, BW, plotH);
+                    // period label drawn below as normal
+                } else {
                 // Draw from bottom: mastered (green), partial (yellow), notYet (red)
                 var segs = [
                     { count: bar.mastered, color: '#5a9e5a', text: '#ffffff' },
                     { count: bar.partial,  color: '#F8D66D', text: '#1d1d1f' },
-                    { count: bar.notYet,   color: '#f87171', text: '#ffffff' }
+                    { count: bar.notYet + bar.noData, color: '#f87171', text: '#ffffff' }
                 ];
 
                 segs.forEach(function(seg, si) {
@@ -11381,6 +11387,7 @@ function renderCoreGrowthChart(students) {
                     }
                     yBottom = yTop;
                 });
+                }
 
                 // Period label under bar
                 ctx.fillStyle = '#64748b';
