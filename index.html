@@ -8852,8 +8852,8 @@ function drawRedbridgeOverview() {
             fpLongData.forEach(function(s) {
                 var boyPt = s.points[band.s], eoyPt = s.points[band.e];
                 if (!boyPt || !boyPt.level || !eoyPt || !eoyPt.level) return;
-                var bg = fpGrowthNumMap[(boyPt.level||'').trim().toLowerCase()];
-                var eg = fpGrowthNumMap[(eoyPt.level||'').trim().toLowerCase()];
+                var bg = fpLevelScoreMap[(boyPt.level||'').trim().toLowerCase()];
+                var eg = fpLevelScoreMap[(eoyPt.level||'').trim().toLowerCase()];
                 if (bg != null && eg != null) growths.push(eg - bg);
             });
             if (growths.length) {
