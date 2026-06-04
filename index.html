@@ -1235,11 +1235,6 @@
             </div>
         </div>
 
-        <!-- Coming soon panel for Redbridge -->
-        <div id="data-subtab-redbridge" class="data-subtab-panel" style="display:none;">
-            <div id="redbridge-content"></div>
-        </div>
-
         <!-- Nav bar for non-reading dashboards -->
         <div class="data-subtab-nav" id="data-subtab-nav" style="display:none;">
             <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
@@ -1304,6 +1299,11 @@
         <div class="data-subtab-nav" id="redbridge-nav" style="display:none;">
             <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
             <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Redbridge</span>
+        </div>
+
+        <!-- ── Redbridge Dashboard ── -->
+        <div id="data-subtab-redbridge" class="data-subtab-panel" style="display:none;">
+            <div id="redbridge-content"></div>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -8769,10 +8769,8 @@ function drawSchoolGrowthBars(canvas, bars, barColor) {
         else { ctx.fillRect(cx - bw/2, topY, bw, barH); }
         ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(b.avg.toFixed(1), cx, topY - 5);
-        ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif';
-        ctx.fillText('n=' + b.count, cx, padT + plotH + 13);
         ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
-        ctx.fillText(b.label, cx, padT + plotH + 26);
+        ctx.fillText(b.label, cx, padT + plotH + 16);
     });
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
@@ -8813,10 +8811,8 @@ function drawSchoolAvgPct(canvas, bars, barColor) {
         else { ctx.fillRect(cx-bw/2, yTop, bw, barH); }
         ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 9px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(Math.round(b.avg)+'%ile', cx, yTop-4);
-        ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif';
-        ctx.fillText('n='+b.count, cx, padT+plotH+13);
         ctx.fillStyle = '#64748b'; ctx.font = '9px -apple-system,sans-serif';
-        ctx.fillText(b.label, cx, padT+plotH+26);
+        ctx.fillText(b.label, cx, padT+plotH+16);
     });
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
