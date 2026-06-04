@@ -11488,14 +11488,14 @@ function renderCore() {
     if (coreViewMode === 'chart') { renderCoreGrowthChart(students); return; }
     var p = corePeriod;
     var isAll = (p === 'all');
-    // colgroup: student 14%, goal 7%, 2 growth 4% each, period 2.5%(All), 13 cats share rest, known 4%
-    var fixedPct = 14 + 7 + 4 + 4 + (isAll ? 2.5 : 0) + 4;
+    // colgroup: student 14%, goal 7%, 2 growth 6% each, period 2.5%(All), 13 cats share rest, known 4%
+    var fixedPct = 14 + 7 + 6 + 6 + (isAll ? 2.5 : 0) + 4;
     var catPct   = ((100 - fixedPct) / CORE_CATS.length).toFixed(1);
     var colgroup = '<colgroup>'
         + '<col style="width:14%">'
         + '<col style="width:7%">'
-        + '<col style="width:4%">'
-        + '<col style="width:4%">'
+        + '<col style="width:6%">'
+        + '<col style="width:6%">'
         + (isAll ? '<col style="width:2.5%">' : '')
         + CORE_CATS.map(function() { return '<col style="width:' + catPct + '%">'; }).join('')
         + '<col style="width:4%">'
@@ -11533,8 +11533,8 @@ function renderCore() {
         + colgroup + '<thead><tr>';
     html += cTh('name','Student','text-align:left;','core-name-col');
     html += cTh('goal','EOY Goal<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">words</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
-    html += cTh('boymoy','BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span>','font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;');
-    html += '<th style="font-size:0.6rem;white-space:normal;line-height:1.2;overflow:hidden;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
+    html += cTh('boymoy','BOY→MOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span>','font-size:0.65rem;white-space:nowrap;line-height:1.3;');
+    html += '<th style="font-size:0.65rem;white-space:nowrap;line-height:1.3;">MOY→EOY<br><span style="font-weight:400;color:rgba(255,255,255,0.6);font-size:0.55rem;">growth</span></th>';
     if (isAll) html += '<th style="font-size:0.55rem;color:rgba(255,255,255,0.7);font-weight:500;overflow:hidden;"></th>';
     CORE_CATS.forEach(function(cat, ci) {
         html += '<th title="' + cat.full + '" onclick="setCoreSort(\'cat_'+ci+'\')" style="cursor:pointer;user-select:none;overflow:hidden;">'
