@@ -9461,7 +9461,7 @@ function _drawPromoAttChart(canvas, ys) {
         ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,cx,pT+plotH+16);
     });
     var lx=pL;
-    colors.forEach(function(c,i){ctx.fillStyle=c;ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(lbls[i],lx+12,pT-13);lx+=54;});
+    colors.forEach(function(c,i){ctx.fillStyle=c;ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(lbls[i],lx+12,pT-13);lx+=ctx.measureText(lbls[i]).width+22;});
     ctx.strokeStyle='#d1d1d6';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+plotH);ctx.lineTo(pL+plotW,pT+plotH);ctx.stroke();
 }
 
