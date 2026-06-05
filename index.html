@@ -5573,11 +5573,9 @@ function renderEarnedStudent(period, container) {
             var att = !e && isAttempted(studentId, c.id);
             if (e) {
                 html += '<span class="earned-icon earned-yes" style="cursor:pointer;" onclick="toggleEarned(\'' + studentId + '\',\'' + c.id + '\')">&#10003;</span>';
-                if (fd) html += '<span class="earned-date" style="cursor:pointer;" onclick="event.stopPropagation();editEarnedDate(\'' + studentId + '\',\'' + c.id + '\')">'+fd+'</span>';
             } else if (att) {
                 var afd = formatDate(att.date);
                 html += '<span class="earned-icon attempted-icon" style="cursor:pointer;" onclick="toggleEarned(\'' + studentId + '\',\'' + c.id + '\')"' + (afd ? ' title="Attempted ' + afd + '"' : '') + '>a</span>';
-                if (afd) html += '<span class="earned-date" style="cursor:pointer;" onclick="event.stopPropagation();editAttemptedDate(\'' + studentId + '\',\'' + c.id + '\')">'+afd+'</span>';
             } else {
                 html += '<span class="earned-icon earned-no" style="cursor:pointer;" onclick="toggleEarned(\'' + studentId + '\',\'' + c.id + '\')">&#10007;</span>';
             }
@@ -5613,9 +5611,15 @@ function renderEarnedStudent(period, container) {
                 }
                 html += '</div>';
             } else {
+                html += '<div style="display:flex;gap:4px;align-items:center;">';
                 html += '<div class="artifact-drop" ondragover="artifactDragOver(event)" ondragleave="artifactDragLeave(event)" ondrop="handleArtifactDrop(event,\'' + studentId + '\',\'' + c.id + '\')">';
                 html += '<span style="pointer-events:none;">&#128206; Drop</span>';
                 html += '<input type="file" accept="image/*,video/*,application/pdf" onchange="handleArtifactDrop(event,\'' + studentId + '\',\'' + c.id + '\')" />';
+                html += '</div>';
+                html += '<div class="artifact-drop">';
+                html += '<span style="pointer-events:none;">&#128247; Capture</span>';
+                html += '<input type="file" accept="image/*" capture="environment" onchange="handleArtifactDrop(event,\'' + studentId + '\',\'' + c.id + '\')" />';
+                html += '</div>';
                 html += '</div>';
             }
             html += '</td>';
