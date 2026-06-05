@@ -8757,9 +8757,10 @@ function drawSchoolGrowthBars(canvas, bars, barColor) {
         ctx.fillStyle = '#94a3b8'; ctx.font = '12px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText('No data', W/2, H/2); return;
     }
-    var maxVal = Math.max.apply(null, bars.map(function(b){ return Math.abs(b.avg); }));
+    var dataBars = bars.filter(function(b){ return !b.noData; });
+    var maxVal = dataBars.length ? Math.max.apply(null, dataBars.map(function(b){ return Math.abs(b.avg); })) : 0;
     var yMax = Math.max(maxVal * 1.4, 3);
-    var yMin = Math.min(0, Math.min.apply(null, bars.map(function(b){ return b.avg; })) - 0.5);
+    var yMin = dataBars.length ? Math.min(0, Math.min.apply(null, dataBars.map(function(b){ return b.avg; })) - 0.5) : 0;
     function xCX(i){ return padL + (i + 0.5) * plotW / bars.length; }
     var bw = Math.min(plotW / bars.length * 0.55, 34);
     function yOf(v){ return padT + plotH * (1 - (v - yMin)/(yMax - yMin)); }
@@ -8777,6 +8778,17 @@ function drawSchoolGrowthBars(canvas, bars, barColor) {
     ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(padL + plotW, y0); ctx.stroke();
     bars.forEach(function(b, i) {
         var cx = xCX(i);
+        ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.label, cx, padT + plotH + 16);
+        if (b.noData) {
+            var phH = Math.max(plotH * 0.12, 6);
+            ctx.fillStyle = '#e2e2e7';
+            if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cx - bw/2, y0 - phH, bw, phH, [4,4,0,0]); ctx.fill(); }
+            else { ctx.fillRect(cx - bw/2, y0 - phH, bw, phH); }
+            ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif';
+            ctx.fillText('No data yet', cx, y0 - phH - 4);
+            return;
+        }
         var topY = b.avg >= 0 ? yOf(b.avg) : y0;
         var botY = b.avg >= 0 ? y0 : yOf(b.avg);
         var barH = Math.max(Math.abs(botY - topY), 2);
@@ -8785,8 +8797,6 @@ function drawSchoolGrowthBars(canvas, bars, barColor) {
         else { ctx.fillRect(cx - bw/2, topY, bw, barH); }
         ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(b.avg.toFixed(1), cx, topY - 5);
-        ctx.fillStyle = '#64748b'; ctx.font = '10px -apple-system,sans-serif';
-        ctx.fillText(b.label, cx, padT + plotH + 16);
     });
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
@@ -8878,6 +8888,9 @@ function drawRedbridgeOverview() {
             }
         });
     }
+    if (fpBars.length && !fpBars.some(function(b){ return b.label === '25-26'; })) {
+        fpBars.push({ label: '25-26', avg: 0, noData: true });
+    }
 
     // Computation Benchmark: average BOY→EOY growth per year
     var benchBars = [];
@@ -8909,6 +8922,9 @@ function drawRedbridgeOverview() {
                 wbBars.push({ label: y.label, avg: avg, count: growths.length });
             }
         });
+    }
+    if (wbBars.length && !wbBars.some(function(b){ return b.label === '25-26'; })) {
+        wbBars.push({ label: '25-26', avg: 0, noData: true });
     }
 
     // MAP ELA: average percentile per period
