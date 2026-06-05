@@ -9294,11 +9294,11 @@ function _renderPromoOverview() {
         +'<p style="font-size:.68rem;color:#94a3b8;margin:0 0 10px;">All years combined · grouped by BOY autonomy level</p>'
         +'<table style="width:100%;border-collapse:collapse;font-size:.75rem;">'
         +'<thead><tr style="border-bottom:1px solid #e8e8ed;">'
-        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#5c5b5a;">AL</th>'
-        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Students</th>'
-        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Attempts</th>'
-        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Successes</th>'
-        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#5c5b5a;min-width:90px;">Success rate</th>'
+        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#fff;">AL</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#fff;">Students</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#fff;">Attempts</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#fff;">Successes</th>'
+        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#fff;min-width:90px;">Success rate</th>'
         +'</tr></thead><tbody>';
     [1,2,3,4].forEach(function(al) {
         var st = alStats[al];
@@ -9492,6 +9492,7 @@ function _drawPromoALChart(canvas, ys) {
             ctx.fillStyle='#8e8e93';ctx.font='8px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(sk,cx,pT+plotH+13);
         });
         ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,gx,pT+plotH+30);
+        ctx.fillStyle='#8e8e93';ctx.font='8px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('n='+y.s.n,gx,pT+plotH+42);
     });
     var lx=pL;
     [1,2,3,4].forEach(function(al){ctx.fillStyle=PROMO_AL_LIGHT[al];ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText('AL'+al,lx+12,pT-13);lx+=36;});
@@ -9689,6 +9690,28 @@ function _renderPromoXrefStudent() {
         });
     }
 
+    // F&P goal segments per year (from yearGoals in spreadsheet)
+    var fpGoalSegs = [];
+    if (fpLong && fpLong.yearGoals) {
+        FP_YEAR_BANDS.forEach(function(band) {
+            var glLv = fpLong.yearGoals[band.label];
+            if (!glLv) return;
+            var sc = fpScore(glLv.toLowerCase());
+            if (!sc) return;
+            var fp0 = FP_LONG_COLS[band.s], fpN = FP_LONG_COLS[band.e];
+            fpGoalSegs.push({fromPeriod: xrefNormPeriod(fp0.label), toPeriod: xrefNormPeriod(fpN.label), value: sc});
+        });
+    }
+
+    // Computation goal segments per year (from goal col in spreadsheet)
+    var compGoalSegs = [];
+    if (compLong) {
+        BENCH_LONG_YEARS.forEach(function(y) {
+            var yd = compLong.years[y.key]; if (!yd || yd.goal === null) return;
+            compGoalSegs.push({fromPeriod: xrefNormPeriod(y.label+' BOY'), toPeriod: xrefNormPeriod(y.label+' EOY'), value: yd.goal});
+        });
+    }
+
     // --- Writing data ---
     var wbLong = xrefFindStudent(wbLongData, name);
     var wbLinePts = [], wbGoalSegs = [];
@@ -9777,10 +9800,7 @@ function _renderPromoXrefStudent() {
         var compC = document.getElementById('promo-xref-comp-canvas');
         if (compC && compLinePts.length >= 2) {
             compC.width = compC.offsetWidth || 700; compC.height = 200;
-            drawXrefAlignedGraph(compC, compLinePts, '#00E3FF', MP, {seqX: true, gradeLines: [
-                {score:1, label:'KG'},{score:2, label:'Gr 1'},{score:3, label:'Gr 3'},
-                {score:4, label:'Gr 4'},{score:5, label:'Gr 5'},{score:6, label:'Gr 6'},{score:7, label:'Gr 7'}
-            ]});
+            drawXrefAlignedGraph(compC, compLinePts, '#00E3FF', MP, {seqX: true, goalSegs: compGoalSegs.length ? compGoalSegs : null});
         }
         var mapMathC = document.getElementById('promo-xref-mapmath-canvas');
         if (mapMathC && mapMathPts.length >= 2) {
@@ -9790,7 +9810,7 @@ function _renderPromoXrefStudent() {
         var fpC = document.getElementById('promo-xref-fp-canvas');
         if (fpC && fpLong) {
             fpC.width = fpC.offsetWidth || 700; fpC.height = 220;
-            drawXrefAlignedFpGraph(fpC, fpLong.points, fpLong.gle, MP, {seqX: true});
+            drawXrefAlignedFpGraph(fpC, fpLong.points, fpLong.gle, MP, {seqX: true, goalSegs: fpGoalSegs.length ? fpGoalSegs : null});
         }
         var mapElaC = document.getElementById('promo-xref-mapela-canvas');
         if (mapElaC && mapElaPts.length >= 2) {
@@ -9939,18 +9959,18 @@ function drawXrefAlignedFpGraph(canvas, points, gle, masterPeriods, opts) {
     if(!mapped.length)return;
     var scores=mapped.map(function(p){return p.score;}),gleScore=null,gleLabel='';
     if(gle){var gleLv=gleTargetLevel(gle);if(gleLv){gleScore=fpScore(gleLv.toLowerCase());gleLabel=gleLv.toUpperCase();}}
-    if(gleScore!==null)scores.push(gleScore);
+    if(opts.goalSegs) opts.goalSegs.forEach(function(g){if(g.value!==null)scores.push(g.value);});
+    else if(gleScore!==null) scores.push(gleScore);
     var minS=Math.min.apply(null,scores),maxS=Math.max.apply(null,scores),rng=maxS-minS||0.5;
     var yMin=Math.max(0,minS-rng*0.25),yMax=maxS+rng*0.35;
     function yOf(s){return padT+plotH*(1-(s-yMin)/(yMax-yMin));}
     ctx.fillStyle='#fafafa';ctx.fillRect(0,0,W,H);
     [[2,3],[5,6],[8,9],[11,12],[14,15]].forEach(function(p){ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(xOf(p[0]),padT,xOf(p[1])-xOf(p[0]),plotH);});
     ['20/21','21/22','22/23','23/24','24/25','25/26'].forEach(function(l,yi){ctx.fillStyle='#c7c7cc';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(l,xOf(yi*3+1),padT+10);});
-    // Grade-level EOY reference lines only (one per grade): A-D=KG, E-J=1, K-M=2, N-P=3, Q-S=4, T-V=5, W-Y=6, Z=7
-    var _fpGradeEoys=[{lv:'d',gl:'KG'},{lv:'j',gl:'Gr 1'},{lv:'m',gl:'Gr 2'},{lv:'p',gl:'Gr 3'},{lv:'s',gl:'Gr 4'},{lv:'v',gl:'Gr 5'},{lv:'y',gl:'Gr 6'},{lv:'z',gl:'Gr 7'}];
-    var _fpGlC=['#86efac','#4ade80','#22c55e','#16a34a','#15803d','#166534','#14532d','#0f3d22'];
-    _fpGradeEoys.forEach(function(g,gi){var s=fpLevelScoreMap[g.lv];if(!s||s<yMin-0.01||s>yMax+0.01)return;var gy=yOf(s),clr=_fpGlC[gi%_fpGlC.length];ctx.save();ctx.strokeStyle=clr;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+plotW,gy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=clr;ctx.font='bold 8px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(g.gl,padL+plotW-4,gy-3);ctx.restore();});
-    if(gleScore!==null){var gleY=yOf(gleScore);ctx.save();ctx.strokeStyle='#16a34a';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(padL,gleY);ctx.lineTo(padL+plotW,gleY);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#16a34a';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('EOY Target: '+gleLabel,padL+plotW-4,gleY-4);ctx.restore();}
+    if(opts.goalSegs && opts.goalSegs.length){
+        var _fpStep=N>1?plotW/(N-1):plotW;
+        opts.goalSegs.forEach(function(gs){if(gs.value===null)return;var i1=masterPeriods.indexOf(gs.fromPeriod),i2=masterPeriods.indexOf(gs.toPeriod);if(i1<0||i2<0)return;var gy=yOf(gs.value),x1=Math.max(padL,xOf(i1)-_fpStep*0.3),x2=Math.min(padL+plotW,xOf(i2)+_fpStep*0.3);ctx.save();ctx.strokeStyle='#34c759';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(x1,gy);ctx.lineTo(x2,gy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#34c759';ctx.font='bold 8px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText('GLE',x2+3,gy+3);ctx.restore();});
+    } else if(gleScore!==null){var gleY=yOf(gleScore);ctx.save();ctx.strokeStyle='#16a34a';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(padL,gleY);ctx.lineTo(padL+plotW,gleY);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#16a34a';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('EOY Target: '+gleLabel,padL+plotW-4,gleY-4);ctx.restore();}
     if(mapped.length>1){ctx.beginPath();mapped.forEach(function(p,i){i===0?ctx.moveTo(xOf(p.idx),yOf(p.score)):ctx.lineTo(xOf(p.idx),yOf(p.score));});ctx.lineTo(xOf(mapped[mapped.length-1].idx),padT+plotH);ctx.lineTo(xOf(mapped[0].idx),padT+plotH);ctx.closePath();ctx.fillStyle='rgba(255,200,187,0.2)';ctx.fill();}
     ctx.beginPath();ctx.strokeStyle='#FFC8BB';ctx.lineWidth=2.5;ctx.setLineDash([]);mapped.forEach(function(p,i){i===0?ctx.moveTo(xOf(p.idx),yOf(p.score)):ctx.lineTo(xOf(p.idx),yOf(p.score));});ctx.stroke();
     var SC={boy:'#d1d1d6',moy:'#8e8e93',eoy:'#1c1c1e'};
@@ -9975,7 +9995,7 @@ function drawXrefAlignedALGraph(canvas, alPts, masterPeriods) {
     [1,2,3,4].forEach(function(al){var gy=yOf(al);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('AL'+al,padL-4,gy+3);});
     if(mapped.length>1){ctx.beginPath();mapped.forEach(function(p,i){i===0?ctx.moveTo(xOf(p.idx),yOf(p.al)):ctx.lineTo(xOf(p.idx),yOf(p.al));});ctx.lineTo(xOf(mapped[mapped.length-1].idx),padT+plotH);ctx.lineTo(xOf(mapped[0].idx),padT+plotH);ctx.closePath();ctx.fillStyle='rgba(92,91,90,0.07)';ctx.fill();}
     ctx.beginPath();ctx.strokeStyle='#5c5b5a';ctx.lineWidth=2.5;ctx.setLineDash([]);mapped.forEach(function(p,i){i===0?ctx.moveTo(xOf(p.idx),yOf(p.al)):ctx.lineTo(xOf(p.idx),yOf(p.al));});ctx.stroke();
-    var lx=padL;[['#34c759','▲ Promoted'],['#ff3b30','▲ Not promoted'],['#ff9500','▲ Pending']].forEach(function(pair){ctx.fillStyle=pair[0];ctx.font='bold 11px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(pair[1].slice(0,1),lx,padT-20);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.fillText(pair[1].slice(1),lx+10,padT-18);lx+=105;});
+    var lx=padL;[['#34c759','▲ Success'],['#ff3b30','▲ Attempt'],['#ff9500','▲ Pending']].forEach(function(pair){ctx.fillStyle=pair[0];ctx.font='bold 11px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText(pair[1].slice(0,1),lx,padT-20);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.fillText(pair[1].slice(1),lx+10,padT-18);lx+=90;});
     var _alSC={BOY:'#d1d1d6',MOY:'#8e8e93',EOY:'#1c1c1e'};
     mapped.forEach(function(p){var x=xOf(p.idx),y=yOf(p.al),season=(p.norm.split(' ')[1]||'BOY').toUpperCase();if(p.att===true){var mc=p.suc===true?'#34c759':p.suc===false?'#ff3b30':'#ff9500';ctx.fillStyle=mc;ctx.font='bold 13px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('▲',x,y-23);}ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=_alSC[season]||'#d1d1d6';ctx.fill();ctx.strokeStyle='#5c5b5a';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#1d1d1f';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('AL'+p.al,x,y-11);});
     _xrefAxisLabels(ctx,mapped,N,padL,padT,plotW,plotH);
