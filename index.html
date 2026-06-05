@@ -9148,17 +9148,15 @@ function _renderPromoOverview() {
         var s=y.s;
         var mr=s.midAtt?Math.round(s.midSuc/s.midAtt*100)+'%':'—';
         var er=s.eoyAtt?Math.round(s.eoySuc/s.eoyAtt*100)+'%':'—';
-        var mrC=s.midAtt?(s.midSuc/s.midAtt>=0.6?'#34c759':'#ff3b30'):'#aeaeb2';
-        var erC=s.eoyAtt?(s.eoySuc/s.eoyAtt>=0.6?'#34c759':'#ff3b30'):'#aeaeb2';
         html+='<tr style="border-top:1px solid #e8e8ed;'+(i%2?'background:#fafafa;':'')+'">'
             +'<td style="padding:6px 10px;font-weight:600;">'+y.label+'</td>'
             +'<td style="padding:6px 10px;text-align:center;">'+s.n+'</td>'
             +'<td style="padding:6px 10px;text-align:center;">'+s.midAtt+'</td>'
             +'<td style="padding:6px 10px;text-align:center;">'+s.midSuc+'</td>'
-            +'<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+mrC+';">'+mr+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;font-weight:700;">'+mr+'</td>'
             +'<td style="padding:6px 10px;text-align:center;">'+s.eoyAtt+'</td>'
             +'<td style="padding:6px 10px;text-align:center;">'+s.eoySuc+'</td>'
-            +'<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+erC+';">'+er+'</td>'
+            +'<td style="padding:6px 10px;text-align:center;font-weight:700;">'+er+'</td>'
             +'<td style="padding:6px 10px;text-align:center;font-weight:700;">'+(s.midSuc+s.eoySuc)+'</td></tr>';
     });
     html += '</tbody></table></div></div>';
