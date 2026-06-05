@@ -8906,6 +8906,7 @@ function drawRedbridgeOverview() {
     var benchBars = [];
     if (benchLongData && benchLongData.length) {
         BENCH_LONG_YEARS.forEach(function(y) {
+            if (y.label === '25-26') return; // current year shown as placeholder below
             var growths = [];
             benchLongData.forEach(function(s) {
                 var yd = s.years[y.key];
@@ -8916,6 +8917,9 @@ function drawRedbridgeOverview() {
                 benchBars.push({ label: y.label, avg: avg, count: growths.length });
             }
         });
+    }
+    if (benchBars.length) {
+        benchBars.push({ label: '25-26', avg: 0, noData: true });
     }
 
     // Writing Benchmark: average BOY→EOF growth per year
