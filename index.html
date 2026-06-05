@@ -9229,7 +9229,7 @@ function _renderPromoOverview() {
         +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Year-by-Year Summary</div>'
         +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.78rem;">'
         +'<thead><tr style="background:#5c5b5a;">'
-        +['Year','Students','Mid Att','Mid Suc','Mid Rate','EOY Att','EOY Suc','EOY Rate','Promoted'].map(function(h){
+        +['Year','Students','MOY Attempt','MOY Success','MOY Rate','EOY Attempt','EOY Success','EOY Rate','Promoted'].map(function(h){
             return '<th style="padding:7px 10px;text-align:'+(h==='Year'?'left':'center')+';font-weight:700;color:#ffffff;">'+h+'</th>';
         }).join('')+'</tr></thead><tbody>';
     ys.forEach(function(y,i){
@@ -9445,7 +9445,7 @@ function _drawPromoAttChart(canvas, ys) {
     function yOf(v){return pT+plotH*(1-v/maxV);}
     for(var g=0;g<=4;g++){var gv=maxV*g/4,gy=yOf(gv);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(gv),pL-4,gy+3);}
     var colors=['#93c5fd','#1d4ed8','#fdba74','#ea580c'];
-    var lbls=['Mid Att','Mid Suc','EOY Att','EOY Suc'];
+    var lbls=['MOY Attempt','MOY Success','EOY Attempt','EOY Success'];
     var n=ys.length, gW=plotW/n, bw=gW*0.17, gap=gW*0.025;
     ys.forEach(function(y,i){
         var cx=pL+(i+0.5)*gW;
