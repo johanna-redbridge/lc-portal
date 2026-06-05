@@ -9552,9 +9552,11 @@ function _drawPromoStuChart(canvas, sy) {
     pts.forEach(function(p,i){i===0?ctx.moveTo(xOf(i),yOf(p.al)):ctx.lineTo(xOf(i),yOf(p.al));});
     ctx.stroke();
     // Dots + promotion markers
+    var _alDotSC={BOY:'#d1d1d6',MOY:'#8e8e93',EOY:'#1c1c1e'};
     pts.forEach(function(p,i){
         var x=xOf(i),y=yOf(p.al);
-        ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=PROMO_AL_DARK[p.al]||'#5c5b5a';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+        var _sea=p.lbl.indexOf('EOY')>-1?'EOY':p.lbl.indexOf('MOY')>-1?'MOY':'BOY';
+        ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=_alDotSC[_sea];ctx.fill();ctx.strokeStyle='#5c5b5a';ctx.lineWidth=2;ctx.stroke();
         ctx.fillStyle='#1d1d1f';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('AL'+p.al,x,y-11);
         if(p.att===true){
             var mc=p.suc===true?'#34c759':p.suc===false?'#ff3b30':'#ff9500';
@@ -9729,7 +9731,7 @@ function _renderPromoXrefStudent() {
             +'</div>';
     }
 
-    // Order: AL → Comp → MAP Math → Writing → F&P → MAP ELA
+    // Order: AL → Comp → MAP Math → F&P → MAP ELA → Writing
     var html = '';
 
     var MP = XREF_MASTER_PERIODS;
@@ -9756,13 +9758,13 @@ function _renderPromoXrefStudent() {
         return hdr+'<p style="padding:0.85rem 1rem;color:#aeaeb2;font-size:.78rem;margin:0;">'+msg+'</p></div>';
     }
     html += mapXrefBox('promo-xref-mapmath-canvas', 'MAP Math', '#60a5fa', mapMathPts);
-    if (wbLinePts.length >= 2) {
-        html += xrefChartWrap('promo-xref-wb-canvas', 'Writing Benchmark', '#E87BB0', 200);
-    }
     if (fpLong) {
         html += xrefChartWrap('promo-xref-fp-canvas', 'F&amp;P Reading Level', '#FFC8BB', 220);
     }
-    html += mapXrefBox('promo-xref-mapela-canvas', 'MAP ELA', '#FFC8BB', mapElaPts);
+    html += mapXrefBox('promo-xref-mapela-canvas', 'MAP ELA', '#f97316', mapElaPts);
+    if (wbLinePts.length >= 2) {
+        html += xrefChartWrap('promo-xref-wb-canvas', 'Writing Benchmark', '#E87BB0', 200);
+    }
     el.innerHTML = html;
 
     requestAnimationFrame(function(){
@@ -9781,11 +9783,6 @@ function _renderPromoXrefStudent() {
             mapMathC.width = mapMathC.offsetWidth || 700; mapMathC.height = 200;
             drawXrefAlignedGraph(mapMathC, mapMathPts, '#60a5fa', MP);
         }
-        var wbC = document.getElementById('promo-xref-wb-canvas');
-        if (wbC && wbLinePts.length >= 2) {
-            wbC.width = wbC.offsetWidth || 700; wbC.height = 200;
-            drawXrefAlignedGraph(wbC, wbLinePts, '#E87BB0', MP, {goalSegs: wbGoalSegs.length ? wbGoalSegs : null});
-        }
         var fpC = document.getElementById('promo-xref-fp-canvas');
         if (fpC && fpLong) {
             fpC.width = fpC.offsetWidth || 700; fpC.height = 220;
@@ -9794,7 +9791,12 @@ function _renderPromoXrefStudent() {
         var mapElaC = document.getElementById('promo-xref-mapela-canvas');
         if (mapElaC && mapElaPts.length >= 2) {
             mapElaC.width = mapElaC.offsetWidth || 700; mapElaC.height = 200;
-            drawXrefAlignedGraph(mapElaC, mapElaPts, '#FFC8BB', MP);
+            drawXrefAlignedGraph(mapElaC, mapElaPts, '#f97316', MP);
+        }
+        var wbC = document.getElementById('promo-xref-wb-canvas');
+        if (wbC && wbLinePts.length >= 2) {
+            wbC.width = wbC.offsetWidth || 700; wbC.height = 200;
+            drawXrefAlignedGraph(wbC, wbLinePts, '#E87BB0', MP, {goalSegs: wbGoalSegs.length ? wbGoalSegs : null});
         }
     });
 }
