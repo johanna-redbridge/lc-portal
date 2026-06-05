@@ -4920,7 +4920,7 @@ function populateCCSSDatalist(dl) {
 var avSubjectColors = {
     'Computation':      { bg: '#00E3FF', letter: 'C', tc: '#1d1d1f', ic: '#008faa' },
     'Reading':          { bg: '#FFC8BB', letter: 'R', tc: '#1d1d1f', ic: '#b07060' },
-    'Writing':          { bg: '#FFC8BB', letter: 'W', tc: '#1d1d1f', ic: '#b07060' },
+    'Writing':          { bg: '#E87BB0', letter: 'W', tc: '#fff',    ic: '#c05590' },
     'Observation':      { bg: '#35D668', letter: 'O', tc: '#fff',    ic: '#1fad52' },
     'Character Habits': { bg: '#9672FF', letter: 'C', tc: '#fff',    ic: '#9672FF' },
     'Work Habits':      { bg: '#FF8200', letter: 'W', tc: '#fff',    ic: '#FF8200' },
@@ -5076,8 +5076,10 @@ function renderAvailable() {
             html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
         }
         var subjShort = avSubjectShort(c.subject);
-        var subjSc = avSubjectColors[c.subject] || { bg: '#86868b', tc: '#fff' };
-        html += '<td><span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.7rem;font-weight:600;background:' + subjSc.bg + ';color:' + (subjSc.tc||'#fff') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + subjShort + '</span></td>';
+        var subjSc = avSubjectColors[c.subject] || { bg: '#86868b', ic: '#555' };
+        var subjBg = hexToRgba(subjSc.bg, 0.2);
+        var subjTc = subjSc.ic || subjSc.bg;
+        html += '<td><span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.7rem;font-weight:600;background:' + subjBg + ';color:' + subjTc + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + subjShort + '</span></td>';
         html += '<td><span class="tag tag-stage">' + c.stage + '</span></td>';
         var typeColor = c.type === 'concept' ? '#636363' : '#b0b0b0';
         html += '<td><span style="display:inline-block;padding:0.15rem 0.5rem;border-radius:6px;font-size:0.72rem;font-weight:600;background:' + typeColor + ';color:#fff;">' + (c.type === 'concept' ? 'Concept' : 'Fluency') + '</span></td>';
