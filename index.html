@@ -4840,6 +4840,45 @@ function avSortBy(col) {
     if (avSortCol === col) { avSortDir = -avSortDir; } else { avSortCol = col; avSortDir = 1; }
     renderAvailable();
 }
+var _avDD = null;
+function avCloseDD() {
+    if (_avDD) { _avDD.remove(); _avDD = null; }
+    document.removeEventListener('click', avCloseDD);
+}
+function avOpenDD(col, thEl, event) {
+    event.stopPropagation();
+    if (_avDD) { avCloseDD(); return; }
+    var STAGE_OPTS   = [['all','All Stages'],['emergent','Emergent'],['early','Early'],['middle','Middle'],['late','Late']];
+    var TYPE_OPTS    = [['all','All Types'],['fluency','Fluency'],['concept','Concept']];
+    var SUBJECT_OPTS = [['all','All Subjects']].concat(Object.keys(avSubjectColors).map(function(s){ return [s, s]; }));
+    var opts = col==='stage' ? STAGE_OPTS : col==='type' ? TYPE_OPTS : SUBJECT_OPTS;
+    var curVal = col==='stage' ? avFilterStage : col==='type' ? avFilterType : avFilterSubject;
+    var rect = thEl.getBoundingClientRect();
+    var dd = document.createElement('div');
+    dd.style.cssText = 'position:fixed;z-index:9999;top:'+(rect.bottom+2)+'px;left:'+Math.max(rect.left,4)+'px;'
+        +'background:#fff;border:1px solid #e8e8ed;border-radius:10px;'
+        +'box-shadow:0 4px 20px rgba(0,0,0,.14);min-width:150px;overflow:hidden;';
+    opts.forEach(function(o) {
+        var active = o[0] === curVal;
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:7px 14px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:8px;'
+            +'color:'+(active?'#FF8200':'#1d1d1f')+';font-weight:'+(active?700:400)+';background:'+(active?'#fff8f0':'#fff')+';';
+        row.innerHTML = (active?'<span style="font-size:.7rem;">✓</span>':'<span style="font-size:.7rem;opacity:0;"> </span>')+o[1];
+        row.onmouseenter = function(){ if(!active) this.style.background='#f5f5f7'; };
+        row.onmouseleave = function(){ if(!active) this.style.background='#fff'; };
+        row.onclick = function(e) {
+            e.stopPropagation();
+            if (col==='stage') avFilterStage=o[0];
+            else if (col==='type') avFilterType=o[0];
+            else avFilterSubject=o[0];
+            avCloseDD(); renderAvailable();
+        };
+        dd.appendChild(row);
+    });
+    document.body.appendChild(dd);
+    _avDD = dd;
+    setTimeout(function(){ document.addEventListener('click', avCloseDD); }, 0);
+}
 
 function setAvFilter(key, value) {
     if (key === 'subject') avFilterSubject = (value === 'all' || avFilterSubject === value) ? 'all' : value;
@@ -5033,6 +5072,13 @@ function renderAvailable() {
     }
 
     function avSortTh(col, label, extraStyle) {
+        var isDD = col === 'stage' || col === 'subject' || col === 'type';
+        if (isDD) {
+            var fval = col==='stage' ? avFilterStage : col==='type' ? avFilterType : avFilterSubject;
+            var on = fval !== 'all';
+            var pill = on ? ' <span style="font-size:0.58em;background:#FF8200;color:#fff;border-radius:4px;padding:0 4px;vertical-align:middle;">'+fval+'</span>' : '';
+            return '<th onclick="avOpenDD(\''+col+'\',this,event)" style="cursor:pointer;user-select:none;'+(on?'color:#FF8200;':'')+(extraStyle||'')+'">'+label+pill+' <span style="opacity:.5;font-size:.65em;">▾</span></th>';
+        }
         var active = avSortCol === col;
         var arrow = active ? (avSortDir === 1 ? ' ↑' : ' ↓') : ' <span style="opacity:.3;font-size:0.6em;">↕</span>';
         return '<th onclick="avSortBy(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (extraStyle||'') + '">' + label + arrow + '</th>';
