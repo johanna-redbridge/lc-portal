@@ -11693,24 +11693,24 @@ var FP_CSV_URLS = {
 };
 
 // Fallback ordered level list (used only if reference sheet not loaded)
-var FP_LEVELS_FALLBACK = [
-    'pre0','pre1','pre2','pre3',
-    'A','B','C','D','E','F','G','H','I','J','K','L','M',
-    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-    'AA','BB','CC','DD','EE','FF','GG','HH','II','JJ','KK','LL','MM',
-    'NN','OO','PP','QQ','RR','SS','TT','UU','VV','WW','XX','YY','ZZ'
-];
 // Pre-level scores/growth numbers shared by both maps
 var FP_PRE_LEVELS = { 'pre0': 0.0, 'pre1': 0.2, 'pre2': 0.5, 'pre3': 0.8 };
-// fpLevelScoreMap: level (lowercase) → numeric score; populated from reference sheet
-var fpLevelScoreMap = {};
+// Canonical level → numeric score mapping
+var FP_LEVEL_SCORES = {
+    'pre0': 0.0, 'pre1': 0.2, 'pre2': 0.5, 'pre3': 0.8,
+    'a': 1.25, 'b': 1.5,  'c': 1.75, 'd': 2,
+    'e': 2.16, 'f': 2.33, 'g': 2.5,  'h': 2.66, 'i': 2.83,
+    'j': 3,    'k': 3.33, 'l': 3.66, 'm': 4,
+    'n': 4.33, 'o': 4.66, 'p': 5,    'q': 5.33, 'r': 5.66,
+    's': 6,    't': 6.33, 'u': 6.66, 'v': 7,
+    'w': 7.33, 'x': 7.66, 'y': 8.5,  'z': 9,    'zz': 10
+};
+// fpLevelScoreMap: level (lowercase) → numeric score; seeded from FP_LEVEL_SCORES, overridden by reference sheet when loaded
+var fpLevelScoreMap = Object.assign({}, FP_LEVEL_SCORES);
 // fpGrowthNumMap: level (lowercase) → growth number from column G of growth-number reference sheet
 var FP_GROWTH_NUM_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTsrlJ0WxxLOEcCLSbPBfUbdoNvD3c3i0WRGk7DW11VNUiHh8ZCC3abJCSVzOFhkS9wR4i34Tcyo2wn/pub?gid=1704150323&single=true&output=csv';
 var fpGrowthNumMap = Object.assign({}, FP_PRE_LEVELS);
 var fpGrowthNumLoaded = false;
-FP_LEVELS_FALLBACK.forEach(function(lv, i) { fpLevelScoreMap[lv.toLowerCase()] = i * 0.1; });
-// Seed pre-levels with correct values (overwrite fallback's evenly-spaced defaults)
-Object.keys(FP_PRE_LEVELS).forEach(function(k) { fpLevelScoreMap[k] = FP_PRE_LEVELS[k]; });
 
 function fpScore(level) {
     if (!level) return null;
