@@ -9661,8 +9661,14 @@ function _renderPromoXrefStudent() {
         });
     }
 
-    // --- MAP data ---
-    var mapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    // --- MAP data (multi-strategy name match, same as getMapMathRit) ---
+    var mapRec = null, mapLoaded = !!(mapData && Array.isArray(mapData.students));
+    if (mapLoaded && mapData.students.length) {
+        var _mFirst = norm.split(' ')[0], _mLast = norm.split(' ').slice(-1)[0];
+        mapRec = mapData.students.find(function(s){ return xrefNorm(s.name)===norm; });
+        if (!mapRec) mapRec = mapData.students.find(function(s){ var n=xrefNorm(s.name); return n.split(' ')[0]===_mFirst && n.split(' ').slice(-1)[0]===_mLast; });
+        if (!mapRec) mapRec = mapData.students.find(function(s){ return xrefNorm(s.name).split(' ')[0]===_mFirst; });
+    }
     var mapElaPts = [], mapMathPts = [];
     if (mapRec) {
         var _elaPer = (mapData.elaPeriods)||[];
@@ -9696,18 +9702,27 @@ function _renderPromoXrefStudent() {
     if (compLinePts.length >= 2) {
         html += xrefChartWrap('promo-xref-comp-canvas', 'Computation Benchmark', '#00E3FF', 180);
     }
-    if (mapMathPts.length >= 2) {
-        html += xrefChartWrap('promo-xref-mapmath-canvas', 'MAP Math', '#60a5fa', 180);
+    function mapXrefBox(canvasId, title, color, pts) {
+        var hdr = '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
+            +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:8px;">'
+            +'<span style="width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0;background:'+color+';"></span>'
+            +'<span>'+title+'</span></div>';
+        if (pts.length >= 2) {
+            return hdr+'<canvas id="'+canvasId+'" style="width:100%;height:180px;display:block;"></canvas></div>';
+        }
+        var msg = !mapLoaded ? 'MAP data not loaded — visit the MAP tab first.'
+            : !mapRec ? 'No MAP record found for this student (name may differ between datasets).'
+            : 'No MAP scores recorded for this student.';
+        return hdr+'<p style="padding:0.85rem 1rem;color:#aeaeb2;font-size:.78rem;margin:0;">'+msg+'</p></div>';
     }
+    html += mapXrefBox('promo-xref-mapmath-canvas', 'MAP Math', '#60a5fa', mapMathPts);
     if (wbLinePts.length >= 2) {
         html += xrefChartWrap('promo-xref-wb-canvas', 'Writing Benchmark', '#E87BB0', 180);
     }
     if (fpLong) {
         html += xrefChartWrap('promo-xref-fp-canvas', 'F&amp;P Reading Level', '#FFC8BB', 200);
     }
-    if (mapElaPts.length >= 2) {
-        html += xrefChartWrap('promo-xref-mapela-canvas', 'MAP ELA', '#FFC8BB', 180);
-    }
+    html += mapXrefBox('promo-xref-mapela-canvas', 'MAP ELA', '#FFC8BB', mapElaPts);
     el.innerHTML = html;
 
     requestAnimationFrame(function(){
