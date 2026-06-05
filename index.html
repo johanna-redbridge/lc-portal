@@ -1251,10 +1251,10 @@
             <button id="reading-sub-overview-btn" class="data-subtab-btn" onclick="switchReadingSubtab('student-overview')">Student Overview</button>
             <button id="reading-sub-xref-btn" class="data-subtab-btn" onclick="switchReadingSubtab('xref-read')">Cross Reference</button>
             <span style="width:1px;background:#e8e8ed;margin:4px 8px;align-self:stretch;"></span>
-            <button id="reading-logo-core" class="logo-tab-btn reading-view-btn active" data-view="core" onclick="switchReadingSubtab('core')"><img src="CORE%20logo.png" alt="CORE" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="reading-logo-fp" class="logo-tab-btn reading-view-btn" data-view="fp" onclick="switchReadingSubtab('fp')"><img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:24px;object-fit:contain;display:block;"></button>
-            <button id="reading-logo-lexia" class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')"><img src="Lexia%20Logo.png" alt="Lexia" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-fp" class="logo-tab-btn reading-view-btn active" data-view="fp" onclick="switchReadingSubtab('fp')"><img src="F%26P%20Logo.jpg" alt="F&amp;P" style="height:24px;object-fit:contain;display:block;"></button>
             <button id="reading-logo-map" class="logo-tab-btn reading-view-btn" data-view="map-ela" onclick="switchReadingSubtab('map-ela')"><img src="nwea%20map%20logo.png" alt="MAP ELA" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-core" class="logo-tab-btn reading-view-btn" data-view="core" onclick="switchReadingSubtab('core')"><img src="CORE%20logo.png" alt="CORE" style="height:24px;object-fit:contain;display:block;"></button>
+            <button id="reading-logo-lexia" class="logo-tab-btn reading-view-btn" data-view="lexia" onclick="switchReadingSubtab('lexia')"><img src="Lexia%20Logo.png" alt="Lexia" style="height:24px;object-fit:contain;display:block;"></button>
         </div>
         <!-- Nav bar for Computation dashboard -->
         <div class="data-subtab-nav" id="comp-nav" style="display:none;">
@@ -7757,7 +7757,7 @@ function renderHtmlToBlob(html) {
 // ───────── DATA TAB ─────────
 
 var currentDataSubtab = 'reading';
-var readingSubtab = 'core';
+var readingSubtab = 'fp';
 var lastAssessmentView = 'core';
 var mathSubtab = 'benchmark';
 var lastMathAssessmentView = 'benchmark';
