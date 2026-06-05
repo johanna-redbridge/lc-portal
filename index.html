@@ -9143,11 +9143,16 @@ function _renderPromoView() {
 
 function _promoStats(label) {
     var d = promoAllData[label]||[];
-    var s = { n:d.length, midAtt:0, midSuc:0, eoyAtt:0, eoySuc:0, alBoy:{1:0,2:0,3:0,4:0} };
+    var s = { n:d.length, midAtt:0, midSuc:0, eoyAtt:0, eoySuc:0,
+              alBoy:{1:0,2:0,3:0,4:0}, alMOY:{1:0,2:0,3:0,4:0}, alEOY:{1:0,2:0,3:0,4:0} };
     d.forEach(function(r){
         if (r.midAttempted===true){ s.midAtt++; if(r.midSuccess===true) s.midSuc++; }
         if (r.eoyAttempted===true){ s.eoyAtt++; if(r.eoySuccess===true) s.eoySuc++; }
         if (r.boyAL>=1&&r.boyAL<=4) s.alBoy[r.boyAL]++;
+        var mAL=(r.moyAL>=1&&r.moyAL<=4)?r.moyAL:r.boyAL;
+        if (mAL>=1&&mAL<=4) s.alMOY[mAL]++;
+        var eAL=r.eoySuccess===true?Math.min(mAL+1,4):mAL;
+        if (eAL>=1&&eAL<=4) s.alEOY[eAL]++;
     });
     return s;
 }
@@ -9178,8 +9183,8 @@ function _renderPromoOverview() {
         +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Attempts &amp; Successes by Year</div>'
         +'<canvas id="promo-att-c" style="width:100%;height:230px;display:block;"></canvas></div>'
         +'<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
-        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">AL Distribution at BOY by Year</div>'
-        +'<canvas id="promo-al-c" style="width:100%;height:230px;display:block;"></canvas></div></div>';
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">AL Distribution by Year</div>'
+        +'<canvas id="promo-al-c" style="width:100%;height:260px;display:block;"></canvas></div></div>';
 
     html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
         +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Promotion Success Rate Over Time</div>'
@@ -9208,6 +9213,101 @@ function _renderPromoOverview() {
             +'<td style="padding:6px 10px;text-align:center;font-weight:700;">'+(s.midSuc+s.eoySuc)+'</td></tr>';
     });
     html += '</tbody></table></div></div>';
+
+    // ── Box 1: Attempt-to-success ratio by AL (all years combined) ──
+    var alStats = {1:{att:0,suc:0,n:0},2:{att:0,suc:0,n:0},3:{att:0,suc:0,n:0},4:{att:0,suc:0,n:0}};
+    PROMO_YEARS.forEach(function(y) {
+        (promoAllData[y.label]||[]).forEach(function(r) {
+            var al = r.boyAL;
+            if (al >= 1 && al <= 4) {
+                alStats[al].n++;
+                if (r.midAttempted === true) { alStats[al].att++; if (r.midSuccess === true) alStats[al].suc++; }
+                if (r.eoyAttempted === true) { alStats[al].att++; if (r.eoySuccess === true) alStats[al].suc++; }
+            }
+        });
+    });
+
+    // ── Box 2: Time between attempts (within-year pathway analysis) ──
+    var pathway = { midOnlySuc:0, midFailEoySuc:0, eoyOnlySuc:0, bothFailed:0, midSuccessEoyAlso:0 };
+    PROMO_YEARS.forEach(function(y) {
+        (promoAllData[y.label]||[]).forEach(function(r) {
+            if (!r.midAttempted && !r.eoyAttempted) return;
+            var mA=r.midAttempted===true, mS=r.midSuccess===true, eA=r.eoyAttempted===true, eS=r.eoySuccess===true;
+            if (mA && mS && !eA)       pathway.midOnlySuc++;
+            else if (mA && mS && eA)   pathway.midSuccessEoyAlso++;
+            else if (mA && !mS && eA && eS)  pathway.midFailEoySuc++;
+            else if (!mA && eA && eS)  pathway.eoyOnlySuc++;
+            else if (mA && !mS && eA && !eS) pathway.bothFailed++;
+        });
+    });
+    var totalAttempted = pathway.midOnlySuc + pathway.midSuccessEoyAlso + pathway.midFailEoySuc + pathway.eoyOnlySuc + pathway.bothFailed;
+    var secondAttemptWinners = pathway.midFailEoySuc;
+    var avgSemestersNeeded = totalAttempted > 0 ? ((pathway.midOnlySuc*1 + pathway.midSuccessEoyAlso*1 + pathway.midFailEoySuc*2 + pathway.eoyOnlySuc*1 + pathway.bothFailed*2) / totalAttempted).toFixed(2) : '—';
+
+    function pct(n, d) { return d ? Math.round(n/d*100) : 0; }
+    function bar(p, color) {
+        return '<div style="height:8px;background:#e8e8ed;border-radius:4px;overflow:hidden;margin-top:4px;">'
+            +'<div style="height:100%;width:'+p+'%;background:'+color+';border-radius:4px;"></div></div>';
+    }
+
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">';
+
+    // AL ratio box
+    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Attempt-to-success ratio by AL</div>'
+        +'<div style="padding:0.75rem 1rem;">'
+        +'<p style="font-size:.68rem;color:#94a3b8;margin:0 0 10px;">All years combined · grouped by BOY autonomy level</p>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:.75rem;">'
+        +'<thead><tr style="border-bottom:1px solid #e8e8ed;">'
+        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#5c5b5a;">AL</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Students</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Attempts</th>'
+        +'<th style="padding:4px 6px;text-align:center;font-weight:700;color:#5c5b5a;">Successes</th>'
+        +'<th style="padding:4px 6px;text-align:left;font-weight:700;color:#5c5b5a;min-width:90px;">Success rate</th>'
+        +'</tr></thead><tbody>';
+    [1,2,3,4].forEach(function(al) {
+        var st = alStats[al];
+        var rate = st.att ? pct(st.suc, st.att) : 0;
+        var color = rate >= 70 ? '#34c759' : rate >= 50 ? '#ff9500' : '#ff3b30';
+        html += '<tr style="border-bottom:1px solid #f5f5f7;">'
+            +'<td style="padding:5px 6px;font-weight:700;color:'+PROMO_AL_DARK[al]+';">AL'+al+'</td>'
+            +'<td style="padding:5px 6px;text-align:center;color:#64748b;">'+st.n+'</td>'
+            +'<td style="padding:5px 6px;text-align:center;color:#64748b;">'+st.att+'</td>'
+            +'<td style="padding:5px 6px;text-align:center;color:#64748b;">'+st.suc+'</td>'
+            +'<td style="padding:5px 6px;">'
+            +(st.att ? '<span style="font-weight:700;color:'+color+';">'+rate+'%</span>'+bar(rate,color) : '<span style="color:#d2d2d7;">—</span>')
+            +'</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+
+    // Time between attempts box
+    html += '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;">'
+        +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;">Time between attempts</div>'
+        +'<div style="padding:0.75rem 1rem;">'
+        +'<p style="font-size:.68rem;color:#94a3b8;margin:0 0 10px;">All years · 1 semester ≈ mid-year→EOY gap (~4–5 months)</p>'
+        +'<div style="display:flex;gap:8px;margin-bottom:12px;">'
+        +'<div style="flex:1;background:#f0fdf4;border-radius:10px;padding:8px 10px;text-align:center;">'
+        +'<div style="font-size:1.2rem;font-weight:800;color:#16a34a;">'+pathway.midOnlySuc+'</div>'
+        +'<div style="font-size:.62rem;color:#64748b;margin-top:2px;">Succeeded<br>at mid-year</div></div>'
+        +'<div style="flex:1;background:#fff7ed;border-radius:10px;padding:8px 10px;text-align:center;">'
+        +'<div style="font-size:1.2rem;font-weight:800;color:#ea580c;">'+pathway.midFailEoySuc+'</div>'
+        +'<div style="font-size:.62rem;color:#64748b;margin-top:2px;">Failed mid →<br>succeeded EOY</div></div>'
+        +'<div style="flex:1;background:#eff6ff;border-radius:10px;padding:8px 10px;text-align:center;">'
+        +'<div style="font-size:1.2rem;font-weight:800;color:#2563eb;">'+pathway.eoyOnlySuc+'</div>'
+        +'<div style="font-size:.62rem;color:#64748b;margin-top:2px;">EOY only<br>(first attempt)</div></div>'
+        +'<div style="flex:1;background:#fef2f2;border-radius:10px;padding:8px 10px;text-align:center;">'
+        +'<div style="font-size:1.2rem;font-weight:800;color:#dc2626;">'+pathway.bothFailed+'</div>'
+        +'<div style="font-size:.62rem;color:#64748b;margin-top:2px;">Failed<br>both attempts</div></div>'
+        +'</div>'
+        +(secondAttemptWinners > 0
+            ? '<div style="background:#f8fafc;border-radius:8px;padding:8px 10px;font-size:.72rem;color:#475569;">'
+              +'<strong style="color:#1d1d1f;">'+secondAttemptWinners+'</strong> student'+(secondAttemptWinners!==1?'s':'')+' needed a second attempt (~1 semester later) to earn promotion. '
+              +'Avg semesters needed across all attempted: <strong style="color:#FF8200;">'+avgSemestersNeeded+'</strong></div>'
+            : '')
+        +'</div></div>';
+
+    html += '</div>'; // close 2-col grid
+
     body.innerHTML = html;
 
     requestAnimationFrame(function(){
@@ -9215,7 +9315,7 @@ function _renderPromoOverview() {
         var c2=document.getElementById('promo-al-c');
         var c3=document.getElementById('promo-rate-c');
         if(c1){c1.width=c1.offsetWidth||400;c1.height=230;_drawPromoAttChart(c1,ys);}
-        if(c2){c2.width=c2.offsetWidth||400;c2.height=230;_drawPromoALChart(c2,ys);}
+        if(c2){c2.width=c2.offsetWidth||400;c2.height=260;_drawPromoALChart(c2,ys);}
         if(c3){c3.width=c3.offsetWidth||800;c3.height=180;_drawPromoRateChart(c3,ys);}
     });
 }
@@ -9334,22 +9434,29 @@ function _drawPromoALChart(canvas, ys) {
     var dpr=window.devicePixelRatio||1, W=canvas.width, H=canvas.height;
     canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
     var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
-    var pL=40,pR=16,pT=34,pB=46, plotW=W-pL-pR, plotH=H-pT-pB;
+    var pL=40,pR=16,pT=34,pB=58, plotW=W-pL-pR, plotH=H-pT-pB;
     ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
     var maxN=Math.max.apply(null,ys.map(function(y){return y.s.n;}))||1;
     function yOf(v){return pT+plotH*(1-v/maxN);}
     for(var g=0;g<=4;g++){var gv=maxN*g/4,gy=yOf(gv);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+plotW,gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(gv),pL-4,gy+3);}
-    var n=ys.length, gW=plotW/n, bw=gW*0.6;
+    var n=ys.length, gW=plotW/n;
+    var subKeys=['BOY','MOY','EOY'], subData=['alBoy','alMOY','alEOY'], numSubs=3, gap=2;
+    var bw=Math.max(8,(gW*0.82-gap*(numSubs-1))/numSubs);
+    var totalBW=bw*numSubs+gap*(numSubs-1);
     ys.forEach(function(y,i){
-        var cx=pL+(i+0.5)*gW, bx=cx-bw/2, cumY=pT+plotH;
-        [1,2,3,4].forEach(function(al){
-            var cnt=y.s.alBoy[al]||0; if(!cnt) return;
-            var bh=plotH*cnt/maxN; cumY-=bh;
-            ctx.fillStyle=PROMO_AL_LIGHT[al]; ctx.fillRect(bx,cumY,bw,bh);
-            ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.strokeRect(bx,cumY,bw,bh);
-            if(bh>13){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font='bold 9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('AL'+al+' ('+cnt+')',cx,cumY+bh/2+3);}
+        var gx=pL+i*gW+gW/2, startX=gx-totalBW/2;
+        subKeys.forEach(function(sk,si){
+            var bx=startX+si*(bw+gap), cx=bx+bw/2, cumY=pT+plotH;
+            [1,2,3,4].forEach(function(al){
+                var cnt=y.s[subData[si]][al]||0; if(!cnt) return;
+                var bh=plotH*cnt/maxN; cumY-=bh;
+                ctx.fillStyle=PROMO_AL_LIGHT[al]; ctx.fillRect(bx,cumY,bw,bh);
+                ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.strokeRect(bx,cumY,bw,bh);
+                if(bh>12){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font='bold 8px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(cnt,cx,cumY+bh/2+3);}
+            });
+            ctx.fillStyle='#8e8e93';ctx.font='8px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(sk,cx,pT+plotH+13);
         });
-        ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,cx,pT+plotH+16);
+        ctx.fillStyle='#64748b';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(y.label,gx,pT+plotH+30);
     });
     var lx=pL;
     [1,2,3,4].forEach(function(al){ctx.fillStyle=PROMO_AL_LIGHT[al];ctx.fillRect(lx,pT-20,9,9);ctx.fillStyle='#3a3a3c';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText('AL'+al,lx+12,pT-13);lx+=36;});
