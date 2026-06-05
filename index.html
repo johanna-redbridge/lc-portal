@@ -8829,16 +8829,26 @@ function drawSchoolAvgPct(canvas, bars, barColor) {
     var bw = Math.min(plotW/bars.length*0.55, 30);
     bars.forEach(function(b, i) {
         var cx = padL + (i+0.5)*(plotW/bars.length);
+        ctx.fillStyle = '#64748b'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(b.label, cx, padT+plotH+16);
+        if (b.noData) {
+            var phH = Math.max(plotH * 0.06, 5);
+            var yTop = padT + plotH - phH;
+            ctx.fillStyle = '#e2e2e7';
+            if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cx-bw/2, yTop, bw, phH, 4); ctx.fill(); }
+            else { ctx.fillRect(cx-bw/2, yTop, bw, phH); }
+            ctx.fillStyle = '#94a3b8'; ctx.font = '8px -apple-system,sans-serif';
+            ctx.fillText('No data yet', cx, yTop-4);
+            return;
+        }
         var barH = (b.avg/100)*plotH;
         var yTop = padT + plotH - barH;
-        var shade = b.label.indexOf('EOY') >= 0 || b.label.indexOf('EOY') >= 0;
+        var shade = b.label.indexOf('EOY') >= 0;
         ctx.fillStyle = shade ? hexDarken(barColor, 0.3) : barColor;
         if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cx-bw/2, yTop, bw, barH, 4); ctx.fill(); }
         else { ctx.fillRect(cx-bw/2, yTop, bw, barH); }
         ctx.fillStyle = '#1d1d1f'; ctx.font = 'bold 9px -apple-system,sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(Math.round(b.avg)+'%ile', cx, yTop-4);
-        ctx.fillStyle = '#64748b'; ctx.font = '9px -apple-system,sans-serif';
-        ctx.fillText(b.label, cx, padT+plotH+16);
     });
     ctx.strokeStyle = '#d1d1d6'; ctx.lineWidth = 1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
@@ -8940,6 +8950,9 @@ function drawRedbridgeOverview() {
             if (count) mapElaBars.push({ label: label, avg: sum/count, count: count });
         });
     }
+    if (mapElaBars.length && !mapElaBars.some(function(b){ return b.label === 'EOY 2026'; })) {
+        mapElaBars.push({ label: 'EOY 2026', avg: 0, noData: true });
+    }
 
     // MAP Math: average percentile per period
     var mapMathBars = [];
@@ -8953,6 +8966,9 @@ function drawRedbridgeOverview() {
             });
             if (count) mapMathBars.push({ label: label, avg: sum/count, count: count });
         });
+    }
+    if (mapMathBars.length && !mapMathBars.some(function(b){ return b.label === 'EOY 2026'; })) {
+        mapMathBars.push({ label: 'EOY 2026', avg: 0, noData: true });
     }
 
     // ── Build HTML ───────────────────────────────────────────────────────────
