@@ -1183,6 +1183,10 @@
 
 <!-- TAB 5: Digital Portfolio (Parent + Student sub-tabs) -->
 <div class="tab-content" id="tab-portfolio">
+    <div id="portfolio-student-nav" class="data-subtab-nav" style="display:none;">
+        <button onclick="history.back();" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+        <span id="portfolio-student-nav-name" style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;"></span>
+    </div>
     <div class="view-container">
         <div id="portfolio-content"></div>
     </div>
@@ -1228,6 +1232,11 @@
                 <div onclick="openAnalyticsDashboard('redbridge')" class="analytics-card">
                     <div class="analytics-card-title">Redbridge Dashboard</div>
                     <div class="analytics-card-sub">School-wide overview</div>
+                    <div class="analytics-card-arrow">Open &rarr;</div>
+                </div>
+                <div onclick="openAnalyticsDashboard('student-dashboard')" class="analytics-card">
+                    <div class="analytics-card-title">Student Dashboard</div>
+                    <div class="analytics-card-sub">Cross-reference &bull; AL &bull; Comp &bull; MAP &bull; Writing &bull; F&amp;P</div>
                     <div class="analytics-card-arrow">Open &rarr;</div>
                 </div>
             </div>
@@ -1298,10 +1307,20 @@
             <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
             <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Red Bridge</span>
         </div>
+        <!-- Nav bar for Student Dashboard -->
+        <div class="data-subtab-nav" id="student-dashboard-nav" style="display:none;">
+            <button onclick="showAnalyticsLanding()" style="padding:0.55rem 0.9rem;border:none;background:none;cursor:pointer;font-size:0.82rem;font-family:inherit;color:#86868b;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#86868b'">&larr; Back</button>
+            <span style="padding:0.55rem 0.5rem;font-size:0.82rem;font-weight:600;color:#1d1d1f;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;">Student Dashboard</span>
+        </div>
 
         <!-- ── Redbridge Dashboard ── -->
         <div id="data-subtab-redbridge" class="data-subtab-panel" style="display:none;">
             <div id="redbridge-content"></div>
+        </div>
+
+        <!-- ── Student Dashboard ── -->
+        <div id="data-subtab-student-dashboard" class="data-subtab-panel" style="display:none;">
+            <div id="student-dashboard-content"></div>
         </div>
 
         <!-- ── Reading Dashboard ── -->
@@ -3577,6 +3596,8 @@ var portfolioAutonomyFilter = 'all';
 function renderPortfolioOverview() {
     var el = document.getElementById('portfolio-content');
     if (!el) return;
+    var _pNav = document.getElementById('portfolio-student-nav');
+    if (_pNav) _pNav.style.display = 'none';
 
     // Filter bar: autonomy toggles on left, search on right
     var html = '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;">';
@@ -3682,10 +3703,14 @@ function renderPortfolioStudent(studentId) {
         }
     });
 
+    // Show sticky nav bar with student name
+    var _pNav = document.getElementById('portfolio-student-nav');
+    var _pNavName = document.getElementById('portfolio-student-nav-name');
+    if (_pNav) _pNav.style.display = '';
+    if (_pNavName) _pNavName.textContent = nickName(s.name);
+
     var html = '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">';
-    html += '<button onclick="history.back();" style="cursor:pointer;background:none;border:none;font-size:1.1rem;color:#86868b;padding:0.2rem 0.4rem;border-radius:6px;" onmouseover="this.style.background=\'#f5f5f7\'" onmouseout="this.style.background=\'none\'">&#8592;</button>';
-    html += '<h2 style="font-size:1.1rem;font-weight:700;margin:0;">' + nickName(s.name) + '\'s Portfolio</h2>';
-    html += '<span style="font-size:0.8rem;color:#86868b;margin-left:0.25rem;">' + studentEarned.length + ' earned credit' + (studentEarned.length !== 1 ? 's' : '') + '</span>';
+    html += '<span style="font-size:0.8rem;color:#86868b;">' + studentEarned.length + ' earned credit' + (studentEarned.length !== 1 ? 's' : '') + '</span>';
     html += '</div>';
 
     if (studentEarned.length === 0) {
@@ -8736,7 +8761,7 @@ function renderCompStudentOverview() {
 
 function showAnalyticsLanding() {
     document.getElementById('analytics-landing').style.display = '';
-    ['data-subtab-nav','reading-nav','comp-nav','writing-nav','lc-nav','promotion-nav','redbridge-nav'].forEach(function(id) {
+    ['data-subtab-nav','reading-nav','comp-nav','writing-nav','lc-nav','promotion-nav','redbridge-nav','student-dashboard-nav'].forEach(function(id) {
         var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
     document.querySelectorAll('.data-subtab-panel').forEach(function(p) { p.style.display = 'none'; });
@@ -8756,7 +8781,8 @@ function switchDataSubtab(name) {
     currentDataSubtab = name;
     // Show the correct nav bar, hide all others
     var allNavs = { 'reading': 'reading-nav', 'comp': 'comp-nav', 'writing': 'writing-nav',
-                    'lc': 'lc-nav', 'promotion': 'promotion-nav', 'redbridge': 'redbridge-nav' };
+                    'lc': 'lc-nav', 'promotion': 'promotion-nav', 'redbridge': 'redbridge-nav',
+                    'student-dashboard': 'student-dashboard-nav' };
     Object.keys(allNavs).forEach(function(k) {
         var el = document.getElementById(allNavs[k]);
         if (el) el.style.display = (k === name) ? '' : 'none';
@@ -8784,6 +8810,7 @@ function switchDataSubtab(name) {
     }
     if (name === 'promotion') renderPromotionDashboard();
     if (name === 'redbridge') renderRedbridgeDashboard();
+    if (name === 'student-dashboard') renderStudentDashboard();
 }
 
 // ── Redbridge Dashboard ─────────────────────────────────────────────────────
@@ -9078,6 +9105,7 @@ var promoAllData    = null;
 var promoViewMode   = 'overview';
 var promoStudentSel = '';
 var promoXrefSel    = '';
+var _xrefBodyId     = 'promo-body';
 var PROMO_AL_LIGHT  = { 1:'#93c5fd', 2:'#6ee7b7', 3:'#fdba74', 4:'#c4b5fd' };
 var PROMO_AL_DARK   = { 1:'#1d4ed8', 2:'#059669', 3:'#ea580c', 4:'#7c3aed' };
 
@@ -9114,6 +9142,14 @@ function renderPromotionDashboard() {
     loadAllPromoData(function(){ _doRenderPromo(); });
 }
 
+function renderStudentDashboard() {
+    var el = document.getElementById('student-dashboard-content');
+    if (!el) return;
+    el.innerHTML = '<p style="padding:3rem;color:#aeaeb2;text-align:center;">Loading student data…</p>';
+    _xrefBodyId = 'student-dashboard-content';
+    loadAllPromoData(function(){ _renderPromoCrossRef(); });
+}
+
 function _doRenderPromo() {
     var el = document.getElementById('promotion-content');
     if (!el || !promoAllData) return;
@@ -9122,7 +9158,6 @@ function _doRenderPromo() {
         +'<div class="toggle-group">'
         +'<button class="toggle-btn'+(promoViewMode==='overview'?' active':'')+'" onclick="promoViewMode=\'overview\';_renderPromoView()">School Overview</button>'
         +'<button class="toggle-btn'+(promoViewMode==='student'?' active':'')+'" onclick="promoViewMode=\'student\';_renderPromoView()">Student View</button>'
-        +'<button class="toggle-btn'+(promoViewMode==='xref'?' active':'')+'" onclick="promoViewMode=\'xref\';_renderPromoView()">Cross Reference</button>'
         +'</div></div>'
         +'<div id="promo-body" style="padding:1.25rem;"></div>';
     _renderPromoView();
@@ -9133,11 +9168,10 @@ function _renderPromoView() {
         var t = b.textContent.trim();
         b.classList.toggle('active',
             (promoViewMode==='overview' && t==='School Overview') ||
-            (promoViewMode==='student'  && t==='Student View') ||
-            (promoViewMode==='xref'     && t==='Cross Reference'));
+            (promoViewMode==='student'  && t==='Student View'));
     });
     if (promoViewMode === 'overview') _renderPromoOverview();
-    else if (promoViewMode === 'xref') _renderPromoCrossRef();
+    else if (promoViewMode === 'xref') { _xrefBodyId = 'promo-body'; _renderPromoCrossRef(); }
     else _renderPromoStudent();
 }
 
@@ -9501,8 +9535,8 @@ function _drawPromoStuChart(canvas, sy) {
     // Build point sequence: BOY then MOY for each year
     var pts=[];
     sy.forEach(function(y){
-        if(y.r.boyAL) pts.push({lbl:y.label+' BOY',al:y.r.boyAL,att:y.r.midAttempted,suc:y.r.midSuccess,isBoy:true});
-        if(y.r.moyAL) pts.push({lbl:y.label+' MOY',al:y.r.moyAL,att:y.r.eoyAttempted,suc:y.r.eoySuccess,isBoy:false});
+        if(y.r.boyAL) pts.push({lbl:y.label+' BOY',al:y.r.boyAL,att:false,suc:false,isBoy:true});
+        if(y.r.moyAL) pts.push({lbl:y.label+' MOY',al:y.r.moyAL,att:y.r.midAttempted,suc:y.r.midSuccess,isBoy:false});
     });
     if(!pts.length) return;
     var n=pts.length;
@@ -9540,7 +9574,7 @@ function _drawPromoStuChart(canvas, sy) {
 // ── Promotion Cross-Reference (per-student) ──
 
 function _renderPromoCrossRef() {
-    var body = document.getElementById('promo-body');
+    var body = document.getElementById(_xrefBodyId);
     if (!body) return;
     body.innerHTML = '<div style="padding:3rem;text-align:center;color:#aeaeb2;font-size:.88rem;">Loading cross-reference data…</div>';
 
@@ -9577,7 +9611,7 @@ function _renderPromoCrossRef() {
 }
 
 function _drawPromoCrossRef() {
-    var body = document.getElementById('promo-body');
+    var body = document.getElementById(_xrefBodyId);
     if (!body) return;
 
     // Build student list from all promotion years
@@ -9627,8 +9661,8 @@ function _renderPromoXrefStudent() {
     // AL progression points: BOY and MOY per year
     var alPts = [];
     promoYears.forEach(function(y){
-        if (y.r.boyAL) alPts.push({lbl:y.label+' BOY', al:y.r.boyAL, att:y.r.midAttempted, suc:y.r.midSuccess});
-        if (y.r.moyAL) alPts.push({lbl:y.label+' MOY', al:y.r.moyAL, att:y.r.eoyAttempted, suc:y.r.eoySuccess});
+        if (y.r.boyAL) alPts.push({lbl:y.label+' BOY', al:y.r.boyAL, att:false, suc:false});
+        if (y.r.moyAL) alPts.push({lbl:y.label+' MOY', al:y.r.moyAL, att:y.r.midAttempted, suc:y.r.midSuccess});
     });
 
     // --- F&P data ---
