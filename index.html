@@ -9628,7 +9628,8 @@ function _drawPromoCrossRef() {
 
     if (!promoXrefSel || !stuMap[promoXrefSel]) promoXrefSel = students[0].name;
 
-    var selHtml = '<div style="padding:0.6rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #e8e8ed;background:#f5f5f7;margin:-1.25rem -1.25rem 1.25rem;">'
+    var _selM = (_xrefBodyId === 'promo-body') ? '-1.25rem -1.25rem 1.25rem' : '0 0 1.25rem';
+    var selHtml = '<div style="padding:0.6rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #e8e8ed;background:#f5f5f7;margin:'+_selM+';">'
         +'<label style="font-size:.82rem;font-weight:600;color:#1d1d1f;">Student</label>'
         +'<select id="promo-xref-sel" onchange="promoXrefSel=this.value;_renderPromoXrefStudent();" style="padding:5px 10px;border-radius:8px;border:1px solid #d1d1d6;font-family:inherit;font-size:.82rem;">'
         +students.map(function(s){
