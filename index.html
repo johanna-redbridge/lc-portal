@@ -4969,10 +4969,20 @@ function renderAvailable() {
         return true;
     });
 
+    function avSubjectShort(s) {
+        if (!s) return '—';
+        var l = s.toLowerCase();
+        if (l.indexOf('reading') >= 0) return 'Reading';
+        if (l.indexOf('writing') >= 0) return 'Writing';
+        return s;
+    }
     var STAGE_ORDER = ['emergent', 'early', 'middle', 'late'];
     filtered.sort(function(a, b) {
         var d = avSortDir, cmp;
-        if (avSortCol === 'stage') {
+        if (avSortCol === 'subject') {
+            cmp = avSubjectShort(a.subject).localeCompare(avSubjectShort(b.subject)) * d;
+            return cmp !== 0 ? cmp : a.title.localeCompare(b.title);
+        } else if (avSortCol === 'stage') {
             var ai = STAGE_ORDER.indexOf((a.stage||'').toLowerCase()), bi = STAGE_ORDER.indexOf((b.stage||'').toLowerCase());
             cmp = ((ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)) * d;
             return cmp !== 0 ? cmp : a.title.localeCompare(b.title);
@@ -5029,11 +5039,12 @@ function renderAvailable() {
         return '<th onclick="avSortBy(\'' + col + '\')" style="cursor:pointer;user-select:none;' + (extraStyle||'') + '">' + label + arrow + '</th>';
     }
     var html = whPanel + '<table style="table-layout:fixed;width:100%;">';
-    html += '<colgroup><col style="width:36px"><col style="width:30%"><col style="width:5%"><col style="width:10%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:14%"></colgroup>';
+    html += '<colgroup><col style="width:36px"><col style="width:25%"><col style="width:5%"><col style="width:9%"><col style="width:8%"><col style="width:8%"><col style="width:11%"><col style="width:11%"><col style="width:13%"></colgroup>';
     html += '<thead><tr>';
     html += '<th></th>';
     html += avSortTh('name', 'Credit Name');
     html += '<th style="text-align:center;">Doc</th>';
+    html += avSortTh('subject', 'Subject');
     html += avSortTh('stage', 'Stage');
     html += avSortTh('type', 'Type');
     html += '<th style="text-align:center;">Badge</th>';
@@ -5042,7 +5053,7 @@ function renderAvailable() {
     html += '</tr></thead><tbody>';
 
     if (filtered.length === 0) {
-        html += '<tr><td colspan="8" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
+        html += '<tr><td colspan="9" style="text-align:center;padding:3rem;color:#86868b;">No credits match your filters.</td></tr>';
     }
 
     filtered.forEach(function(c) {
@@ -5065,6 +5076,9 @@ function renderAvailable() {
         } else {
             html += '<td style="text-align:center;color:#d2d2d7;font-size:0.82rem;">&mdash;</td>';
         }
+        var subjShort = avSubjectShort(c.subject);
+        var subjSc = avSubjectColors[c.subject] || { bg: '#86868b', tc: '#fff' };
+        html += '<td><span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.7rem;font-weight:600;background:' + subjSc.bg + ';color:' + (subjSc.tc||'#fff') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + subjShort + '</span></td>';
         html += '<td><span class="tag tag-stage">' + c.stage + '</span></td>';
         var typeColor = c.type === 'concept' ? '#636363' : '#b0b0b0';
         html += '<td><span style="display:inline-block;padding:0.15rem 0.5rem;border-radius:6px;font-size:0.72rem;font-weight:600;background:' + typeColor + ';color:#fff;">' + (c.type === 'concept' ? 'Concept' : 'Fluency') + '</span></td>';
