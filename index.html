@@ -9810,7 +9810,7 @@ function _renderPromoXrefStudent() {
         var fpC = document.getElementById('promo-xref-fp-canvas');
         if (fpC && fpLong) {
             fpC.width = fpC.offsetWidth || 700; fpC.height = 220;
-            drawXrefAlignedFpGraph(fpC, fpLong.points, fpLong.gle, MP, {seqX: true, goalSegs: fpGoalSegs.length ? fpGoalSegs : null});
+            drawXrefAlignedFpGraph(fpC, fpLong.points, fpLong.gle, MP, {goalSegs: fpGoalSegs.length ? fpGoalSegs : null});
         }
         var mapElaC = document.getElementById('promo-xref-mapela-canvas');
         if (mapElaC && mapElaPts.length >= 2) {
@@ -9967,6 +9967,7 @@ function drawXrefAlignedFpGraph(canvas, points, gle, masterPeriods, opts) {
     ctx.fillStyle='#fafafa';ctx.fillRect(0,0,W,H);
     [[2,3],[5,6],[8,9],[11,12],[14,15]].forEach(function(p){ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(xOf(p[0]),padT,xOf(p[1])-xOf(p[0]),plotH);});
     ['20/21','21/22','22/23','23/24','24/25','25/26'].forEach(function(l,yi){ctx.fillStyle='#c7c7cc';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText(l,xOf(yi*3+1),padT+10);});
+    for(var _iv=Math.ceil(yMin);_iv<=Math.floor(yMax);_iv++){var _gy=yOf(_iv);ctx.strokeStyle='#ebebf0';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(padL,_gy);ctx.lineTo(padL+plotW,_gy);ctx.stroke();ctx.fillStyle='#8e8e93';ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';ctx.fillText(_iv,padL-4,_gy+3);}
     if(opts.goalSegs && opts.goalSegs.length){
         var _fpStep=N>1?plotW/(N-1):plotW;
         opts.goalSegs.forEach(function(gs){if(gs.value===null)return;var i1=masterPeriods.indexOf(gs.fromPeriod),i2=masterPeriods.indexOf(gs.toPeriod);if(i1<0||i2<0)return;var gy=yOf(gs.value),x1=Math.max(padL,xOf(i1)-_fpStep*0.3),x2=Math.min(padL+plotW,xOf(i2)+_fpStep*0.3);ctx.save();ctx.strokeStyle='#34c759';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(x1,gy);ctx.lineTo(x2,gy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#34c759';ctx.font='bold 8px -apple-system,sans-serif';ctx.textAlign='left';ctx.fillText('GLE',x2+3,gy+3);ctx.restore();});
