@@ -955,7 +955,7 @@
         #wd-root .wd-filter-bar select { padding:5px 10px; border-radius:8px; border:1px solid #d1d1d6; background:#fff; font-family:inherit; font-size:.8rem; color:#1a1a2e; cursor:pointer; }
         #wd-root .wd-tbl-wrap { overflow-x:auto; overflow-y:auto; max-height:65vh; border-radius:16px; border:1px solid #f0f0f0; }
         #wd-root table { width:100%; border-collapse:collapse; font-size:.8rem; }
-        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:#fff; border-bottom:1px solid #4a4948; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; position:sticky; top:0; z-index:5; background:#5c5b5a; }
+        #wd-root thead th { padding:7px 9px; font-weight:700; font-size:.66rem; letter-spacing:.04em; color:#fff; border-bottom:1px solid #4a4948; white-space:nowrap; text-align:left; cursor:pointer; user-select:none; position:sticky; top:0; z-index:5; background:#5c5b5a; }
         #wd-root thead th:hover { color:#fff; background:#4a4948; }
         #wd-root thead th.sort-active { color:#fff; background:#3a3a3c; }
         #wd-root thead th.center { text-align:center; }
@@ -15973,11 +15973,11 @@ function renderGroupsView() {
     var html = '<div class="wd-card"><div class="wd-section-title">Cross-Level Comparison — BOY → MOY</div>'
         + '<p style="font-size:.75rem;color:#94a3b8;margin:0 0 14px">Shows overall average scores per level. Click a level button above to load it.</p>'
         + '<div class="wd-tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr>'
-        + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">Level</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">Students</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">BOY Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">MOY Avg</th>'
-        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-bottom:1px solid #4a4948">BOY→MOY Growth</th>'
+        + '<th style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;color:#fff;border-bottom:1px solid #4a4948">Level</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;color:#fff;border-bottom:1px solid #4a4948">Students</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;color:#fff;border-bottom:1px solid #4a4948">BOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;color:#fff;border-bottom:1px solid #4a4948">MOY Avg</th>'
+        + '<th class="center" style="padding:7px 9px;font-size:.65rem;font-weight:700;letter-spacing:.06em;color:#fff;border-bottom:1px solid #4a4948">BOY→MOY Growth</th>'
         + '</tr></thead><tbody>'
         + levelKeys.map(function(key, i) {
             var cfg = LEVELS[key];
@@ -16018,8 +16018,8 @@ function renderCategoryView() {
         +'<div class="wd-card"><div class="wd-section-title">'+CATS[catDiveIdx]+' · click header to sort</div>'
         +'<div class="wd-tbl-wrap"><table id="wd-tbl-catdive"><thead><tr>'
         +makeSortTh('Student','name','catDive')+makeSortTh('Level','al','catDive')
-        +makeSortTh('BOY','fallScore','catDive',true)+'<th>BOY bar</th>'
-        +makeSortTh('MOY','winterScore','catDive',true)+'<th>MOY bar</th>'
+        +makeSortTh('BOY','fallScore','catDive',true)+'<th>BOY Bar</th>'
+        +makeSortTh('MOY','winterScore','catDive',true)+'<th>MOY Bar</th>'
         +makeSortTh('BOY→MOY','growth','catDive',true)
         +'</tr></thead><tbody>'
         +sorted.map(function(r,i){return'<tr style="background:'+(i%2?'#fafafa':'#fff')+'">'
