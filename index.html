@@ -9544,7 +9544,7 @@ function _renderPromoCrossRef() {
     if (!body) return;
     body.innerHTML = '<div style="padding:3rem;text-align:center;color:#aeaeb2;font-size:.88rem;">Loading cross-reference data…</div>';
 
-    var tasks = 3;
+    var tasks = 4;
     function tick() { if (--tasks <= 0) _drawPromoCrossRef(); }
 
     // FP longitudinal data
@@ -9570,6 +9570,10 @@ function _renderPromoCrossRef() {
             wbLongData = parseWbLongCsv(t); tick();
         }).catch(function(){ tick(); });
     }
+
+    // MAP data (ELA + Math)
+    if (mapData) { tick(); }
+    else { loadMapData(tick); }
 }
 
 function _drawPromoCrossRef() {
@@ -9597,7 +9601,7 @@ function _drawPromoCrossRef() {
             return '<option value="'+s.name.replace(/"/g,'&quot;')+'"'+(s.name===promoXrefSel?' selected':'')+'>'+s.name+'</option>';
         }).join('')
         +'</select>'
-        +'<span style="font-size:.72rem;color:#94a3b8;">Shows AL progression + F&amp;P, Computation, and Writing performance together</span>'
+        +'<span style="font-size:.72rem;color:#94a3b8;">Shows AL progression + Computation, MAP Math, Writing, F&amp;P, and MAP ELA together</span>'
         +'</div>'
         +'<div id="promo-xref-student-body"></div>';
 
@@ -9627,10 +9631,10 @@ function _renderPromoXrefStudent() {
         if (y.r.moyAL) alPts.push({lbl:y.label+' MOY', al:y.r.moyAL, att:y.r.eoyAttempted, suc:y.r.eoySuccess});
     });
 
-    // --- F&P data (same as F&P tab individual student graph) ---
+    // --- F&P data ---
     var fpLong = xrefFindStudent(fpLongData, name);
 
-    // --- Comp data: build pts array exactly as renderBenchStudentGrowth does ---
+    // --- Comp data ---
     var compLong = xrefFindStudent(benchLongData, name);
     var compLinePts = [];
     if (compLong) {
@@ -9642,7 +9646,7 @@ function _renderPromoXrefStudent() {
         });
     }
 
-    // --- Writing data: build pts + goalSegs exactly as renderWbStudentGrowth does ---
+    // --- Writing data ---
     var wbLong = xrefFindStudent(wbLongData, name);
     var wbLinePts = [], wbGoalSegs = [];
     if (wbLong) {
@@ -9657,6 +9661,20 @@ function _renderPromoXrefStudent() {
         });
     }
 
+    // --- MAP data ---
+    var mapRec = (mapData && mapData.students) ? mapData.students.find(function(s){ return xrefNorm(s.name)===norm; }) : null;
+    var mapElaPts = [], mapMathPts = [];
+    if (mapRec) {
+        var _elaPer = (mapData.elaPeriods)||[];
+        mapElaPts = (mapRec.elaScores||[]).map(function(s,i){
+            return {period:_elaPer[i]||'P'+(i+1), score:parseFloat(s)||null, pct:parseFloat((mapRec.elaPcts||[])[i])||null};
+        }).filter(function(x){ return x.score!==null; });
+        var _mathPer = (mapData.mathPeriods)||[];
+        mapMathPts = (mapRec.mathScores||[]).map(function(s,i){
+            return {period:_mathPer[i]||'P'+(i+1), score:parseFloat(s)||null, pct:parseFloat((mapRec.mathPcts||[])[i])||null};
+        }).filter(function(x){ return x.score!==null; });
+    }
+
     function xrefChartWrap(id, title, colorSwatch, height) {
         return '<div style="background:#fff;border-radius:14px;border:1px solid #e8e8ed;overflow:hidden;margin-bottom:1rem;">'
             +'<div style="background:#5c5b5a;color:#fff;padding:0.55rem 1rem;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:8px;">'
@@ -9666,6 +9684,7 @@ function _renderPromoXrefStudent() {
             +'</div>';
     }
 
+    // Order: AL → Comp → MAP Math → Writing → F&P → MAP ELA
     var html = '';
 
     if (alPts.length) {
@@ -9674,14 +9693,20 @@ function _renderPromoXrefStudent() {
             +'<canvas id="promo-xref-al-canvas" style="width:100%;height:180px;display:block;"></canvas>'
             +'</div>';
     }
-    if (fpLong) {
-        html += xrefChartWrap('promo-xref-fp-canvas', 'F&amp;P Reading Level', '#FFC8BB', 200);
-    }
     if (compLinePts.length >= 2) {
         html += xrefChartWrap('promo-xref-comp-canvas', 'Computation Benchmark', '#00E3FF', 180);
     }
+    if (mapMathPts.length >= 2) {
+        html += xrefChartWrap('promo-xref-mapmath-canvas', 'MAP Math', '#60a5fa', 180);
+    }
     if (wbLinePts.length >= 2) {
         html += xrefChartWrap('promo-xref-wb-canvas', 'Writing Benchmark', '#E87BB0', 180);
+    }
+    if (fpLong) {
+        html += xrefChartWrap('promo-xref-fp-canvas', 'F&amp;P Reading Level', '#FFC8BB', 200);
+    }
+    if (mapElaPts.length >= 2) {
+        html += xrefChartWrap('promo-xref-mapela-canvas', 'MAP ELA', '#FFC8BB', 180);
     }
     el.innerHTML = html;
 
@@ -9691,20 +9716,30 @@ function _renderPromoXrefStudent() {
             alC.width = alC.offsetWidth || 700; alC.height = 180;
             _drawPromoXrefALChart(alC, alPts);
         }
-        var fpC = document.getElementById('promo-xref-fp-canvas');
-        if (fpC && fpLong) {
-            fpC.width = fpC.offsetWidth || 700; fpC.height = 200;
-            drawFpGrowthGraph(fpC, fpLong.points, fpLong.gle);
-        }
         var compC = document.getElementById('promo-xref-comp-canvas');
         if (compC && compLinePts.length >= 2) {
             compC.width = compC.offsetWidth || 700; compC.height = 180;
             drawMapLineGraph(compC, compLinePts, '#00E3FF');
         }
+        var mapMathC = document.getElementById('promo-xref-mapmath-canvas');
+        if (mapMathC && mapMathPts.length >= 2) {
+            mapMathC.width = mapMathC.offsetWidth || 700; mapMathC.height = 180;
+            drawMapLineGraph(mapMathC, mapMathPts, '#60a5fa');
+        }
         var wbC = document.getElementById('promo-xref-wb-canvas');
         if (wbC && wbLinePts.length >= 2) {
             wbC.width = wbC.offsetWidth || 700; wbC.height = 180;
             drawMapLineGraph(wbC, wbLinePts, '#E87BB0', wbGoalSegs.length ? wbGoalSegs : null);
+        }
+        var fpC = document.getElementById('promo-xref-fp-canvas');
+        if (fpC && fpLong) {
+            fpC.width = fpC.offsetWidth || 700; fpC.height = 200;
+            drawFpGrowthGraph(fpC, fpLong.points, fpLong.gle);
+        }
+        var mapElaC = document.getElementById('promo-xref-mapela-canvas');
+        if (mapElaC && mapElaPts.length >= 2) {
+            mapElaC.width = mapElaC.offsetWidth || 700; mapElaC.height = 180;
+            drawMapLineGraph(mapElaC, mapElaPts, '#FFC8BB');
         }
     });
 }
